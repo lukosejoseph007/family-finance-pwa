@@ -7,7 +7,8 @@ import {
 	jsonb,
 	integer,
 	boolean,
-	decimal
+	decimal,
+	type AnyPgColumn
 } from 'drizzle-orm/pg-core';
 
 // ENUMS
@@ -73,7 +74,7 @@ export const categories = pgTable('categories', {
 	color: text('color').default('#6366f1'),
 	priorityOrder: integer('priority_order').default(0),
 	isActive: boolean('is_active').default(true),
-	parentId: uuid('parent_id').references((): any => categories.id, { onDelete: 'set null' })
+	parentId: uuid('parent_id').references((): AnyPgColumn => categories.id, { onDelete: 'set null' })
 });
 
 export const transactions = pgTable('transactions', {
@@ -92,4 +93,12 @@ export const transactions = pgTable('transactions', {
 	memo: text('memo'),
 	isCleared: boolean('is_cleared').default(false),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+});
+
+export const sessions = pgTable('sessions', {
+	id: text('id').primaryKey(),
+	userId: uuid('user_id')
+		.references(() => users.id, { onDelete: 'cascade' })
+		.notNull(),
+	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull()
 });

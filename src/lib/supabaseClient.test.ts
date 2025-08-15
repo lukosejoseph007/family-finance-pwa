@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { signUp, signIn, signOut } from './supabaseClient';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 vi.mock('@supabase/supabase-js', () => ({
 	createClient: vi.fn(() => ({
@@ -8,7 +8,13 @@ vi.mock('@supabase/supabase-js', () => ({
 			signUp: vi.fn(),
 			signInWithPassword: vi.fn(),
 			signOut: vi.fn()
-		}
+		},
+		from: vi.fn(() => ({
+			select: vi.fn(() => ({})),
+			insert: vi.fn(() => ({})),
+			update: vi.fn(() => ({})),
+			delete: vi.fn(() => ({}))
+		}))
 	}))
 }));
 

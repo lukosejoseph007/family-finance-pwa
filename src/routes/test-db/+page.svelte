@@ -4,12 +4,10 @@
 
 	let testResults: string[] = [];
 	let isLoading = false;
-	let hasError = false;
 
 	async function testDatabaseConnection() {
 		console.log('🚀 Starting database connection test...');
 		isLoading = true;
-		hasError = false;
 		testResults = ['🔍 Starting database connection test...'];
 
 		try {
@@ -79,10 +77,13 @@
 			}
 
 			testResults = [...testResults, '🎉 Database testing complete!'];
-		} catch (error: any) {
+		} catch (error) {
 			console.error('Database test error:', error);
-			testResults = [...testResults, `💥 Unexpected error: ${error.message || error}`];
-			hasError = true;
+			if (error instanceof Error) {
+				testResults = [...testResults, `💥 Unexpected error: ${error.message}`];
+			} else {
+				testResults = [...testResults, `💥 Unexpected error: ${error}`];
+			}
 		} finally {
 			isLoading = false;
 			console.log('Database test finished');
@@ -107,7 +108,7 @@
 		</div>
 
 		<div class="space-y-2 font-mono text-sm">
-			{#each testResults as result}
+			{#each testResults as result, i (i)}
 				<div class="rounded border bg-white p-2">
 					{result}
 				</div>

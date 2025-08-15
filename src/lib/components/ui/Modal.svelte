@@ -49,7 +49,7 @@
 <svelte:window on:keydown={handleKeydown} />
 
 {#if open}
-	<div class={modalClasses} on:click={handleBackdropClick}>
+	<div class={modalClasses} on:click={handleBackdropClick} on:keydown={handleKeydown} role="dialog" aria-modal="true" tabindex="-1">
 		<!-- Backdrop -->
 		<div class="bg-opacity-50 fixed inset-0 bg-black transition-opacity"></div>
 
@@ -69,6 +69,7 @@
 							type="button"
 							class="text-gray-400 transition-colors hover:text-gray-600"
 							on:click={closeModal}
+							aria-label="Close"
 						>
 							<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path

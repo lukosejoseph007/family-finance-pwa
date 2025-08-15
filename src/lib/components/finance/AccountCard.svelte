@@ -13,7 +13,7 @@
 	export let clickable = false;
 	export let showType = true;
 
-	$: accountTypeConfig = {
+	const accountTypeConfig = {
 		checking: { icon: '🏦', label: 'Checking', color: 'blue' },
 		savings: { icon: '💰', label: 'Savings', color: 'green' },
 		credit_card: { icon: '💳', label: 'Credit Card', color: 'red' },

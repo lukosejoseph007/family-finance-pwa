@@ -21,7 +21,7 @@
 	<p class="mt-2 text-gray-600">You are signed in as: {data.session?.user?.email}</p>
 
 	<button
-		on:click={handleSignOut}
+		onclick={handleSignOut}
 		class="focus:shadow-outline mt-6 rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-600 focus:outline-none"
 	>
 		Sign Out

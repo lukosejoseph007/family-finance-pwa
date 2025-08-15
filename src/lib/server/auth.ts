@@ -28,7 +28,7 @@ export async function createSession(token: string, userId: string) {
 
 	if (isDatabaseConnected() && db) {
 		try {
-			await db.insert(table.session).values(session);
+			await db.insert(table.sessions).values(session);
 			console.log('Session created in database:', session);
 		} catch (error) {
 			console.error('Failed to create session in database:', error);
@@ -49,8 +49,8 @@ export async function validateSession(token: string) {
 		try {
 			const sessions = await db
 				.select()
-				.from(table.session)
-				.where(eq(table.session.id, sessionId))
+				.from(table.sessions)
+				.where(eq(table.sessions.id, sessionId))
 				.limit(1);
 			const session = sessions[0] || null;
 
@@ -78,7 +78,7 @@ export async function invalidateSession(token: string) {
 
 	if (isDatabaseConnected() && db) {
 		try {
-			await db.delete(table.session).where(eq(table.session.id, sessionId));
+			await db.delete(table.sessions).where(eq(table.sessions.id, sessionId));
 			console.log('Session invalidated in database');
 		} catch (error) {
 			console.error('Failed to invalidate session in database:', error);

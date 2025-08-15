@@ -34,9 +34,15 @@
 	]
 		.filter(Boolean)
 		.join(' ');
+
+	function handleKeyDown(event: KeyboardEvent) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			(event.currentTarget as HTMLDivElement).click();
+		}
+	}
 </script>
 
-<div class={cardClasses} on:click>
+<div class={cardClasses} on:click on:keydown={handleKeyDown} role="button" tabindex="0">
 	{#if title || subtitle || $$slots.header}
 		<div class="mb-6 {padding === 'none' ? 'p-6 pb-0' : ''}">
 			<slot name="header">

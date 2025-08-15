@@ -10,3 +10,23 @@ declare module '@inlang/paraglide-js/server' {
 declare module '@inlang/paraglide-js/runtime' {
 	export function deLocalizeUrl(url: string): { pathname: string };
 }
+
+// Chart types
+import type { ChartData, ChartOptions, TooltipItem } from 'chart.js';
+
+export type ChartType = 'line' | 'bar' | 'doughnut';
+
+export type FinanceChartData = ChartData & {
+	// You can add any specific properties for your chart data here
+};
+
+export type FinanceChartOptions = ChartOptions & {
+	cutout?: string;
+	plugins?: {
+		legend?: {
+			position?: 'top' | 'bottom' | 'left' | 'right';
+		};
+	};
+};
+
+export type TooltipLabelContext = TooltipItem<ChartType>;

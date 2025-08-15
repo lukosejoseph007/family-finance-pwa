@@ -4,8 +4,7 @@
 		createExpenseByCategory,
 		createMonthlyTrend,
 		createBudgetComparison,
-		formatCurrency,
-		generateMonthLabels
+		formatCurrency
 	} from '$lib/components/charts/ChartUtils';
 
 	// Sample data for demonstrations
@@ -35,7 +34,6 @@
 	const budgetChart = createBudgetComparison(budgetCategories, budgetPlanned, budgetActual);
 
 	// Calculate some summary stats
-	const totalExpenses = expenseCategoryData.reduce((sum, item) => sum + item.amount, 0);
 	const currentMonthIncome = monthlyIncomeData[monthlyIncomeData.length - 1];
 	const currentMonthExpenses = monthlyExpenseData[monthlyExpenseData.length - 1];
 	const monthlySavings = currentMonthIncome - currentMonthExpenses;

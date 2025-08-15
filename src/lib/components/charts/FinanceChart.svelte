@@ -15,6 +15,11 @@
 		BarController,
 		DoughnutController
 	} from 'chart.js';
+	import type {
+		FinanceChartData,
+		FinanceChartOptions,
+		TooltipLabelContext
+	} from '../../../declarations';
 
 	// Register Chart.js components and controllers
 	ChartJS.register(
@@ -33,7 +38,7 @@
 	);
 
 	export let type: 'line' | 'bar' | 'doughnut' = 'line';
-	export let data: any;
+	export let data: FinanceChartData;
 	export let title = '';
 	export let height = '400px';
 
@@ -60,7 +65,7 @@
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
 
-		const options: any = {
+		const options: FinanceChartOptions = {
 			responsive: true,
 			maintainAspectRatio: false,
 			plugins: {
@@ -83,7 +88,7 @@
 					borderWidth: 1,
 					cornerRadius: 8,
 					callbacks: {
-						label: function (context: any) {
+						label: function (context: TooltipLabelContext) {
 							const value = context.parsed.y || context.parsed;
 							return `${context.dataset.label || context.label}: $${value.toLocaleString()}`;
 						}
@@ -101,7 +106,7 @@
 						color: '#E5E7EB'
 					},
 					ticks: {
-						callback: function (value: any) {
+						callback: function (value: string | number) {
 							return '$' + value.toLocaleString();
 						}
 					}
@@ -115,7 +120,9 @@
 		} else {
 			// Doughnut specific options
 			options.cutout = '60%';
-			options.plugins.legend.position = 'right';
+			if (options.plugins && options.plugins.legend) {
+				options.plugins.legend.position = 'right';
+			}
 		}
 
 		// Line chart specific styling

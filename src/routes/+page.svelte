@@ -30,9 +30,13 @@
 			}
 			console.log('Redirecting to dashboard...');
 			goto('/dashboard');
-		} catch (err: any) {
+		} catch (err) {
 			console.error('Caught an error during auth:', err);
-			error = err.message || 'An error occurred during authentication';
+			if (err instanceof Error) {
+				error = err.message;
+			} else {
+				error = 'An unknown error occurred';
+			}
 		} finally {
 			loading = false;
 			console.log('Finished auth process.');
@@ -83,7 +87,7 @@
 					{loading ? 'Loading...' : isSigningIn ? 'Sign In' : 'Sign Up'}
 				</button>
 				<a
-					href="#"
+					href="#!"
 					class="inline-block align-baseline text-sm font-bold text-blue-500 hover:text-blue-800"
 					on:click|preventDefault={() => (isSigningIn = !isSigningIn)}
 				>

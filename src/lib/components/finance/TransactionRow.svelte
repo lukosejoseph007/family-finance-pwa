@@ -23,6 +23,12 @@
 
 	$: isIncome = transaction.amount > 0;
 	$: amountClasses = isIncome ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+
+	function handleKeyDown(event: KeyboardEvent) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			(event.currentTarget as HTMLDivElement).click();
+		}
+	}
 </script>
 
 <div
@@ -30,6 +36,9 @@
 		? 'cursor-pointer'
 		: ''}"
 	on:click
+	on:keydown={handleKeyDown}
+	role="button"
+	tabindex="0"
 >
 	<!-- Transaction Info -->
 	<div class="min-w-0 flex-1">

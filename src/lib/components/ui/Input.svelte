@@ -8,7 +8,7 @@
 	export let required = false;
 	export let id = '';
 	export let name = '';
-	export let autocomplete = '';
+	export let autocomplete: string | undefined = undefined;
 
 	let className = '';
 	export { className as class };
@@ -47,7 +47,7 @@
 		{placeholder}
 		{disabled}
 		{required}
-		{autocomplete}
+		autocomplete={autocomplete as any}
 		class={inputClasses}
 		bind:value
 		on:input
