@@ -74,11 +74,36 @@ In your Vercel dashboard, go to **Project Settings** → **Environment Variables
 4. Select **Environment**: `Production`, `Preview`, and `Development`
 5. Click **"Save"**
 
-## Step 6: Deploy
+## Step 6: Deploy with Build Cache Fix
 
-1. After adding environment variables, go to **Deployments** tab
-2. Click **"Redeploy"** if needed, or trigger a new deployment by pushing code
-3. Wait for deployment to complete (~3-5 minutes)
+### 🚨 CRITICAL: Clear Build Cache First
+Recent fixes require a fresh build to resolve dependency conflicts:
+
+1. **Commit Fixed Configuration** (if not done already):
+   ```bash
+   git add .
+   git commit -m "Fix Vercel deployment: remove unused mdsvex dependency"
+   git push origin main
+   ```
+
+2. **Deploy with Fresh Build**:
+   - Go to **Deployments** tab in Vercel dashboard
+   - Click **"Redeploy"** on latest deployment
+   - **❌ IMPORTANT**: Select "Don't use existing Build Cache"
+   - This prevents cached `mdsvex` and Rollup dependency issues
+
+3. **Monitor Build Process**:
+   - Expected build time: ~3-5 minutes
+   - Watch for successful dependency resolution
+   - Build should complete without `mdsvex` or `@rollup/rollup-linux-x64-gnu` errors
+
+### Build Success Indicators:
+```
+✅ Installing dependencies (clean npm install)
+✅ Running svelte-kit sync (no mdsvex errors)
+✅ Building with Vite (no rollup issues)
+✅ Optimizing for Vercel deployment
+```
 
 ## Step 7: Update PUBLIC_APP_URL
 
@@ -116,25 +141,41 @@ In your Supabase dashboard:
 
 ## Troubleshooting
 
-### Build Fails
-- Check build logs in Vercel dashboard
-- Verify all environment variables are set
-- Check Node.js version compatibility
+### Build Fails with "Cannot find module 'mdsvex'"
+**Fixed in latest version** - This error occurred because:
+- `mdsvex` was imported in `svelte.config.js` but not actually used
+- **Solution**: Removed unused `mdsvex` import and dependency
+
+### Build Fails with "Cannot find module '@rollup/rollup-linux-x64-gnu'"
+**npm dependency bug** - This is a known npm issue:
+- **Root Cause**: npm optional dependency resolution bug
+- **Solution**: Clear build cache when redeploying:
+  - Select "Don't use existing Build Cache" in Vercel
+  - Or run `npm install` after removing `package-lock.json` and `node_modules`
+
+### General Build Failures
+- Check build logs in Vercel dashboard for specific errors
+- Verify all environment variables are set correctly
+- Ensure Node.js version compatibility (`>=18.0.0`)
+- Clear build cache if configuration recently changed
 
 ### App Loads but Database Errors
 - Verify Supabase environment variables are correct
 - Check RLS policies are enabled
 - Verify service role key is set correctly
+- Test database connection from Supabase dashboard
 
 ### Authentication Issues
-- Check Supabase URL configuration
-- Verify redirect URLs are set correctly
+- Check Supabase URL configuration in Auth settings
+- Verify redirect URLs include your Vercel domain
 - Check environment variables are available in runtime
+- Test auth flow with browser dev tools for network errors
 
 ### PWA Not Working
-- Verify `PUBLIC_PWA_ENABLED=true`
-- Check service worker is generated
-- Test on HTTPS (required for PWA)
+- Verify `PUBLIC_PWA_ENABLED=true` in environment variables
+- Check service worker is generated in build output
+- Test on HTTPS domain (required for PWA features)
+- Verify manifest.json is accessible at `/manifest.json`
 
 ## Useful Commands
 
