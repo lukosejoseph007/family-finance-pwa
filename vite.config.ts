@@ -3,6 +3,7 @@ import devtoolsJson from 'vite-plugin-devtools-json';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 
 export default defineConfig({
 	plugins: [
@@ -12,6 +13,139 @@ export default defineConfig({
 		paraglideVitePlugin({
 			project: './project.inlang',
 			outdir: './src/lib/paraglide'
+		}),
+		SvelteKitPWA({
+			srcDir: './src',
+			mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+			scope: '/',
+			base: '/',
+			selfDestroying: false,
+			manifest: {
+				short_name: 'Family Finance',
+				name: 'Family Finance - YNAB for Indian Families',
+				start_url: '/',
+				scope: '/',
+				display: 'standalone',
+				theme_color: '#2563eb',
+				background_color: '#ffffff',
+				description: 'A comprehensive family finance management PWA using YNAB methodology, designed specifically for Indian families with rupee support.',
+				categories: ['finance', 'productivity', 'business'],
+				icons: [
+					{
+						src: '/pwa-64x64.png',
+						sizes: '64x64',
+						type: 'image/png'
+					},
+					{
+						src: '/pwa-192x192.png',
+						sizes: '192x192',
+						type: 'image/png'
+					},
+					{
+						src: '/pwa-512x512.png',
+						sizes: '512x512',
+						type: 'image/png',
+						purpose: 'any'
+					},
+					{
+						src: '/maskable-icon-512x512.png',
+						sizes: '512x512',
+						type: 'image/png',
+						purpose: 'maskable'
+					}
+				],
+				screenshots: [
+					{
+						src: '/screenshot1.png',
+						sizes: '1280x720',
+						type: 'image/png',
+						label: 'Dashboard view with financial charts'
+					},
+					{
+						src: '/screenshot2.png',
+						sizes: '1280x720',
+						type: 'image/png',
+						label: 'Budget management interface'
+					}
+				]
+			},
+			workbox: {
+				globPatterns: [
+					'**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'
+				],
+				navigateFallback: null,
+				runtimeCaching: [
+					{
+						urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'google-fonts-cache',
+							expiration: {
+								maxEntries: 10,
+								maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+							}
+						}
+					},
+					{
+						urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'gstatic-fonts-cache',
+							expiration: {
+								maxEntries: 10,
+								maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+							}
+						}
+					},
+					{
+						urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+						handler: 'CacheFirst',
+						options: {
+							cacheName: 'images-cache',
+							expiration: {
+								maxEntries: 50,
+								maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+							}
+						}
+					},
+					{
+						urlPattern: ({ request }) => request.destination === 'document',
+						handler: 'NetworkFirst',
+						options: {
+							cacheName: 'pages-cache',
+							expiration: {
+								maxEntries: 50,
+								maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
+							},
+							networkTimeoutSeconds: 3
+						}
+					},
+					{
+						urlPattern: ({ request }) =>
+							request.destination === 'script' || request.destination === 'style',
+						handler: 'StaleWhileRevalidate',
+						options: {
+							cacheName: 'assets-cache',
+							expiration: {
+								maxEntries: 100,
+								maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+							}
+						}
+					}
+				],
+				skipWaiting: true,
+				clientsClaim: true
+			},
+			kit: {
+				trailingSlash: 'never'
+			},
+			devOptions: {
+				enabled: true,
+				suppressWarnings: process.env.SUPPRESS_PWA_WARNINGS === 'true',
+				type: 'module',
+				navigateFallback: '/',
+				disableRuntimeConfig: false
+			}
 		})
 	],
 	test: {

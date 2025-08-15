@@ -10,25 +10,25 @@
 	export { className as class };
 
 	$: cardClasses = [
-		'bg-white rounded-lg transition-all',
+		'bg-white/70 backdrop-blur-xl rounded-2xl transition-all duration-300',
 
 		// Padding variants
 		padding === 'none' ? '' : padding === 'sm' ? 'p-4' : padding === 'lg' ? 'p-8' : 'p-6', // md
 
-		// Shadow variants
+		// Shadow variants with glassmorphism
 		shadow === 'none'
 			? ''
 			: shadow === 'sm'
-				? 'shadow-sm'
+				? 'shadow-lg shadow-black/5'
 				: shadow === 'lg'
-					? 'shadow-lg'
-					: 'shadow-md', // md
+					? 'shadow-2xl shadow-black/10'
+					: 'shadow-xl shadow-black/8', // md
 
-		// Border
-		border ? 'border border-gray-200' : '',
+		// Border with glassmorphism
+		border ? 'border border-white/30' : '',
 
-		// Hover effect
-		hover ? 'hover:shadow-lg hover:scale-[1.02] cursor-pointer' : '',
+		// Hover effect with glassmorphism
+		hover ? 'hover:shadow-2xl hover:shadow-black/10 hover:scale-[1.02] hover:bg-white/80 cursor-pointer' : '',
 
 		className
 	]
@@ -47,10 +47,10 @@
 		<div class="mb-6 {padding === 'none' ? 'p-6 pb-0' : ''}">
 			<slot name="header">
 				{#if title}
-					<h3 class="text-lg font-semibold text-gray-900">{title}</h3>
+					<h3 class="text-lg font-semibold text-gray-800">{title}</h3>
 				{/if}
 				{#if subtitle}
-					<p class="mt-2 text-sm text-gray-600">{subtitle}</p>
+					<p class="mt-2 text-sm text-gray-600/80">{subtitle}</p>
 				{/if}
 			</slot>
 		</div>
@@ -61,7 +61,7 @@
 	</div>
 
 	{#if $$slots.footer}
-		<div class="mt-6 border-t border-gray-200 pt-4 {padding === 'none' ? 'p-6 pt-4' : ''}">
+		<div class="mt-6 border-t border-white/30 pt-4 {padding === 'none' ? 'p-6 pt-4' : ''}">
 			<slot name="footer" />
 		</div>
 	{/if}

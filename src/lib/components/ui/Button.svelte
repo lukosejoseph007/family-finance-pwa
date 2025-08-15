@@ -10,26 +10,26 @@
 	export { className as class };
 
 	$: buttonClasses = [
-		'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed',
+		'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95',
 
 		// Size variants
 		size === 'sm'
-			? 'px-3 py-1.5 text-sm'
+			? 'px-3 py-2 text-sm'
 			: size === 'lg'
-				? 'px-6 py-3 text-lg'
-				: 'px-4 py-2 text-base', // md
+				? 'px-6 py-3.5 text-lg'
+				: 'px-4 py-2.5 text-base', // md
 
-		// Color variants
+		// Color variants with glassmorphism
 		variant === 'primary'
-			? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
+			? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 focus:ring-blue-500 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/40 backdrop-blur-sm border border-white/20'
 			: variant === 'secondary'
-				? 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500'
+				? 'bg-white/60 text-gray-700 hover:bg-white/80 focus:ring-gray-500 backdrop-blur-sm border border-white/30 shadow-lg shadow-black/5 hover:shadow-xl hover:shadow-black/10'
 				: variant === 'danger'
-					? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500'
+					? 'bg-gradient-to-r from-red-500 to-pink-600 text-white hover:from-red-600 hover:to-pink-700 focus:ring-red-500 shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/40 backdrop-blur-sm border border-white/20'
 					: variant === 'success'
-						? 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
+						? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 focus:ring-green-500 shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/40 backdrop-blur-sm border border-white/20'
 						: variant === 'outline'
-							? 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500'
+							? 'border border-gray-300/60 bg-white/40 text-gray-700 hover:bg-white/60 focus:ring-blue-500 backdrop-blur-sm shadow-sm hover:shadow-md hover:shadow-black/5'
 							: '',
 
 		// Width

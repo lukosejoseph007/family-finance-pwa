@@ -60,8 +60,23 @@
 		{ value: 'income', label: 'Income' }
 	];
 
-	onMount(async () => {
-		await loadCategories();
+	onMount(() => {
+		// Load categories asynchronously
+		loadCategories();
+		
+		// Listen for FAB click events
+		const handleFabClick = (event: CustomEvent) => {
+			if (event.detail.page === '/categories') {
+				openAddModal();
+			}
+		};
+		
+		window.addEventListener('fab-click', handleFabClick as EventListener);
+		
+		// Return cleanup function
+		return () => {
+			window.removeEventListener('fab-click', handleFabClick as EventListener);
+		};
 	});
 
 	async function loadCategories() {
@@ -191,7 +206,14 @@
 		};
 	}
 
-	const groupedCategories = $derived(() => {
+	let groupedCategories = $state<Record<string, Category[]>>({});
+	let totalBudgeted = $state(0);
+	let totalIncome = $state(0);
+	let unallocated = $state(0);
+
+	// Update computed values whenever categories change
+	$effect(() => {
+		// Update grouped categories
 		const groups: Record<string, Category[]> = {};
 		categories.forEach(category => {
 			if (!groups[category.type]) {
@@ -199,39 +221,71 @@
 			}
 			groups[category.type].push(category);
 		});
-		return groups;
-	});
+		groupedCategories = groups;
 
-	const totalBudgeted = $derived(() => {
-		return categories
+		// Update totals
+		totalBudgeted = categories
 			.filter(cat => cat.is_active && cat.type !== 'income')
 			.reduce((sum, cat) => sum + cat.budget_amount, 0);
-	});
 
-	const totalIncome = $derived(() => {
-		return categories
+		totalIncome = categories
 			.filter(cat => cat.is_active && cat.type === 'income')
 			.reduce((sum, cat) => sum + cat.budget_amount, 0);
-	});
 
-	const unallocated = $derived(() => totalIncome() - totalBudgeted());
+		unallocated = totalIncome - totalBudgeted;
+	});
 </script>
 
 <svelte:head>
 	<title>Categories - Family Finance</title>
 </svelte:head>
 
-<div class="space-y-8">
-	<!-- Header -->
-	<div class="flex items-center justify-between">
-		<div>
-			<h1 class="text-3xl font-bold text-gray-900">Budget Categories</h1>
-			<p class="mt-2 text-gray-600">Organize your spending with YNAB methodology for Indian families</p>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50">
+	<!-- Professional Header Section -->
+	<div class="relative overflow-hidden">
+		<!-- Background Pattern -->
+		<div class="absolute inset-0 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-700"></div>
+		<div class="absolute inset-0 bg-black/10"></div>
+		<div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%)"></div>
+		
+		<div class="relative px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+				<div class="flex-1">
+					<div class="flex items-center space-x-3 mb-4">
+						<div class="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+							<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+							</svg>
+						</div>
+						<div>
+							<h1 class="text-3xl sm:text-4xl font-bold text-white">Budget Categories</h1>
+							<p class="text-green-100 text-base sm:text-lg opacity-90 mt-1">
+								Organize your spending with YNAB methodology for Indian families
+							</p>
+						</div>
+					</div>
+				</div>
+				
+				<div class="flex-shrink-0">
+					<button
+						onclick={openAddModal}
+						class="group bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
+					>
+						<span class="inline-flex items-center">
+							<svg class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+							</svg>
+							Add Category
+						</span>
+					</button>
+				</div>
+			</div>
 		</div>
-		<Button on:click={openAddModal}>
-			Add Category
-		</Button>
 	</div>
+
+	<!-- Content Section -->
+	<div class="relative">
+		<div class="px-4 sm:px-6 lg:px-8 py-8 pb-12 space-y-8">
 
 	{#if loading}
 		<div class="text-center py-12">
@@ -255,18 +309,18 @@
 		<!-- Budget Summary Cards -->
 		<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
 			<Card class="text-center">
-				<div class="text-2xl font-bold text-blue-600">{formatCurrency(totalIncome())}</div>
+				<div class="text-2xl font-bold text-blue-600">{formatCurrency(totalIncome)}</div>
 				<p class="text-sm text-gray-600 mt-1">Monthly Income</p>
 			</Card>
 			
 			<Card class="text-center">
-				<div class="text-2xl font-bold text-orange-600">{formatCurrency(totalBudgeted())}</div>
+				<div class="text-2xl font-bold text-orange-600">{formatCurrency(totalBudgeted)}</div>
 				<p class="text-sm text-gray-600 mt-1">Total Budgeted</p>
 			</Card>
 			
 			<Card class="text-center">
-				<div class="text-2xl font-bold {unallocated() >= 0 ? 'text-green-600' : 'text-red-600'}">
-					{formatCurrency(unallocated())}
+				<div class="text-2xl font-bold {unallocated >= 0 ? 'text-green-600' : 'text-red-600'}">
+					{formatCurrency(unallocated)}
 				</div>
 				<p class="text-sm text-gray-600 mt-1">Unallocated</p>
 			</Card>
@@ -278,18 +332,18 @@
 		</div>
 
 		<!-- YNAB Rule 1 Alert -->
-		{#if unallocated() !== 0}
-			<div class="rounded-md {unallocated() > 0 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'} border p-4">
+		{#if unallocated !== 0}
+			<div class="rounded-md {unallocated > 0 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'} border p-4">
 				<div class="flex items-center">
-					<span class="text-2xl mr-3">{unallocated() > 0 ? '💡' : '⚠️'}</span>
+					<span class="text-2xl mr-3">{unallocated > 0 ? '💡' : '⚠️'}</span>
 					<div>
-						<h3 class="font-medium {unallocated() > 0 ? 'text-yellow-800' : 'text-red-800'}">
-							{unallocated() > 0 ? 'Unallocated Money Available' : 'Over-budgeted!'}
+						<h3 class="font-medium {unallocated > 0 ? 'text-yellow-800' : 'text-red-800'}">
+							{unallocated > 0 ? 'Unallocated Money Available' : 'Over-budgeted!'}
 						</h3>
-						<p class="text-sm {unallocated() > 0 ? 'text-yellow-700' : 'text-red-700'}">
-							{unallocated() > 0
-								? `You have ${formatCurrency(unallocated())} waiting to be assigned. Give every rupee a job!`
-								: `You've budgeted ${formatCurrency(Math.abs(unallocated()))} more than your income. Adjust your budget.`
+						<p class="text-sm {unallocated > 0 ? 'text-yellow-700' : 'text-red-700'}">
+							{unallocated > 0
+								? `You have ${formatCurrency(unallocated)} waiting to be assigned. Give every rupee a job!`
+								: `You've budgeted ${formatCurrency(Math.abs(unallocated))} more than your income. Adjust your budget.`
 							}
 						</p>
 					</div>
@@ -335,12 +389,13 @@
 											<p class="text-xs text-gray-500 mt-1">{category.description}</p>
 										{/if}
 									</div>
-									<div class="flex space-x-2 ml-2">
+									<div class="flex items-center space-x-1 ml-2">
 										<!-- Edit Button -->
 										<button
 											onclick={() => openEditModal(category)}
-											class="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-											aria-label="Edit category"
+											class="p-2 text-gray-400 hover:text-blue-600 rounded-md"
+											title="Edit category"
+											aria-label="Edit category {category.name}"
 										>
 											<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -348,33 +403,36 @@
 										</button>
 										
 										{#if category.is_active}
-											<!-- Archive Button -->
-											<button
-												onclick={() => openArchiveModal(category)}
-												class="p-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 transition-colors"
-												aria-label="Archive category"
-											>
-												<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8l4 4 4-4m0 0V4a1 1 0 011-1h4a1 1 0 011 1v4m-6 0h6m-6 0V8" />
-												</svg>
-											</button>
-											
 											<!-- Delete Button -->
 											<button
 												onclick={() => openDeleteModal(category)}
-												class="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-												aria-label="Delete category permanently"
+												class="p-2 text-gray-400 hover:text-red-600 rounded-md"
+												title="Delete category"
+												aria-label="Delete category {category.name}"
 											>
 												<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+												</svg>
+											</button>
+											
+											<!-- Archive Button -->
+											<button
+												onclick={() => openArchiveModal(category)}
+												class="p-2 text-gray-400 hover:text-orange-600 rounded-md"
+												title="Archive category"
+												aria-label="Archive category {category.name}"
+											>
+												<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8l4 4 4-4m0 0V4a1 1 0 011-1h4a1 1 0 011 1v4m-6 0h6m-6 0V8" />
 												</svg>
 											</button>
 										{:else}
 											<!-- Reactivate Button -->
 											<button
 												onclick={() => handleReactivate(category)}
-												class="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
-												aria-label="Reactivate category"
+												class="p-2 text-gray-400 hover:text-green-600 rounded-md"
+												title="Reactivate category"
+												aria-label="Reactivate category {category.name}"
 											>
 												<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -405,6 +463,8 @@
 			{/each}
 		{/if}
 	{/if}
+		</div>
+	</div>
 </div>
 
 <!-- Add Category Modal -->

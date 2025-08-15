@@ -1,14 +1,16 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { invalidateAll } from '$app/navigation';
 	import { Button, Input, Card } from '$lib/components';
-	import { createFamily, addUserToFamily } from '$lib/services/familyService';
+	import { createFamily, joinFamily } from '$lib/services/familyService';
 	import type { FamilyFormData } from '$lib/types';
 
 	let { data } = $props();
 	let currentStep = $state(1);
 	let loading = $state(false);
 	let error = $state('');
+	let joinMode = $state(false); // Toggle between create/join family
 
 	// Form data
 	let familyData: FamilyFormData = $state({
@@ -18,6 +20,28 @@
 			date_format: 'DD/MM/YYYY',
 			start_of_week: 1,
 			timezone: 'Asia/Kolkata'
+		}
+	});
+
+	// Join family data
+	let inviteCode = $state('');
+	let displayName = $state('');
+
+	// Check for pending invite code from signup
+	onMount(() => {
+		const pendingInviteCode = sessionStorage.getItem('pendingInviteCode');
+		const pendingDisplayName = sessionStorage.getItem('pendingDisplayName');
+		
+		if (pendingInviteCode) {
+			console.log('🔗 Found pending invite code from signup:', pendingInviteCode);
+			inviteCode = pendingInviteCode;
+			displayName = pendingDisplayName || '';
+			joinMode = true;
+			currentStep = 2; // Skip to step 2 for joining
+			
+			// Clear from session storage
+			sessionStorage.removeItem('pendingInviteCode');
+			sessionStorage.removeItem('pendingDisplayName');
 		}
 	});
 
@@ -52,6 +76,38 @@
 		}
 	}
 
+	async function joinExistingFamily() {
+		if (!inviteCode.trim() || !displayName.trim()) {
+			error = 'Please enter both invite code and display name';
+			return;
+		}
+
+		loading = true;
+		error = '';
+
+		try {
+			console.log('👥 Joining family with code:', inviteCode);
+			const result = await joinFamily({
+				inviteCode: inviteCode.trim(),
+				displayName: displayName.trim()
+			});
+			
+			console.log('✅ Successfully joined family:', result.family.name);
+			
+			// Invalidate all cached data and redirect
+			await invalidateAll();
+			
+			setTimeout(() => {
+				goto('/dashboard', { replaceState: true, invalidateAll: true });
+			}, 1000);
+			
+		} catch (err: any) {
+			console.error('❌ Error joining family:', err);
+			error = err.message || 'Failed to join family';
+			loading = false;
+		}
+	}
+
 	function nextStep() {
 		if (currentStep < 3) {
 			currentStep++;
@@ -62,6 +118,11 @@
 		if (currentStep > 1) {
 			currentStep--;
 		}
+	}
+
+	function toggleMode() {
+		joinMode = !joinMode;
+		error = '';
 	}
 </script>
 
@@ -131,51 +192,123 @@
 				</div>
 			</div>
 
-			<Button size="lg" on:click={nextStep}>Let's Get Started</Button>
-		</Card>
-
-	{:else if currentStep === 2}
-		<Card title="Set Up Your Family" class="p-8">
-			<div class="space-y-6">
-				<div class="text-center mb-6">
-					<h2 class="text-2xl font-bold text-gray-900 mb-2">Create Your Family</h2>
-					<p class="text-gray-600">
-						Enter your family or household name. This will help organize your financial data and 
-						allow you to invite other family members later.
-					</p>
-				</div>
-
-				{#if error}
-					<div class="rounded-md bg-red-50 p-4">
-						<div class="text-sm text-red-700">{error}</div>
-					</div>
-				{/if}
-
-				<Input
-					label="Family Name"
-					bind:value={familyData.name}
-					placeholder="e.g., The Sharma Family, Kumar Household"
-					required
-					class="text-lg"
-				/>
-
-				<div class="bg-blue-50 p-4 rounded-lg">
-					<h3 class="font-medium text-blue-900 mb-2">Default Settings</h3>
-					<div class="text-sm text-blue-800 space-y-1">
-						<p>• Currency: Indian Rupee (₹)</p>
-						<p>• Date Format: DD/MM/YYYY</p>
-						<p>• Week Start: Monday</p>
-						<p>• Timezone: Asia/Kolkata</p>
-					</div>
-					<p class="text-xs text-blue-700 mt-2">You can change these settings later.</p>
-				</div>
-
-				<div class="flex justify-between pt-4">
-					<Button variant="outline" on:click={prevStep}>Back</Button>
-					<Button on:click={nextStep} disabled={!familyData.name.trim()}>Continue</Button>
+			<div class="space-y-4">
+				<Button size="lg" on:click={nextStep}>Let's Get Started</Button>
+				
+				<div class="text-center">
+					<button 
+						type="button"
+						class="text-sm text-blue-600 hover:text-blue-500 underline"
+						on:click={toggleMode}
+					>
+						Have an invite code? Join an existing family instead
+					</button>
 				</div>
 			</div>
 		</Card>
+
+	{:else if currentStep === 2}
+		{#if joinMode}
+			<!-- Join Family Flow -->
+			<Card title="Join Existing Family" class="p-8">
+				<div class="space-y-6">
+					<div class="text-center mb-6">
+						<h2 class="text-2xl font-bold text-gray-900 mb-2">Join a Family</h2>
+						<p class="text-gray-600">
+							Enter the invite code you received to join an existing family's budget.
+						</p>
+					</div>
+
+					{#if error}
+						<div class="rounded-md bg-red-50 p-4">
+							<div class="text-sm text-red-700">{error}</div>
+						</div>
+					{/if}
+
+					<Input
+						label="Family Invite Code"
+						bind:value={inviteCode}
+						placeholder="Enter the invite code"
+						required
+						class="text-lg font-mono"
+					/>
+
+					<Input
+						label="Your Display Name"
+						bind:value={displayName}
+						placeholder="How should family members see your name?"
+						required
+						class="text-lg"
+					/>
+
+					<div class="bg-blue-50 p-4 rounded-lg">
+						<h3 class="font-medium text-blue-900 mb-2">What happens next:</h3>
+						<div class="text-sm text-blue-800 space-y-1">
+							<p>• You'll join the existing family as a member</p>
+							<p>• You can view and add transactions</p>
+							<p>• Budget editing depends on your assigned role</p>
+							<p>• Family admin can change your permissions later</p>
+						</div>
+					</div>
+
+					<div class="flex justify-between pt-4">
+						<Button variant="outline" on:click={() => { joinMode = false; currentStep = 1; }}>
+							Back to Create Family
+						</Button>
+						<Button 
+							{loading}
+							disabled={loading || !inviteCode.trim() || !displayName.trim()}
+							on:click={joinExistingFamily}
+						>
+							{loading ? 'Joining Family...' : 'Join Family'}
+						</Button>
+					</div>
+				</div>
+			</Card>
+		{:else}
+			<!-- Create Family Flow -->
+			<Card title="Set Up Your Family" class="p-8">
+				<div class="space-y-6">
+					<div class="text-center mb-6">
+						<h2 class="text-2xl font-bold text-gray-900 mb-2">Create Your Family</h2>
+						<p class="text-gray-600">
+							Enter your family or household name. This will help organize your financial data and 
+							allow you to invite other family members later.
+						</p>
+					</div>
+
+					{#if error}
+						<div class="rounded-md bg-red-50 p-4">
+							<div class="text-sm text-red-700">{error}</div>
+						</div>
+					{/if}
+
+					<Input
+						label="Family Name"
+						bind:value={familyData.name}
+						placeholder="e.g., The Sharma Family, Kumar Household"
+						required
+						class="text-lg"
+					/>
+
+					<div class="bg-blue-50 p-4 rounded-lg">
+						<h3 class="font-medium text-blue-900 mb-2">Default Settings</h3>
+						<div class="text-sm text-blue-800 space-y-1">
+							<p>• Currency: Indian Rupee (₹)</p>
+							<p>• Date Format: DD/MM/YYYY</p>
+							<p>• Week Start: Monday</p>
+							<p>• Timezone: Asia/Kolkata</p>
+						</div>
+						<p class="text-xs text-blue-700 mt-2">You can change these settings later.</p>
+					</div>
+
+					<div class="flex justify-between pt-4">
+						<Button variant="outline" on:click={prevStep}>Back</Button>
+						<Button on:click={nextStep} disabled={!familyData.name.trim()}>Continue</Button>
+					</div>
+				</div>
+			</Card>
+		{/if}
 
 	{:else if currentStep === 3}
 		<Card title="Ready to Start!" class="p-8">

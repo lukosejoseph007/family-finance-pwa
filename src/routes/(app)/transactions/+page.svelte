@@ -60,8 +60,23 @@
 	let formErrors: string[] = $state([]);
 	let saving = $state(false);
 
-	onMount(async () => {
-		await loadData();
+	onMount(() => {
+		// Load data asynchronously
+		loadData();
+		
+		// Listen for FAB click events
+		const handleFabClick = (event: CustomEvent) => {
+			if (event.detail.page === '/transactions') {
+				openAddModal();
+			}
+		};
+		
+		window.addEventListener('fab-click', handleFabClick as EventListener);
+		
+		// Return cleanup function
+		return () => {
+			window.removeEventListener('fab-click', handleFabClick as EventListener);
+		};
 	});
 
 	async function loadData() {
@@ -248,17 +263,52 @@
 	<title>Transactions - Family Finance</title>
 </svelte:head>
 
-<div class="space-y-6">
-	<!-- Header -->
-	<div class="flex items-center justify-between">
-		<div>
-			<h1 class="text-3xl font-bold text-gray-900">Transactions</h1>
-			<p class="mt-2 text-gray-600">Track your family's income and expenses</p>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-red-50">
+	<!-- Professional Header Section -->
+	<div class="relative overflow-hidden">
+		<!-- Background Pattern -->
+		<div class="absolute inset-0 bg-gradient-to-r from-orange-600 via-red-600 to-pink-700"></div>
+		<div class="absolute inset-0 bg-black/10"></div>
+		<div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%)"></div>
+		
+		<div class="relative px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+				<div class="flex-1">
+					<div class="flex items-center space-x-3 mb-4">
+						<div class="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+							<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+							</svg>
+						</div>
+						<div>
+							<h1 class="text-3xl sm:text-4xl font-bold text-white">Transactions</h1>
+							<p class="text-orange-100 text-base sm:text-lg opacity-90 mt-1">
+								Track your family's income and expenses
+							</p>
+						</div>
+					</div>
+				</div>
+				
+				<div class="flex-shrink-0">
+					<button
+						onclick={openAddModal}
+						class="group bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
+					>
+						<span class="inline-flex items-center">
+							<svg class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+							</svg>
+							Add Transaction
+						</span>
+					</button>
+				</div>
+			</div>
 		</div>
-		<Button on:click={openAddModal}>
-			Add Transaction
-		</Button>
 	</div>
+
+	<!-- Content Section -->
+	<div class="relative">
+		<div class="px-4 sm:px-6 lg:px-8 py-8 pb-12 space-y-6">
 
 	{#if loading}
 		<div class="text-center py-12">
@@ -320,9 +370,9 @@
 
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">Account</label>
-					<select 
+					<select
 						bind:value={selectedAccount}
-						on:change={handleFilterChange}
+						onchange={handleFilterChange}
 						class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
 					>
 						<option value="">All Accounts</option>
@@ -334,9 +384,9 @@
 
 				<div>
 					<label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-					<select 
+					<select
 						bind:value={selectedCategory}
-						on:change={handleFilterChange}
+						onchange={handleFilterChange}
 						class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
 					>
 						<option value="">All Categories</option>
@@ -371,7 +421,7 @@
 						<input
 							type="checkbox"
 							bind:checked={showClearedOnly}
-							on:change={handleFilterChange}
+							onchange={handleFilterChange}
 							class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
 						/>
 						<span class="ml-2 text-sm text-gray-700">Cleared only</span>
@@ -445,7 +495,7 @@
 								<div class="flex items-center space-x-2 ml-4">
 									<!-- Cleared Status -->
 									<button
-										on:click={() => handleToggleCleared(transaction)}
+										onclick={() => handleToggleCleared(transaction)}
 										class="p-1 rounded {transaction.is_cleared ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600'}"
 										title={transaction.is_cleared ? 'Mark as pending' : 'Mark as cleared'}
 									>
@@ -456,7 +506,7 @@
 
 									<!-- Edit -->
 									<button
-										on:click={() => openEditModal(transaction)}
+										onclick={() => openEditModal(transaction)}
 										class="p-1 text-gray-400 hover:text-gray-600"
 										title="Edit transaction"
 									>
@@ -467,7 +517,7 @@
 
 									<!-- Delete -->
 									<button
-										on:click={() => openDeleteModal(transaction)}
+										onclick={() => openDeleteModal(transaction)}
 										class="p-1 text-gray-400 hover:text-red-600"
 										title="Delete transaction"
 									>
@@ -510,11 +560,13 @@
 			</Card>
 		{/if}
 	{/if}
+		</div>
+	</div>
 </div>
 
 <!-- Add Transaction Modal -->
 <Modal bind:open={addModalOpen} title="Add New Transaction">
-	<form on:submit|preventDefault={handleSave} class="space-y-6">
+	<form onsubmit={(e) => { e.preventDefault(); handleSave(); }} class="space-y-6">
 		{#if formErrors.length > 0}
 			<div class="rounded-md bg-red-50 p-4">
 				<ul class="text-sm text-red-700 space-y-1">
@@ -607,7 +659,7 @@
 
 <!-- Edit Transaction Modal -->
 <Modal bind:open={editModalOpen} title="Edit Transaction">
-	<form on:submit|preventDefault={handleSave} class="space-y-6">
+	<form onsubmit={(e) => { e.preventDefault(); handleSave(); }} class="space-y-6">
 		{#if formErrors.length > 0}
 			<div class="rounded-md bg-red-50 p-4">
 				<ul class="text-sm text-red-700 space-y-1">

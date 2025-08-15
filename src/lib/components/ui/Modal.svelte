@@ -34,7 +34,7 @@
 	].join(' ');
 
 	$: contentClasses = [
-		'bg-white rounded-lg shadow-xl transform transition-all',
+		'bg-white/80 backdrop-blur-2xl rounded-2xl shadow-2xl shadow-black/20 border border-white/30 transform transition-all duration-300',
 		size === 'sm'
 			? 'max-w-sm w-full'
 			: size === 'lg'
@@ -50,28 +50,28 @@
 
 {#if open}
 	<div class={modalClasses} on:click={handleBackdropClick} on:keydown={handleKeydown} role="dialog" aria-modal="true" tabindex="-1">
-		<!-- Backdrop -->
-		<div class="bg-opacity-50 fixed inset-0 bg-black transition-opacity"></div>
+		<!-- Backdrop with glassmorphism -->
+		<div class="bg-black/40 backdrop-blur-sm fixed inset-0 transition-opacity duration-300"></div>
 
 		<!-- Modal content -->
 		<div class={contentClasses}>
 			<!-- Header -->
 			{#if title || closable || $$slots.header}
-				<div class="flex items-center justify-between border-b border-gray-200 p-6">
+				<div class="flex items-center justify-between border-b border-white/30 p-6">
 					<slot name="header">
 						{#if title}
-							<h2 class="text-xl font-semibold text-gray-900">{title}</h2>
+							<h2 class="text-xl font-semibold text-gray-800">{title}</h2>
 						{/if}
 					</slot>
 
 					{#if closable}
 						<button
 							type="button"
-							class="text-gray-400 transition-colors hover:text-gray-600"
+							class="text-gray-500 hover:text-gray-700 p-2 rounded-xl bg-white/40 hover:bg-white/60 backdrop-blur-sm transition-all duration-200"
 							on:click={closeModal}
 							aria-label="Close"
 						>
-							<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -91,7 +91,7 @@
 
 			<!-- Footer -->
 			{#if $$slots.footer}
-				<div class="flex justify-end gap-3 border-t border-gray-200 p-6">
+				<div class="flex justify-end gap-3 border-t border-white/30 p-6 bg-white/20 backdrop-blur-sm rounded-b-2xl">
 					<slot name="footer" />
 				</div>
 			{/if}

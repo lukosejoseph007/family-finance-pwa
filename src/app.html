@@ -1,11 +1,81 @@
 <!doctype html>
-<html lang="%paraglide.lang%">
+<html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Family Finance - YNAB for Indian Families</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		
+		<!-- PWA Meta Tags -->
+		<!-- Note: theme-color not supported by Firefox/Opera, but provides better UX on Chromium browsers -->
+		<meta name="theme-color" content="#2563eb" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+		<meta name="apple-mobile-web-app-title" content="Family Finance" />
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="application-name" content="Family Finance" />
+		
+		<!-- SEO & Description -->
+		<meta name="description" content="A comprehensive family finance management PWA using YNAB methodology, designed specifically for Indian families with rupee support." />
+		<meta name="keywords" content="family finance, budget, YNAB, Indian families, rupee, expense tracker, financial planning" />
+		<meta name="author" content="Family Finance Team" />
+		
+		<!-- Apple Touch Icons -->
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+		<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#2563eb" />
+		
+		<!-- Microsoft -->
+		<meta name="msapplication-TileColor" content="#2563eb" />
+		<meta name="msapplication-config" content="/browserconfig.xml" />
+		
+		<!-- Preload Critical Resources -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		
 		%sveltekit.head%
 	</head>
-	<body data-sveltekit-preload-data="hover">
-		<div style="display: contents">%sveltekit.body%</div>
+	<body data-sveltekit-preload-data="hover" class="bg-gray-50 overflow-x-hidden">
+		<noscript>
+			<div class="noscript-fallback">
+				<h1>JavaScript Required</h1>
+				<p>Family Finance requires JavaScript to function properly. Please enable JavaScript in your browser settings.</p>
+			</div>
+		</noscript>
+		<div class="sveltekit-body">%sveltekit.body%</div>
+		
+		<style>
+			.noscript-fallback {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				z-index: 9999;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				flex-direction: column;
+				padding: 2rem;
+				text-align: center;
+				background: #fee2e2;
+				color: #991b1b;
+				font-family: system-ui;
+			}
+			.sveltekit-body {
+				display: contents;
+				overflow-x: hidden;
+				width: 100%;
+			}
+			
+			/* Additional mobile fixes */
+			@media (max-width: 768px) {
+				body {
+					overflow-x: hidden !important;
+					position: relative;
+					width: 100vw;
+				}
+			}
+		</style>
 	</body>
 </html>

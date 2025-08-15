@@ -53,8 +53,23 @@
 		{ value: 'loan', label: 'Loan Account' }
 	];
 
-	onMount(async () => {
-		await loadAccounts();
+	onMount(() => {
+		// Load accounts asynchronously
+		loadAccounts();
+		
+		// Listen for FAB click events
+		const handleFabClick = (event: CustomEvent) => {
+			if (event.detail.page === '/accounts') {
+				openAddModal();
+			}
+		};
+		
+		window.addEventListener('fab-click', handleFabClick as EventListener);
+		
+		// Return cleanup function
+		return () => {
+			window.removeEventListener('fab-click', handleFabClick as EventListener);
+		};
 	});
 
 	async function loadAccounts() {
@@ -176,15 +191,19 @@
 		};
 	}
 
-	const groupedAccounts = $derived(() => {
+	let groupedAccounts = $state<Record<string, Account[]>>({});
+	
+	// Update grouped accounts whenever accounts change
+	$effect(() => {
 		const groups: Record<string, Account[]> = {};
 		accounts.forEach(account => {
-			if (!groups[account.type]) {
-				groups[account.type] = [];
+			const type = account.type;
+			if (!groups[type]) {
+				groups[type] = [];
 			}
-			groups[account.type].push(account);
+			groups[type].push(account);
 		});
-		return groups;
+		groupedAccounts = groups;
 	});
 </script>
 
@@ -192,17 +211,52 @@
 	<title>Accounts - Family Finance</title>
 </svelte:head>
 
-<div class="space-y-8">
-	<!-- Header -->
-	<div class="flex items-center justify-between">
-		<div>
-			<h1 class="text-3xl font-bold text-gray-900">Accounts</h1>
-			<p class="mt-2 text-gray-600">Manage your family's bank accounts and track balances</p>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+	<!-- Professional Header Section -->
+	<div class="relative overflow-hidden">
+		<!-- Background Pattern -->
+		<div class="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700"></div>
+		<div class="absolute inset-0 bg-black/10"></div>
+		<div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%)"></div>
+		
+		<div class="relative px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+				<div class="flex-1">
+					<div class="flex items-center space-x-3 mb-4">
+						<div class="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+							<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+							</svg>
+						</div>
+						<div>
+							<h1 class="text-3xl sm:text-4xl font-bold text-white">Accounts</h1>
+							<p class="text-blue-100 text-base sm:text-lg opacity-90 mt-1">
+								Manage your family's bank accounts and track balances
+							</p>
+						</div>
+					</div>
+				</div>
+				
+				<div class="flex-shrink-0">
+					<button
+						onclick={openAddModal}
+						class="group bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
+					>
+						<span class="inline-flex items-center">
+							<svg class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+							</svg>
+							Add Account
+						</span>
+					</button>
+				</div>
+			</div>
 		</div>
-		<Button on:click={openAddModal}>
-			Add Account
-		</Button>
 	</div>
+
+	<!-- Content Section -->
+	<div class="relative">
+		<div class="px-4 sm:px-6 lg:px-8 py-8 pb-12 space-y-8">
 
 	{#if loading}
 		<div class="text-center py-12">
@@ -287,12 +341,13 @@
 											<p class="text-xs text-gray-500">{accountTypeLabels[account.type]}</p>
 										</div>
 									</div>
-									<div class="flex space-x-2">
+									<div class="flex items-center space-x-1">
 										<!-- Edit Button -->
 										<button
 											onclick={() => openEditModal(account)}
-											class="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-											aria-label="Edit account"
+											class="p-2 text-gray-400 hover:text-blue-600 rounded-md"
+											title="Edit account"
+											aria-label="Edit account {account.name}"
 										>
 											<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -300,33 +355,36 @@
 										</button>
 										
 										{#if account.is_active}
-											<!-- Archive Button -->
-											<button
-												onclick={() => openArchiveModal(account)}
-												class="p-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 transition-colors"
-												aria-label="Archive account"
-											>
-												<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8l4 4 4-4m0 0V4a1 1 0 011-1h4a1 1 0 011 1v4m-6 0h6m-6 0V8" />
-												</svg>
-											</button>
-											
 											<!-- Delete Button -->
 											<button
 												onclick={() => openDeleteModal(account)}
-												class="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-												aria-label="Delete account permanently"
+												class="p-2 text-gray-400 hover:text-red-600 rounded-md"
+												title="Delete account"
+												aria-label="Delete account {account.name}"
 											>
 												<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+												</svg>
+											</button>
+											
+											<!-- Archive Button -->
+											<button
+												onclick={() => openArchiveModal(account)}
+												class="p-2 text-gray-400 hover:text-orange-600 rounded-md"
+												title="Archive account"
+												aria-label="Archive account {account.name}"
+											>
+												<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8l4 4 4-4m0 0V4a1 1 0 011-1h4a1 1 0 011 1v4m-6 0h6m-6 0V8" />
 												</svg>
 											</button>
 										{:else}
 											<!-- Reactivate Button -->
 											<button
 												onclick={() => handleReactivate(account)}
-												class="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors"
-												aria-label="Reactivate account"
+												class="p-2 text-gray-400 hover:text-green-600 rounded-md"
+												title="Reactivate account"
+												aria-label="Reactivate account {account.name}"
 											>
 												<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -355,6 +413,8 @@
 			{/each}
 		{/if}
 	{/if}
+		</div>
+	</div>
 </div>
 
 <!-- Add Account Modal -->

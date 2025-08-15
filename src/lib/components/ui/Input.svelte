@@ -15,18 +15,18 @@
 	export { className as class };
 
 	$: inputClasses = [
-		'block w-full rounded-lg border px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1',
+		'block w-full rounded-xl border px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 backdrop-blur-sm',
 		error
-			? 'border-red-300 text-red-900 placeholder-red-400 focus:border-red-500 focus:ring-red-500'
-			: 'border-gray-300 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500',
-		disabled ? 'bg-gray-50 cursor-not-allowed opacity-50' : 'bg-white',
+			? 'border-red-200/50 text-red-800 placeholder-red-400/70 focus:border-red-400/60 focus:ring-red-400/30 bg-red-50/30'
+			: 'border-white/30 text-gray-800 placeholder-gray-500/70 focus:border-blue-400/60 focus:ring-blue-400/30 bg-white/40',
+		disabled ? 'bg-gray-100/30 cursor-not-allowed opacity-50' : '',
 		className
 	]
 		.filter(Boolean)
 		.join(' ');
 
 	$: labelClasses = [
-		'block text-sm font-medium mb-1',
+		'block text-sm font-semibold mb-2',
 		error ? 'text-red-700' : 'text-gray-700'
 	].join(' ');
 </script>

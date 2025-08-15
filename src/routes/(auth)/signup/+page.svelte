@@ -2,14 +2,49 @@
 	import { goto } from '$app/navigation';
 	import { Button, Input } from '$lib/components';
 	import { signUp } from '$lib/supabaseClient';
+	import { joinFamily, decodeInviteCode, getFamily } from '$lib/services/familyService';
 
 	let email = '';
 	let password = '';
 	let confirmPassword = '';
 	let displayName = '';
+	let inviteCode = '';
 	let loading = false;
 	let error = '';
 	let success = false;
+	let familyPreview = $state('');
+
+	// Validate invite code when it's entered
+	$effect(() => {
+		if (inviteCode && inviteCode.length >= 6) {
+			console.log('🔍 Validating invite code:', inviteCode);
+			const familyId = decodeInviteCode(inviteCode);
+			if (familyId) {
+				// Use async validation in a separate function
+				validateInviteCode(familyId);
+			} else {
+				familyPreview = 'Invalid invite code format';
+			}
+		} else {
+			familyPreview = '';
+		}
+	});
+
+	async function validateInviteCode(familyId: string) {
+		try {
+			const family = await getFamily(familyId);
+			if (family) {
+				familyPreview = `You'll join "${family.name}" family`;
+				console.log('✅ Valid invite code for family:', family.name);
+			} else {
+				familyPreview = 'Invalid invite code';
+				console.log('❌ Invalid invite code - family not found');
+			}
+		} catch (err) {
+			familyPreview = 'Error validating invite code';
+			console.error('❌ Error validating invite code:', err);
+		}
+	}
 
 	async function handleSignup() {
 		if (!email || !password || !confirmPassword || !displayName) {
@@ -27,11 +62,25 @@
 			return;
 		}
 
+		// Validate invite code if provided
+		if (inviteCode && !familyPreview.includes("You'll join")) {
+			error = 'Please enter a valid invite code or leave it blank';
+			return;
+		}
+
 		loading = true;
 		error = '';
 
 		try {
+			console.log('📝 Creating account with invite code:', inviteCode || 'none');
 			await signUp(email, password);
+			
+			// Store invite code for post-signup processing
+			if (inviteCode) {
+				sessionStorage.setItem('pendingInviteCode', inviteCode);
+				sessionStorage.setItem('pendingDisplayName', displayName);
+			}
+			
 			success = true;
 		} catch (err: any) {
 			error = err.message || 'Failed to create account';
@@ -128,6 +177,26 @@
 				autocomplete="new-password"
 				on:keydown={handleKeydown}
 			/>
+
+			<div class="space-y-2">
+				<Input
+					label="Family Invite Code (Optional)"
+					type="text"
+					bind:value={inviteCode}
+					placeholder="Enter invite code to join a family"
+					autocomplete="off"
+					on:keydown={handleKeydown}
+				/>
+				{#if familyPreview}
+					<p class="text-xs {familyPreview.includes('Invalid') || familyPreview.includes('Error') ? 'text-red-600' : 'text-green-600'}">
+						{familyPreview}
+					</p>
+				{:else}
+					<p class="text-xs text-gray-500">
+						Have a family invite code? Enter it here to join an existing family, or leave blank to create your own.
+					</p>
+				{/if}
+			</div>
 
 			<div class="text-xs text-gray-500">
 				By creating an account, you agree to our

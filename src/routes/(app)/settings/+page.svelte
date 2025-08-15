@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Button, Input, Card, Modal } from '$lib/components';
-	import { 
-		getUserFamily, 
-		getFamilyMembers, 
-		updateFamilySettings, 
-		updateUserRole, 
+	import {
+		getUserFamily,
+		getFamilyMembers,
+		updateFamilySettings,
+		updateUserRole,
 		removeUserFromFamily,
-		generateInviteCode 
+		generateInviteCode,
+		searchUserByEmail,
+		sendEmailInvitation
 	} from '$lib/services/familyService';
+	import NotificationSettings from '$lib/components/notifications/NotificationSettings.svelte';
 	import type { Family, FamilyMember } from '$lib/types';
 
 	let { data } = $props();
@@ -23,6 +26,9 @@
 	let familyName = $state('');
 	let inviteModalOpen = $state(false);
 	let inviteCode = $state('');
+	let emailInviteModalOpen = $state(false);
+	let inviteEmail = $state('');
+	let emailInviteLoading = $state(false);
 	let removeModalOpen = $state(false);
 	let memberToRemove: FamilyMember | null = $state(null);
 
@@ -95,6 +101,53 @@
 		}
 	}
 
+	function openEmailInviteModal() {
+		emailInviteModalOpen = true;
+		inviteEmail = '';
+	}
+
+	async function sendEmailInvite() {
+		if (!inviteEmail.trim() || !family) return;
+
+		emailInviteLoading = true;
+		error = '';
+
+		try {
+			console.log('📧 Sending email invitation to:', inviteEmail);
+			
+			// Check if user exists
+			const userSearch = await searchUserByEmail(inviteEmail.trim());
+			
+			if (!userSearch.exists) {
+				error = 'No user found with that email address. They need to create an account first.';
+				emailInviteLoading = false;
+				return;
+			}
+
+			// Generate invite code
+			const code = generateInviteCode(family.id);
+			
+			// Send email invitation
+			const currentUser = members.find(m => m.is_current_user);
+			await sendEmailInvitation(
+				family.name,
+				code,
+				inviteEmail.trim(),
+				currentUser?.display_name || 'Family Admin'
+			);
+
+			emailInviteModalOpen = false;
+			success = `Invitation sent to ${inviteEmail}!`;
+			setTimeout(() => success = '', 3000);
+			
+		} catch (err: any) {
+			console.error('❌ Error sending email invitation:', err);
+			error = err.message || 'Failed to send invitation';
+		} finally {
+			emailInviteLoading = false;
+		}
+	}
+
 	function openRemoveModal(member: FamilyMember) {
 		memberToRemove = member;
 		removeModalOpen = true;
@@ -164,25 +217,25 @@
 
 				<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+						<div class="block text-sm font-medium text-gray-700 mb-1">Currency</div>
 						<div class="text-sm text-gray-900 bg-gray-50 p-2 rounded border">
 							{family.settings.currency}
 						</div>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Date Format</label>
+						<div class="block text-sm font-medium text-gray-700 mb-1">Date Format</div>
 						<div class="text-sm text-gray-900 bg-gray-50 p-2 rounded border">
 							{family.settings.date_format}
 						</div>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Week Start</label>
+						<div class="block text-sm font-medium text-gray-700 mb-1">Week Start</div>
 						<div class="text-sm text-gray-900 bg-gray-50 p-2 rounded border">
 							{family.settings.start_of_week === 1 ? 'Monday' : 'Sunday'}
 						</div>
 					</div>
 					<div>
-						<label class="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+						<div class="block text-sm font-medium text-gray-700 mb-1">Timezone</div>
 						<div class="text-sm text-gray-900 bg-gray-50 p-2 rounded border">
 							{family.settings.timezone}
 						</div>
@@ -211,9 +264,14 @@
 						{members.length} member{members.length !== 1 ? 's' : ''} in your family
 					</p>
 					{#if isAdmin}
-						<Button variant="outline" on:click={openInviteModal}>
-							Invite Member
-						</Button>
+						<div class="space-x-2">
+							<Button variant="outline" size="sm" on:click={openInviteModal}>
+								Invite Code
+							</Button>
+							<Button variant="outline" size="sm" on:click={openEmailInviteModal}>
+								Email Invite
+							</Button>
+						</div>
 					{/if}
 				</div>
 
@@ -254,7 +312,7 @@
 									<select
 										class="text-sm border border-gray-300 rounded px-2 py-1"
 										value={member.role}
-										on:change={(e) => changeUserRole(member.id, (e.target as HTMLSelectElement).value as 'admin' | 'member' | 'viewer')}
+										onchange={(e) => changeUserRole(member.id, (e.target as HTMLSelectElement).value as 'admin' | 'member' | 'viewer')}
 									>
 										<option value="viewer">Viewer</option>
 										<option value="member">Member</option>
@@ -274,6 +332,11 @@
 					{/each}
 				</div>
 			</div>
+		</Card>
+
+		<!-- Push Notifications -->
+		<Card title="Push Notifications">
+			<NotificationSettings />
 		</Card>
 	{/if}
 </div>
@@ -310,6 +373,59 @@
 	<div slot="footer">
 		<Button variant="outline" on:click={() => inviteModalOpen = false}>
 			Close
+		</Button>
+	</div>
+</Modal>
+
+<!-- Email Invite Modal -->
+<Modal bind:open={emailInviteModalOpen} title="Invite by Email">
+	<div class="space-y-4">
+		<p class="text-gray-600">
+			Send an invitation to an existing user by their email address.
+		</p>
+
+		{#if error}
+			<div class="rounded-md bg-red-50 p-4">
+				<div class="text-sm text-red-700">{error}</div>
+			</div>
+		{/if}
+
+		<Input
+			label="Email Address"
+			type="email"
+			bind:value={inviteEmail}
+			placeholder="Enter the user's email address"
+			required
+		/>
+
+		<div class="bg-yellow-50 p-4 rounded-lg">
+			<h4 class="font-medium text-yellow-900 mb-2">Important:</h4>
+			<p class="text-sm text-yellow-800">
+				The person must already have an account with this app. If they don't have an account yet,
+				they can sign up first, then you can invite them.
+			</p>
+		</div>
+
+		<div class="bg-blue-50 p-4 rounded-lg">
+			<h4 class="font-medium text-blue-900 mb-2">How it works:</h4>
+			<ol class="text-sm text-blue-800 space-y-1">
+				<li>1. We'll check if the email belongs to an existing user</li>
+				<li>2. Send them an email with the invite code</li>
+				<li>3. They can enter the code to join your family</li>
+			</ol>
+		</div>
+	</div>
+
+	<div slot="footer">
+		<Button variant="outline" on:click={() => emailInviteModalOpen = false}>
+			Cancel
+		</Button>
+		<Button
+			loading={emailInviteLoading}
+			disabled={emailInviteLoading || !inviteEmail.trim()}
+			on:click={sendEmailInvite}
+		>
+			{emailInviteLoading ? 'Sending...' : 'Send Invitation'}
 		</Button>
 	</div>
 </Modal>

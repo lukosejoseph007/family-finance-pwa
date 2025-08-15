@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import {
 		Chart as ChartJS,
 		CategoryScale,
@@ -37,24 +37,29 @@
 		DoughnutController
 	);
 
-	export let type: 'line' | 'bar' | 'doughnut' = 'line';
-	export let data: FinanceChartData;
-	export let title = '';
-	export let height = '400px';
+	let { type = 'line', data, title = '', height = '400px' } = $props<{
+		type?: 'line' | 'bar' | 'doughnut';
+		data: FinanceChartData;
+		title?: string;
+		height?: string;
+	}>();
 
 	let canvas: HTMLCanvasElement;
 	let chart: ChartJS | null = null;
 
 	onMount(() => {
-		if (canvas && data) {
-			createChart();
-		}
-
 		return () => {
 			if (chart) {
 				chart.destroy();
 			}
 		};
+	});
+
+	// Use $effect to handle chart creation and updates
+	$effect(() => {
+		if (canvas && data) {
+			createChart();
+		}
 	});
 
 	function createChart() {
@@ -148,18 +153,25 @@
 			};
 		}
 
+		// Create a deep copy of data to avoid Svelte 5 reactivity issues
+		const chartData = untrack(() => JSON.parse(JSON.stringify(data)));
+		
 		chart = new ChartJS(ctx, {
 			type: type,
-			data,
+			data: chartData,
 			options
 		});
 	}
 
-	// Reactive update when data changes
-	$: if (chart && data) {
-		chart.data = data;
-		chart.update();
-	}
+	// Update chart when data changes
+	$effect(() => {
+		if (chart && data) {
+			// Create a deep copy to avoid reactivity issues
+			const newData = untrack(() => JSON.parse(JSON.stringify(data)));
+			chart.data = newData;
+			chart.update('none'); // Use 'none' animation for better performance
+		}
+	});
 </script>
 
 {#if title}

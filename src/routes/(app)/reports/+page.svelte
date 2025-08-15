@@ -165,34 +165,61 @@
 	<title>Financial Reports - Family Finance Tracker</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-6 space-y-6">
-	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-		<div>
-			<h1 class="text-3xl font-bold text-gray-900">Financial Reports</h1>
-			<p class="text-gray-600 mt-1">Comprehensive analysis of your family's financial health</p>
-		</div>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-cyan-50">
+	<!-- Professional Header Section -->
+	<div class="relative overflow-hidden">
+		<!-- Background Pattern -->
+		<div class="absolute inset-0 bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-700"></div>
+		<div class="absolute inset-0 bg-black/10"></div>
+		<div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%)"></div>
 		
-		<div class="flex items-center gap-2">
-			<label for="month-select" class="text-sm font-medium text-gray-700">
-				Report Month:
-			</label>
-			<select 
-				id="month-select"
-				bind:value={selectedMonth}
-				class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-			>
-				{#each Array.from({length: 12}, (_, i) => {
-					const date = new Date();
-					date.setMonth(date.getMonth() - i);
-					const value = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-					const label = date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
-					return { value, label };
-				}) as month}
-					<option value={month.value}>{month.label}</option>
-				{/each}
-			</select>
+		<div class="relative px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+				<div class="flex-1">
+					<div class="flex items-center space-x-3 mb-4">
+						<div class="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+							<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+							</svg>
+						</div>
+						<div>
+							<h1 class="text-3xl sm:text-4xl font-bold text-white">Financial Reports</h1>
+							<p class="text-teal-100 text-base sm:text-lg opacity-90 mt-1">
+								Comprehensive analysis of your family's financial health
+							</p>
+						</div>
+					</div>
+				</div>
+				
+				<div class="flex-shrink-0">
+					<div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+						<label for="month-select" class="block text-sm font-medium text-white/90 mb-2">
+							Report Month
+						</label>
+						<select
+							id="month-select"
+							bind:value={selectedMonth}
+							class="block rounded-lg border-gray-300 px-3 py-2 text-sm min-w-[180px] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+						>
+							{#each Array.from({length: 12}, (_, i) => {
+								const date = new Date();
+								date.setMonth(date.getMonth() - i);
+								const value = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+								const label = date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+								return { value, label };
+							}) as month}
+								<option value={month.value}>{month.label}</option>
+							{/each}
+						</select>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
+
+	<!-- Content Section -->
+	<div class="relative">
+		<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-12 space-y-6">
 
 	{#if loading}
 		<div class="flex items-center justify-center h-64">
@@ -394,4 +421,6 @@
 			</Card>
 		{/if}
 	{/if}
+		</div>
+	</div>
 </div>
