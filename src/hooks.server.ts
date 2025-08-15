@@ -1,42 +1,42 @@
-import * as auth from '$lib/server/auth';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { createServerClient } from '@supabase/ssr';
 import type { Handle } from '@sveltejs/kit';
-// TODO: Re-enable paraglide middleware once the import issue is resolved
-// import { paraglideMiddleware } from '@inlang/paraglide-js/server';
 
-// Temporarily disabled paraglide middleware due to import issues
-// const handleParaglide: Handle = ({ event, resolve }) =>
-// 	paraglideMiddleware(event.request, ({ request, locale }: { request: Request; locale: string }) => {
-// 	    event.request = request;
-// 	    return resolve(event, {
-// 	        transformPageChunk: ({ html }) => html.replace('%paraglide.lang%', locale)
-// 	    });
-// 	});
+export const handle: Handle = async ({ event, resolve }) => {
+	event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+		cookies: {
+			get: (key) => event.cookies.get(key),
+			set: (key, value, options) => {
+				event.cookies.set(key, value, { ...options, path: '/' });
+			},
+			remove: (key, options) => {
+				event.cookies.delete(key, { ...options, path: '/' });
+			}
+		}
+	});
 
-const handleAuth: Handle = async ({ event, resolve }) => {
-	const sessionToken = event.cookies.get(auth.sessionCookieName);
+	event.locals.safeGetSession = async () => {
+		const {
+			data: { session }
+		} = await event.locals.supabase.auth.getSession();
+		if (!session) {
+			return { session: null, user: null };
+		}
 
-	if (!sessionToken) {
-		event.locals.user = null;
-		event.locals.session = null;
-		return resolve(event);
-	}
+		const {
+			data: { user },
+			error
+		} = await event.locals.supabase.auth.getUser();
+		if (error) {
+			return { session: null, user: null };
+		}
 
-	const session = await auth.validateSession(sessionToken);
+		return { session, user };
+	};
 
-	if (session) {
-		// Session is valid, continue
-		event.locals.session = session;
-		event.locals.user = { id: session.userId }; // Basic user object
-	} else {
-		// Session is invalid, clear it
-		await auth.invalidateSession(sessionToken);
-		event.locals.user = null;
-		event.locals.session = null;
-	}
-
-	return resolve(event);
+	return resolve(event, {
+		filterSerializedResponseHeaders(name) {
+			return name === 'content-range';
+		}
+	});
 };
-
-// Temporarily using only handleAuth until paraglide is fixed
-export const handle: Handle = handleAuth;
-// export const handle: Handle = sequence(handleParaglide, handleAuth);
