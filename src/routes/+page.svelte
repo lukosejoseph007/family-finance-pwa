@@ -1,99 +1,89 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { signIn, signUp } from '$lib/supabaseClient';
+	import { Button } from '$lib/components';
 
-	let email = '';
-	let password = '';
-	let isSigningIn = true;
-	let error: string | null = null;
-	let loading = false;
+	let { data } = $props();
 
-	async function handleSubmit() {
-		if (!email || !password) {
-			error = 'Please enter both email and password';
-			return;
-		}
-
-		error = null;
-		loading = true;
-		console.log('Form submitted, loading...');
-
-		try {
-			if (isSigningIn) {
-				console.log('Attempting to sign in...');
-				await signIn(email, password);
-				console.log('Sign in successful.');
-			} else {
-				console.log('Attempting to sign up...');
-				await signUp(email, password);
-				console.log('Sign up successful.');
-			}
-			console.log('Redirecting to dashboard...');
+	// Redirect to dashboard if already logged in
+	$effect(() => {
+		if (data.session?.user) {
 			goto('/dashboard');
-		} catch (err) {
-			console.error('Caught an error during auth:', err);
-			if (err instanceof Error) {
-				error = err.message;
-			} else {
-				error = 'An unknown error occurred';
-			}
-		} finally {
-			loading = false;
-			console.log('Finished auth process.');
 		}
-	}
+	});
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-gray-50">
-	<div class="mb-4 w-full max-w-md rounded bg-white px-8 pt-6 pb-8 shadow-md">
-		<h2 class="mb-4 text-center text-2xl font-bold">
-			{isSigningIn ? 'Sign In' : 'Create Account'}
-		</h2>
-		<form on:submit|preventDefault={handleSubmit}>
-			<div class="mb-4">
-				<label class="mb-2 block font-bold text-gray-700" for="email"> Email </label>
-				<input
-					class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
-					id="email"
-					type="email"
-					placeholder="Enter your email"
-					bind:value={email}
-				/>
-			</div>
-			<div class="mb-6">
-				<label class="mb-2 block font-bold text-gray-700" for="password"> Password </label>
-				<input
-					class="focus:shadow-outline mb-3 w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none"
-					id="password"
-					type="password"
-					placeholder="Enter your password"
-					bind:value={password}
-				/>
-			</div>
-			{#if error}
-				<div
-					class="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700"
-					role="alert"
-				>
-					{error}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+	<!-- Header -->
+	<header class="relative bg-white shadow-sm">
+		<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div class="flex items-center justify-between py-6">
+				<div class="flex items-center">
+					<h1 class="text-2xl font-bold text-gray-900">Family Finance</h1>
 				</div>
-			{/if}
-			<div class="flex items-center justify-between">
-				<button
-					class="focus:shadow-outline rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none disabled:bg-gray-400"
-					type="submit"
-					disabled={loading}
-				>
-					{loading ? 'Loading...' : isSigningIn ? 'Sign In' : 'Sign Up'}
-				</button>
-				<a
-					href="#!"
-					class="inline-block align-baseline text-sm font-bold text-blue-500 hover:text-blue-800"
-					on:click|preventDefault={() => (isSigningIn = !isSigningIn)}
-				>
-					{isSigningIn ? 'Create an account' : 'Sign in instead'}
-				</a>
+				<div class="flex items-center space-x-4">
+					<Button variant="outline">
+						<a href="/login">Sign In</a>
+					</Button>
+					<Button>
+						<a href="/signup">Get Started</a>
+					</Button>
+				</div>
 			</div>
-		</form>
-	</div>
+		</div>
+	</header>
+
+	<!-- Hero Section -->
+	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+		<div class="text-center">
+			<h2 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
+				Take Control of Your
+				<span class="text-blue-600">Family Finances</span>
+			</h2>
+			<p class="mx-auto mt-6 max-w-2xl text-xl text-gray-600">
+				Track expenses, set budgets, and achieve financial goals together.
+				Built with the proven YNAB methodology for Indian families.
+			</p>
+			<div class="mt-10 flex items-center justify-center gap-x-6">
+				<Button size="lg">
+					<a href="/signup">Start Free Trial</a>
+				</Button>
+				<Button variant="outline" size="lg">
+					<a href="/login">Sign In</a>
+				</Button>
+			</div>
+		</div>
+
+		<!-- Features -->
+		<div class="mt-20">
+			<div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+				<div class="text-center">
+					<div class="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-blue-100">
+						<span class="text-2xl">💰</span>
+					</div>
+					<h3 class="mt-4 text-lg font-semibold text-gray-900">YNAB Methodology</h3>
+					<p class="mt-2 text-gray-600">
+						Give every rupee a job with the proven You Need A Budget system.
+					</p>
+				</div>
+				<div class="text-center">
+					<div class="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-green-100">
+						<span class="text-2xl">👨‍👩‍👧‍👦</span>
+					</div>
+					<h3 class="mt-4 text-lg font-semibold text-gray-900">Family Collaboration</h3>
+					<p class="mt-2 text-gray-600">
+						Work together with family members to manage your household budget.
+					</p>
+				</div>
+				<div class="text-center">
+					<div class="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-purple-100">
+						<span class="text-2xl">📊</span>
+					</div>
+					<h3 class="mt-4 text-lg font-semibold text-gray-900">Smart Analytics</h3>
+					<p class="mt-2 text-gray-600">
+						Visualize your spending patterns and track progress toward goals.
+					</p>
+				</div>
+			</div>
+		</div>
+	</main>
 </div>

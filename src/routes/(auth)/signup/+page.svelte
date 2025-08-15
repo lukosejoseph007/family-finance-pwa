@@ -1,0 +1,166 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { Button, Input } from '$lib/components';
+	import { signUp } from '$lib/supabaseClient';
+
+	let email = '';
+	let password = '';
+	let confirmPassword = '';
+	let displayName = '';
+	let loading = false;
+	let error = '';
+	let success = false;
+
+	async function handleSignup() {
+		if (!email || !password || !confirmPassword || !displayName) {
+			error = 'Please fill in all fields';
+			return;
+		}
+
+		if (password !== confirmPassword) {
+			error = 'Passwords do not match';
+			return;
+		}
+
+		if (password.length < 6) {
+			error = 'Password must be at least 6 characters';
+			return;
+		}
+
+		loading = true;
+		error = '';
+
+		try {
+			await signUp(email, password);
+			success = true;
+		} catch (err: any) {
+			error = err.message || 'Failed to create account';
+		} finally {
+			loading = false;
+		}
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Enter') {
+			handleSignup();
+		}
+	}
+</script>
+
+<div class="space-y-6">
+	{#if success}
+		<div class="rounded-md bg-green-50 p-4">
+			<div class="flex">
+				<div class="flex-shrink-0">
+					<svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+						<path
+							fill-rule="evenodd"
+							d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+				</div>
+				<div class="ml-3">
+					<h3 class="text-sm font-medium text-green-800">Account created successfully!</h3>
+					<div class="mt-2 text-sm text-green-700">
+						<p>
+							Please check your email for a verification link. Once verified, you can
+							<a href="/login" class="font-medium underline">sign in to your account</a>.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	{:else}
+		<div>
+			<h2 class="text-2xl font-bold text-gray-900">Create your account</h2>
+			<p class="mt-2 text-sm text-gray-600">
+				Already have an account?
+				<a href="/login" class="font-medium text-blue-600 hover:text-blue-500">
+					Sign in here
+				</a>
+			</p>
+		</div>
+
+		<form on:submit|preventDefault={handleSignup} class="space-y-6">
+			{#if error}
+				<div class="rounded-md bg-red-50 p-4">
+					<div class="text-sm text-red-700">{error}</div>
+				</div>
+			{/if}
+
+			<Input
+				label="Full Name"
+				type="text"
+				bind:value={displayName}
+				placeholder="Enter your full name"
+				required
+				autocomplete="name"
+				on:keydown={handleKeydown}
+			/>
+
+			<Input
+				label="Email address"
+				type="email"
+				bind:value={email}
+				placeholder="Enter your email"
+				required
+				autocomplete="email"
+				on:keydown={handleKeydown}
+			/>
+
+			<Input
+				label="Password"
+				type="password"
+				bind:value={password}
+				placeholder="Create a password (min. 6 characters)"
+				required
+				autocomplete="new-password"
+				on:keydown={handleKeydown}
+			/>
+
+			<Input
+				label="Confirm Password"
+				type="password"
+				bind:value={confirmPassword}
+				placeholder="Confirm your password"
+				required
+				autocomplete="new-password"
+				on:keydown={handleKeydown}
+			/>
+
+			<div class="text-xs text-gray-500">
+				By creating an account, you agree to our
+				<a href="/terms" class="text-blue-600 hover:text-blue-500">Terms of Service</a>
+				and
+				<a href="/privacy" class="text-blue-600 hover:text-blue-500">Privacy Policy</a>.
+			</div>
+
+			<Button
+				type="submit"
+				fullWidth
+				{loading}
+				disabled={loading || !email || !password || !confirmPassword || !displayName}
+			>
+				{loading ? 'Creating account...' : 'Create account'}
+			</Button>
+		</form>
+
+		<div class="mt-6">
+			<div class="relative">
+				<div class="absolute inset-0 flex items-center">
+					<div class="w-full border-t border-gray-300" />
+				</div>
+				<div class="relative flex justify-center text-sm">
+					<span class="px-2 bg-white text-gray-500">Already have an account?</span>
+				</div>
+			</div>
+
+			<div class="mt-6">
+				<Button variant="outline" fullWidth>
+					<a href="/login" class="w-full">Sign in to your account</a>
+				</Button>
+			</div>
+		</div>
+	{/if}
+</div>

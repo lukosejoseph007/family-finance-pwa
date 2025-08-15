@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' = 'text';
+	export let type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'date' = 'text';
 	export let value: string | number = '';
 	export let placeholder = '';
 	export let label = '';
@@ -9,6 +9,7 @@
 	export let id = '';
 	export let name = '';
 	export let autocomplete: string | undefined = undefined;
+	export let step: string | number | undefined = undefined;
 
 	let className = '';
 	export { className as class };
@@ -47,6 +48,7 @@
 		{placeholder}
 		{disabled}
 		{required}
+		{step}
 		autocomplete={autocomplete as any}
 		class={inputClasses}
 		bind:value
