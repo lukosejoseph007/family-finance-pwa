@@ -4,14 +4,14 @@
 	import { signUp } from '$lib/supabaseClient';
 	import { joinFamily, decodeInviteCode, getFamily } from '$lib/services/familyService';
 
-	let email = '';
-	let password = '';
-	let confirmPassword = '';
-	let displayName = '';
-	let inviteCode = '';
-	let loading = false;
-	let error = '';
-	let success = false;
+	let email = $state('');
+	let password = $state('');
+	let confirmPassword = $state('');
+	let displayName = $state('');
+	let inviteCode = $state('');
+	let loading = $state(false);
+	let error = $state('');
+	let success = $state(false);
 	let familyPreview = $state('');
 
 	// Validate invite code when it's entered
@@ -73,6 +73,13 @@
 
 		try {
 			console.log('📝 Creating account with invite code:', inviteCode || 'none');
+			console.log('Email:', email);
+			console.log('Password:', password);
+			console.log('Confirm Password:', confirmPassword);
+			console.log('Display Name:', displayName);
+			console.log('Invite Code:', inviteCode);
+			console.log('Family Preview:', familyPreview);
+			console.log('Button disabled:', loading || !email || !password || !confirmPassword || !displayName || (inviteCode && !familyPreview.includes("You'll join")));
 			await signUp(email, password);
 			
 			// Store invite code for post-signup processing
@@ -139,53 +146,58 @@
 			{/if}
 
 			<Input
-				label="Full Name"
-				type="text"
-				bind:value={displayName}
-				placeholder="Enter your full name"
-				required
-				autocomplete="name"
-				on:keydown={handleKeydown}
+			  label="Full Name"
+			  type="text"
+			  bind:value={displayName}
+			  placeholder="Enter your full name"
+			  required
+			  autocomplete="name"
+			  on:keydown={handleKeydown}
+			  id="fullName"
 			/>
 
 			<Input
-				label="Email address"
-				type="email"
-				bind:value={email}
-				placeholder="Enter your email"
-				required
-				autocomplete="email"
-				on:keydown={handleKeydown}
+			  label="Email address"
+			  type="email"
+			  bind:value={email}
+			  placeholder="Enter your email"
+			  required
+			  autocomplete="email"
+			  on:keydown={handleKeydown}
+			  id="emailAddress"
 			/>
 
 			<Input
-				label="Password"
-				type="password"
-				bind:value={password}
-				placeholder="Create a password (min. 6 characters)"
-				required
-				autocomplete="new-password"
-				on:keydown={handleKeydown}
+			  label="Password"
+			  type="password"
+			  bind:value={password}
+			  placeholder="Create a password (min. 6 characters)"
+			  required
+			  autocomplete="new-password"
+			  on:keydown={handleKeydown}
+			  id="newPassword"
 			/>
 
 			<Input
-				label="Confirm Password"
-				type="password"
-				bind:value={confirmPassword}
-				placeholder="Confirm your password"
-				required
-				autocomplete="new-password"
-				on:keydown={handleKeydown}
+			  label="Confirm Password"
+			  type="password"
+			  bind:value={confirmPassword}
+			  placeholder="Confirm your password"
+			  required
+			  autocomplete="new-password"
+			  on:keydown={handleKeydown}
+			  id="confirmPassword"
 			/>
 
 			<div class="space-y-2">
 				<Input
-					label="Family Invite Code (Optional)"
-					type="text"
-					bind:value={inviteCode}
-					placeholder="Enter invite code to join a family"
-					autocomplete="off"
-					on:keydown={handleKeydown}
+				  label="Family Invite Code (Optional)"
+				  type="text"
+				  bind:value={inviteCode}
+				  placeholder="Enter invite code to join a family"
+				  autocomplete="off"
+				  on:keydown={handleKeydown}
+				  id="inviteCode"
 				/>
 				{#if familyPreview}
 					<p class="text-xs {familyPreview.includes('Invalid') || familyPreview.includes('Error') ? 'text-red-600' : 'text-green-600'}">
@@ -210,6 +222,13 @@
 				fullWidth
 				{loading}
 				disabled={loading || !email || !password || !confirmPassword || !displayName}
+				on:click={() => {
+					console.log('Email:', email);
+					console.log('Password:', password);
+					console.log('Confirm Password:', confirmPassword);
+					console.log('Display Name:', displayName);
+					console.log('Loading:', loading);
+				}}
 			>
 				{loading ? 'Creating account...' : 'Create account'}
 			</Button>

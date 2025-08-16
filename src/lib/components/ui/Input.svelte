@@ -1,20 +1,35 @@
 <script lang="ts">
-	export let type: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'date' = 'text';
-	export let value: string | number = '';
-	export let placeholder = '';
-	export let label = '';
-	export let error = '';
-	export let disabled = false;
-	export let required = false;
-	export let id = '';
-	export let name = '';
-	export let autocomplete: string | undefined = undefined;
-	export let step: string | number | undefined = undefined;
+	let {
+		type = 'text',
+		value = $bindable(''),
+		placeholder = '',
+		label = '',
+		error = '',
+		disabled = false,
+		required = false,
+		id = '',
+		name = '',
+		autocomplete = undefined,
+		step = undefined,
+		class: className = '',
+		...restProps
+	}: {
+		type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'date';
+		value?: string | number;
+		placeholder?: string;
+		label?: string;
+		error?: string;
+		disabled?: boolean;
+		required?: boolean;
+		id?: string;
+		name?: string;
+		autocomplete?: string;
+		step?: string | number;
+		class?: string;
+		[key: string]: any;
+	} = $props();
 
-	let className = '';
-	export { className as class };
-
-	$: inputClasses = [
+	const inputClasses = $derived([
 		'block w-full rounded-xl border px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 backdrop-blur-sm',
 		error
 			? 'border-red-200/50 text-red-800 placeholder-red-400/70 focus:border-red-400/60 focus:ring-red-400/30 bg-red-50/30'
@@ -23,12 +38,12 @@
 		className
 	]
 		.filter(Boolean)
-		.join(' ');
+		.join(' '));
 
-	$: labelClasses = [
+	const labelClasses = $derived([
 		'block text-sm font-semibold mb-2',
 		error ? 'text-red-700' : 'text-gray-700'
-	].join(' ');
+	].join(' '));
 </script>
 
 <div class="space-y-1">
@@ -52,12 +67,7 @@
 		autocomplete={autocomplete as any}
 		class={inputClasses}
 		bind:value
-		on:input
-		on:change
-		on:focus
-		on:blur
-		on:keydown
-		on:keyup
+		{...restProps}
 	/>
 
 	{#if error}
