@@ -131,19 +131,26 @@ export async function getFamilyMembers(familyId: string): Promise<User[]> {
 }
 
 // Update family settings
-export async function updateFamilySettings(familyId: string, settings: Partial<Family['settings']>): Promise<Family> {
+export async function updateFamilySettings(familyId: string, updates: { name?: string; settings?: Partial<Family['settings']> }): Promise<Family> {
+	console.log('📝 Updating family:', familyId, updates);
+	
+	const updateData: { name?: string; settings?: Partial<Family['settings']> } = {};
+	if (updates.name !== undefined) updateData.name = updates.name;
+	if (updates.settings !== undefined) updateData.settings = updates.settings;
+
 	const { data: family, error } = await supabase
 		.from('families')
-		.update({ settings })
+		.update(updateData)
 		.eq('id', familyId)
 		.select()
 		.single();
 
 	if (error) {
-		console.error('Error updating family settings:', error);
+		console.error('Error updating family:', error);
 		throw new Error('Failed to update family settings');
 	}
 
+	console.log('✅ Family updated successfully:', family);
 	return family;
 }
 
@@ -177,17 +184,100 @@ export async function removeUserFromFamily(userId: string): Promise<void> {
 	}
 }
 
-// Generate family invite code (fixed implementation)
+// Leave family (for current user with admin validation)
+export async function leaveFamily(): Promise<void> {
+	console.log('👋 User attempting to leave family');
+	
+	const { data: authUser, error: authError } = await supabase.auth.getUser();
+	if (authError || !authUser.user) {
+		throw new Error('User not authenticated');
+	}
+
+	// Get current user's info
+	const { data: currentUser, error: userError } = await supabase
+		.from('users')
+		.select('*, families!inner(*)')
+		.eq('id', authUser.user.id)
+		.single();
+
+	if (userError || !currentUser) {
+		throw new Error('User not found in any family');
+	}
+
+	// Check total family members
+	const { data: allMembers, error: membersError } = await supabase
+		.from('users')
+		.select('id, role')
+		.eq('family_id', currentUser.family_id);
+
+	if (membersError) {
+		console.error('Error checking family members:', membersError);
+		throw new Error('Failed to verify family membership');
+	}
+
+	const totalMembers = allMembers?.length || 0;
+	const isLastMember = totalMembers === 1;
+
+	// If user is admin and NOT the last member, check for other admins
+	if (currentUser.role === 'admin' && !isLastMember) {
+		console.log('🔒 Admin attempting to leave - checking for other admins');
+		
+		const { data: otherAdmins, error: adminError } = await supabase
+			.from('users')
+			.select('id')
+			.eq('family_id', currentUser.family_id)
+			.eq('role', 'admin')
+			.neq('id', authUser.user.id);
+
+		if (adminError) {
+			console.error('Error checking for other admins:', adminError);
+			throw new Error('Failed to verify admin status');
+		}
+
+		if (!otherAdmins || otherAdmins.length === 0) {
+			throw new Error('You cannot leave the family as the only admin. Please promote another member to admin first.');
+		}
+
+		console.log('✅ Other admins found, allowing admin to leave');
+	} else if (isLastMember) {
+		console.log('⚠️ Last member leaving - family will become empty');
+		// Allow the last member (including sole admin) to leave
+		// The family will effectively become inactive/empty
+	}
+
+	// Remove user from family
+	const { error: removeError } = await supabase
+		.from('users')
+		.delete()
+		.eq('id', authUser.user.id);
+
+	if (removeError) {
+		console.error('Error leaving family:', removeError);
+		throw new Error('Failed to leave family');
+	}
+
+	console.log('👋 Successfully left family');
+}
+
+// Generate family invite code (DETERMINISTIC implementation)
 export function generateInviteCode(familyId: string): string {
 	console.log('🔗 Generating invite code for family:', familyId);
 	
-	// Create a proper base64 encoded invite code
-	const payload = JSON.stringify({ familyId, timestamp: Date.now() });
-	const encoded = btoa(payload);
+	// Create a deterministic hash-based invite code that's always the same for a given familyId
+	// Use a simple but consistent approach - take specific characters from the UUID
+	const cleanId = familyId.replace(/-/g, ''); // Remove hyphens
 	
-	// Create a human-friendly code by taking first 8 chars and making uppercase
-	const code = encoded.substring(0, 8).toUpperCase();
-	console.log('🔗 Generated invite code:', code);
+	// Create a deterministic 8-character code from the family ID
+	// Take characters from specific positions to ensure uniqueness
+	const positions = [0, 4, 8, 12, 16, 20, 24, 28];
+	let code = '';
+	
+	for (let i = 0; i < 8; i++) {
+		const pos = positions[i] % cleanId.length;
+		code += cleanId[pos].toUpperCase();
+	}
+	
+	console.log('🔗 Generated deterministic invite code:', code, 'for family:', familyId);
 	
 	return code;
 }

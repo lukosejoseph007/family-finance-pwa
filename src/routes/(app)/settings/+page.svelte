@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { Button, Input, Card, Modal } from '$lib/components';
 	import {
 		getUserFamily,
@@ -9,10 +9,13 @@
 		removeUserFromFamily,
 		generateInviteCode,
 		searchUserByEmail,
-		sendEmailInvitation
+		sendEmailInvitation,
+		leaveFamily
 	} from '$lib/services/familyService';
+	import { supabase } from '$lib/supabaseClient';
 	import NotificationSettings from '$lib/components/notifications/NotificationSettings.svelte';
 	import type { Family, FamilyMember } from '$lib/types';
+	import type { RealtimeChannel } from '@supabase/supabase-js';
 
 	let { data } = $props();
 	let family: Family | null = $state(null);
@@ -31,10 +34,76 @@
 	let emailInviteLoading = $state(false);
 	let removeModalOpen = $state(false);
 	let memberToRemove: FamilyMember | null = $state(null);
+	let leaveFamilyModalOpen = $state(false);
+	let leaveFamilyLoading = $state(false);
+
+	// Real-time subscription
+	let familySubscription: RealtimeChannel | null = null;
+	let membersSubscription: RealtimeChannel | null = null;
 
 	onMount(async () => {
 		await loadFamilyData();
+		setupRealtimeSubscriptions();
 	});
+
+	onDestroy(() => {
+		// Clean up subscriptions
+		if (familySubscription) {
+			supabase.removeChannel(familySubscription);
+		}
+		if (membersSubscription) {
+			supabase.removeChannel(membersSubscription);
+		}
+	});
+
+	function setupRealtimeSubscriptions() {
+		if (!family) return;
+
+		console.log('🔔 Setting up real-time subscriptions for family:', family.id);
+
+		// Subscribe to family changes
+		familySubscription = supabase
+			.channel(`family_${family.id}`)
+			.on(
+				'postgres_changes',
+				{
+					event: 'UPDATE',
+					schema: 'public',
+					table: 'families',
+					filter: `id=eq.${family.id}`
+				},
+				(payload) => {
+					console.log('📡 Family data updated:', payload.new);
+					// Update family data reactively
+					if (payload.new && family) {
+						family.name = payload.new.name;
+						family.settings = payload.new.settings;
+						familyName = payload.new.name;
+						console.log('✅ Family data synced in real-time');
+					}
+				}
+			)
+			.subscribe();
+
+		// Subscribe to family members changes
+		membersSubscription = supabase
+			.channel(`family_members_${family.id}`)
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'users',
+					filter: `family_id=eq.${family.id}`
+				},
+				(payload) => {
+					console.log('📡 Family members updated:', payload);
+					// Reload family data to get updated members list
+					loadFamilyData();
+				}
+			)
+			.subscribe();
+	}
 
 	async function loadFamilyData() {
 		try {
@@ -71,8 +140,15 @@
 			saving = true;
 			error = '';
 			
-			await updateFamilySettings(family.id, { ...family.settings });
-			family.name = familyName.trim();
+			// Update both name and settings
+			const updatedFamily = await updateFamilySettings(family.id, {
+				name: familyName.trim(),
+				settings: family.settings
+			});
+			
+			// Update local state (real-time subscription will also update this)
+			family.name = updatedFamily.name;
+			family.settings = updatedFamily.settings;
 			
 			success = 'Family settings updated successfully';
 			setTimeout(() => success = '', 3000);
@@ -165,6 +241,26 @@
 			setTimeout(() => success = '', 3000);
 		} catch (err: any) {
 			error = err.message || 'Failed to remove member';
+		}
+	}
+
+	function openLeaveFamilyModal() {
+		leaveFamilyModalOpen = true;
+		error = '';
+	}
+
+	async function handleLeaveFamily() {
+		try {
+			leaveFamilyLoading = true;
+			error = '';
+			
+			await leaveFamily();
+			
+			// Redirect to onboarding after leaving
+			window.location.href = '/onboarding';
+		} catch (err: any) {
+			error = err.message || 'Failed to leave family';
+			leaveFamilyLoading = false;
 		}
 	}
 
@@ -338,6 +434,38 @@
 		<Card title="Push Notifications">
 			<NotificationSettings />
 		</Card>
+
+		<!-- Leave Family -->
+		<Card title="Leave Family">
+			<div class="space-y-4">
+				<p class="text-gray-600">
+					If you need to leave this family, you can do so below. This action will remove your access to all family financial data.
+				</p>
+				
+				{#if currentUser?.role === 'admin'}
+					<div class="bg-yellow-50 p-4 rounded-lg">
+						<p class="text-sm text-yellow-800">
+							<strong>Note:</strong>
+							{#if members.length > 1}
+								As an admin, you must promote another member to admin before leaving the family.
+							{:else}
+								As the only member, you can leave freely. The family will become inactive.
+							{/if}
+						</p>
+					</div>
+				{/if}
+
+				<div class="pt-4 border-t border-gray-200">
+					<Button
+						variant="danger"
+						on:click={openLeaveFamilyModal}
+						disabled={!family}
+					>
+						Leave Family
+					</Button>
+				</div>
+			</div>
+		</Card>
 	{/if}
 </div>
 
@@ -426,6 +554,49 @@
 			on:click={sendEmailInvite}
 		>
 			{emailInviteLoading ? 'Sending...' : 'Send Invitation'}
+		</Button>
+	</div>
+</Modal>
+
+<!-- Leave Family Modal -->
+<Modal bind:open={leaveFamilyModalOpen} title="Leave Family">
+	<div class="space-y-4">
+		<p class="text-gray-600">
+			Are you sure you want to leave
+			<strong>{family?.name}</strong>?
+			This action cannot be undone.
+		</p>
+
+		<div class="bg-red-50 p-4 rounded-lg">
+			<h4 class="font-medium text-red-900 mb-2">What happens when you leave:</h4>
+			<ul class="text-sm text-red-800 space-y-1">
+				<li>• You will lose access to all family financial data</li>
+				<li>• Your transaction history will be preserved but inaccessible</li>
+				<li>• You will need a new invitation to rejoin</li>
+				{#if currentUser?.role === 'admin'}
+					<li class="font-medium">• You must assign another admin before leaving</li>
+				{/if}
+			</ul>
+		</div>
+
+		{#if error}
+			<div class="rounded-md bg-red-50 p-4">
+				<div class="text-sm text-red-700">{error}</div>
+			</div>
+		{/if}
+	</div>
+
+	<div slot="footer">
+		<Button variant="outline" on:click={() => leaveFamilyModalOpen = false} disabled={leaveFamilyLoading}>
+			Cancel
+		</Button>
+		<Button
+			variant="danger"
+			loading={leaveFamilyLoading}
+			disabled={leaveFamilyLoading}
+			on:click={handleLeaveFamily}
+		>
+			{leaveFamilyLoading ? 'Leaving...' : 'Leave Family'}
 		</Button>
 	</div>
 </Modal>

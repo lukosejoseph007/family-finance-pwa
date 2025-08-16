@@ -121,8 +121,18 @@
 	}
 
 	function toggleMode() {
+		console.log('🔗 Switching to join family mode');
 		joinMode = !joinMode;
 		error = '';
+		
+		// If switching to join mode, advance to step 2 to show the join form
+		if (joinMode) {
+			currentStep = 2;
+			console.log('📝 Advanced to step 2 for joining family');
+		} else {
+			currentStep = 1;
+			console.log('📝 Back to step 1 for creating family');
+		}
 	}
 </script>
 
@@ -196,10 +206,10 @@
 				<Button size="lg" on:click={nextStep}>Let's Get Started</Button>
 				
 				<div class="text-center">
-					<button 
+					<button
 						type="button"
 						class="text-sm text-blue-600 hover:text-blue-500 underline"
-						on:click={toggleMode}
+						onclick={toggleMode}
 					>
 						Have an invite code? Join an existing family instead
 					</button>
