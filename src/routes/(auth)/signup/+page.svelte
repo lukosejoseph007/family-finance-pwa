@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { Button, Input } from '$lib/components';
 	import { signUp } from '$lib/supabaseClient';
-	import { joinFamily, decodeInviteCode, getFamily } from '$lib/services/familyService';
+	import { joinFamily, findFamilyByInviteCode } from '$lib/services/familyService';
 
 	let email = $state('');
 	let password = $state('');
@@ -14,25 +14,19 @@
 	let success = $state(false);
 	let familyPreview = $state('');
 
-	// Validate invite code when it's entered
+	// Validate invite code when it's entered (using new system)
 	$effect(() => {
 		if (inviteCode && inviteCode.length >= 6) {
 			console.log('🔍 Validating invite code:', inviteCode);
-			const familyId = decodeInviteCode(inviteCode);
-			if (familyId) {
-				// Use async validation in a separate function
-				validateInviteCode(familyId);
-			} else {
-				familyPreview = 'Invalid invite code format';
-			}
+			validateInviteCode();
 		} else {
 			familyPreview = '';
 		}
 	});
 
-	async function validateInviteCode(familyId: string) {
+	async function validateInviteCode() {
 		try {
-			const family = await getFamily(familyId);
+			const family = await findFamilyByInviteCode(inviteCode);
 			if (family) {
 				familyPreview = `You'll join "${family.name}" family`;
 				console.log('✅ Valid invite code for family:', family.name);
