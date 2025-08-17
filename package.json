@@ -25,7 +25,8 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
 		"deploy": "npm run build && vercel --prod",
-		"deploy:preview": "npm run build && vercel"
+		"deploy:preview": "npm run build && vercel",
+		"analyze": "vite build --stats --open"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -72,6 +73,7 @@
 		"drizzle-orm": "^0.40.0",
 		"postgres": "^3.4.5",
 		"resend": "^6.0.1",
-		"rollup": "^4.24.0"
+		"rollup": "^4.24.0",
+		"vite-bundle-visualizer": "^1.2.1"
 	}
 }

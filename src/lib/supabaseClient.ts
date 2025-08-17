@@ -3,41 +3,6 @@ import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/publi
 
 export const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
-// Utility function to detect iOS/mobile devices
-const isIOSOrMobile = (): boolean => {
-	if (typeof window === 'undefined') return false;
-	
-	const userAgent = window.navigator.userAgent;
-	const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-	const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-	const isPWA = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
-	
-	// Use popup flow on iOS or when running as PWA
-	return isIOS || (isMobile && isPWA);
-};
-
-// Smart OAuth function that chooses popup or redirect based on device
-export const signInWithGoogleSmart = async () => {
-	if (isIOSOrMobile()) {
-		console.log('📱 Detected iOS/mobile PWA - using popup flow');
-		return signInWithGoogle();
-	} else {
-		console.log('💻 Desktop detected - using redirect flow');
-		return signInWithGoogleRedirect();
-	}
-};
-
-// Smart link function that chooses popup or redirect based on device
-export const linkGoogleAccountSmart = async () => {
-	if (isIOSOrMobile()) {
-		console.log('📱 Detected iOS/mobile PWA - using popup flow for linking');
-		return linkGoogleAccount();
-	} else {
-		console.log('💻 Desktop detected - using redirect flow for linking');
-		return linkGoogleAccountRedirect();
-	}
-};
-
 export const signUp = async (email: string, password: string) => {
 	// Dynamic redirect URL based on current environment
 	const redirectUrl = `${window.location.origin}/auth/callback`;
@@ -121,82 +86,6 @@ export const updatePassword = async (newPassword: string) => {
 };
 
 export const signInWithGoogle = async () => {
-	console.log('🚀 Starting Google OAuth sign-in with popup...');
-	
-	try {
-		// First, get the OAuth URL with skipBrowserRedirect
-		const { data, error } = await supabase.auth.signInWithOAuth({
-			provider: 'google',
-			options: {
-				skipBrowserRedirect: true,
-				redirectTo: `${window.location.origin}/auth/callback`
-			}
-		});
-		
-		if (error) {
-			console.error('❌ Google sign-in error:', error);
-			throw error;
-		}
-		
-		console.log('✅ Got OAuth URL:', data.url);
-		
-		// Open popup window with OAuth URL
-		const popup = window.open(
-			data.url,
-			'google-oauth',
-			'width=500,height=600,scrollbars=yes,resizable=yes'
-		);
-		
-		if (!popup) {
-			throw new Error('Failed to open popup window. Please disable popup blockers.');
-		}
-		
-		// Wait for popup to complete and return session
-		return new Promise((resolve, reject) => {
-			const checkClosed = setInterval(() => {
-				if (popup.closed) {
-					clearInterval(checkClosed);
-					
-					// Check for session after popup closes
-					setTimeout(async () => {
-						try {
-							const { data: session, error: sessionError } = await supabase.auth.getSession();
-							if (sessionError) {
-								reject(sessionError);
-								return;
-							}
-							
-							if (session.session) {
-								console.log('✅ Google OAuth popup completed successfully');
-								console.log('👤 User data:', session.session.user);
-								resolve({ user: session.session.user, session: session.session });
-							} else {
-								reject(new Error('Authentication was cancelled or failed'));
-							}
-						} catch (err) {
-							reject(err);
-						}
-					}, 1000);
-				}
-			}, 1000);
-			
-			// Timeout after 5 minutes
-			setTimeout(() => {
-				clearInterval(checkClosed);
-				if (!popup.closed) {
-					popup.close();
-				}
-				reject(new Error('Authentication timeout'));
-			}, 300000);
-		});
-	} catch (err) {
-		console.error('❌ Google OAuth popup error:', err);
-		throw err;
-	}
-};
-
-// Legacy redirect-based OAuth for fallback
-export const signInWithGoogleRedirect = async () => {
 	const redirectUrl = `${window.location.origin}/auth/callback`;
 	
 	console.log('🚀 Starting Google OAuth sign-in with redirect...');
@@ -248,77 +137,6 @@ export const checkUserExists = async (email: string) => {
 };
 
 export const linkGoogleAccount = async () => {
-	try {
-		console.log('🔗 Starting Google account linking with popup...');
-		
-		// Get the link identity URL with skipBrowserRedirect
-		const { data, error } = await supabase.auth.linkIdentity({
-			provider: 'google',
-			options: {
-				skipBrowserRedirect: true,
-				redirectTo: `${window.location.origin}/auth/callback`
-			}
-		});
-		
-		if (error) {
-			console.error('❌ Google account linking error:', error);
-			throw error;
-		}
-		
-		console.log('✅ Got link identity URL:', data.url);
-		
-		// Open popup window with link identity URL
-		const popup = window.open(
-			data.url,
-			'google-link',
-			'width=500,height=600,scrollbars=yes,resizable=yes'
-		);
-		
-		if (!popup) {
-			throw new Error('Failed to open popup window. Please disable popup blockers.');
-		}
-		
-		// Wait for popup to complete
-		return new Promise((resolve, reject) => {
-			const checkClosed = setInterval(() => {
-				if (popup.closed) {
-					clearInterval(checkClosed);
-					
-					// Check for updated user after popup closes
-					setTimeout(async () => {
-						try {
-							const { data: userData, error: userError } = await supabase.auth.getUser();
-							if (userError) {
-								reject(userError);
-								return;
-							}
-							
-							console.log('✅ Google account linking popup completed');
-							resolve(userData);
-						} catch (err) {
-							reject(err);
-						}
-					}, 1000);
-				}
-			}, 1000);
-			
-			// Timeout after 5 minutes
-			setTimeout(() => {
-				clearInterval(checkClosed);
-				if (!popup.closed) {
-					popup.close();
-				}
-				reject(new Error('Account linking timeout'));
-			}, 300000);
-		});
-	} catch (err) {
-		console.error('Error linking Google account:', err);
-		throw err;
-	}
-};
-
-// Legacy redirect-based linking for fallback
-export const linkGoogleAccountRedirect = async () => {
 	try {
 		console.log('🔗 Starting Google account linking with redirect...');
 		

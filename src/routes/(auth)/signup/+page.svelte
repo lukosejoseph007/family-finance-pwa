@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Button, Input } from '$lib/components';
-	import { signUp, signInWithGoogleSmart } from '$lib/supabaseClient';
+	import { signUp, signInWithGoogle } from '$lib/supabaseClient';
 	import { joinFamily, findFamilyByInviteCode } from '$lib/services/familyService';
 
 	let email = $state('');
@@ -112,7 +112,7 @@
 				sessionStorage.setItem('pendingDisplayName', displayName || '');
 			}
 			
-			const result = await signInWithGoogleSmart();
+			const result = await signInWithGoogle();
 			
 			// For popup flow, result contains user/session data
 			// For redirect flow, the OAuth redirect will handle navigation

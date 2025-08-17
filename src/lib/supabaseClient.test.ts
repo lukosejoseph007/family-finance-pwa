@@ -1,47 +1,50 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { signUp, signIn, signOut } from './supabaseClient';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import * as supabaseSSR from '@supabase/ssr';
 
-vi.mock('@supabase/supabase-js', () => ({
-	createClient: vi.fn(() => ({
-		auth: {
-			signUp: vi.fn(),
-			signInWithPassword: vi.fn(),
-			signOut: vi.fn()
-		},
-		from: vi.fn(() => ({
-			select: vi.fn(() => ({})),
-			insert: vi.fn(() => ({})),
-			update: vi.fn(() => ({})),
-			delete: vi.fn(() => ({}))
-		}))
-	}))
-}));
+// Mock the window object
+global.window = {
+    location: {
+        origin: 'http://localhost:5173'
+    }
+} as any;
 
 describe('supabaseClient', () => {
+    const mockSignUp = vi.fn();
+    const mockSignIn = vi.fn();
+    const mockSignOut = vi.fn();
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.spyOn(supabaseSSR, 'createBrowserClient').mockReturnValue({
+            auth: {
+                signUp: mockSignUp,
+                signInWithPassword: mockSignIn,
+                signOut: mockSignOut
+            },
+            from: vi.fn(() => ({
+                select: vi.fn(() => ({})),
+                insert: vi.fn(() => ({})),
+                update: vi.fn(() => ({})),
+                delete: vi.fn(() => ({}))
+            }))
+        } as any);
+    });
+
 	describe('signUp', () => {
 		it('should call signUp with correct parameters', async () => {
-			const mockSignUp = vi.fn().mockResolvedValue({ data: {}, error: null });
-			vi.mocked(createClient).mockReturnValue({
-				auth: {
-					signUp: mockSignUp
-				}
-			} as any);
-
+            mockSignUp.mockResolvedValue({ data: {}, error: null });
 			await signUp('test@example.com', 'password');
 
-			expect(mockSignUp).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password' });
+			expect(mockSignUp).toHaveBeenCalledWith({
+				email: 'test@example.com',
+				password: 'password',
+				options: { emailRedirectTo: 'http://localhost:5173/auth/callback' }
+			});
 		});
 
 		it('should throw an error if signUp fails', async () => {
-			const mockSignUp = vi
-				.fn()
-				.mockResolvedValue({ data: null, error: new Error('Sign up failed') });
-			vi.mocked(createClient).mockReturnValue({
-				auth: {
-					signUp: mockSignUp
-				}
-			} as any);
+			mockSignUp.mockResolvedValue({ data: null, error: new Error('Sign up failed') });
 
 			await expect(signUp('test@example.com', 'password')).rejects.toThrow('Sign up failed');
 		});
@@ -49,27 +52,14 @@ describe('supabaseClient', () => {
 
 	describe('signIn', () => {
 		it('should call signInWithPassword with correct parameters', async () => {
-			const mockSignIn = vi.fn().mockResolvedValue({ data: {}, error: null });
-			vi.mocked(createClient).mockReturnValue({
-				auth: {
-					signInWithPassword: mockSignIn
-				}
-			} as any);
-
+            mockSignIn.mockResolvedValue({ data: {}, error: null });
 			await signIn('test@example.com', 'password');
 
 			expect(mockSignIn).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password' });
 		});
 
 		it('should throw an error if signIn fails', async () => {
-			const mockSignIn = vi
-				.fn()
-				.mockResolvedValue({ data: null, error: new Error('Sign in failed') });
-			vi.mocked(createClient).mockReturnValue({
-				auth: {
-					signInWithPassword: mockSignIn
-				}
-			} as any);
+			mockSignIn.mockResolvedValue({ data: null, error: new Error('Sign in failed') });
 
 			await expect(signIn('test@example.com', 'password')).rejects.toThrow('Sign in failed');
 		});
@@ -77,25 +67,14 @@ describe('supabaseClient', () => {
 
 	describe('signOut', () => {
 		it('should call signOut', async () => {
-			const mockSignOut = vi.fn().mockResolvedValue({ error: null });
-			vi.mocked(createClient).mockReturnValue({
-				auth: {
-					signOut: mockSignOut
-				}
-			} as any);
-
+            mockSignOut.mockResolvedValue({ error: null });
 			await signOut();
 
 			expect(mockSignOut).toHaveBeenCalled();
 		});
 
 		it('should throw an error if signOut fails', async () => {
-			const mockSignOut = vi.fn().mockResolvedValue({ error: new Error('Sign out failed') });
-			vi.mocked(createClient).mockReturnValue({
-				auth: {
-					signOut: mockSignOut
-				}
-			} as any);
+			mockSignOut.mockResolvedValue({ error: new Error('Sign out failed') });
 
 			await expect(signOut()).rejects.toThrow('Sign out failed');
 		});

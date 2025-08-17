@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Button, Input } from '$lib/components';
-	import { signIn, signInWithGoogleSmart } from '$lib/supabaseClient';
+	import { signIn, signInWithGoogle } from '$lib/supabaseClient';
 
 	let email = '';
 	let password = '';
@@ -38,7 +38,7 @@
 		try {
 			googleLoading = true;
 			error = '';
-			const result = await signInWithGoogleSmart();
+			const result = await signInWithGoogle();
 			
 			// For popup flow, result contains user/session data
 			// For redirect flow, the OAuth redirect will handle navigation

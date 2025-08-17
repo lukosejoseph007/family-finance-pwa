@@ -3,6 +3,7 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import tailwindcss from '@tailwindcss/vite';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
 	plugins: [
@@ -69,7 +70,7 @@ export default defineConfig({
 				globPatterns: [
 					'**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'
 				],
-				navigateFallback: null,
+				navigateFallback: '/offline.html',
 				runtimeCaching: [
 					{
 						urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -106,14 +107,13 @@ export default defineConfig({
 					},
 					{
 						urlPattern: ({ request }) => request.destination === 'document',
-						handler: 'NetworkFirst',
+						handler: 'StaleWhileRevalidate',
 						options: {
 							cacheName: 'pages-cache',
 							expiration: {
 								maxEntries: 50,
 								maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
-							},
-							networkTimeoutSeconds: 3
+							}
 						}
 					},
 					{
@@ -142,6 +142,10 @@ export default defineConfig({
 				navigateFallback: '/',
 				disableRuntimeConfig: false
 			}
+		}),
+		visualizer({
+			open: true,
+			filename: 'dist/stats.html'
 		})
 	],
 	test: {
