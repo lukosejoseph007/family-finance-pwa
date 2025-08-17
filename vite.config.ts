@@ -56,14 +56,12 @@ export default defineConfig({
 					{
 						src: '/screenshot1.png',
 						sizes: '1280x720',
-						type: 'image/png',
-						label: 'Dashboard view with financial charts'
+						type: 'image/png'
 					},
 					{
 						src: '/screenshot2.png',
 						sizes: '1280x720',
-						type: 'image/png',
-						label: 'Budget management interface'
+						type: 'image/png'
 					}
 				]
 			},

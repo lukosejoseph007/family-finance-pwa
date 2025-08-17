@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Button, Input } from '$lib/components';
-	import { signIn, signInWithGoogle } from '$lib/supabaseClient';
+	import { signIn, signInWithGoogleSmart } from '$lib/supabaseClient';
 
 	let email = '';
 	let password = '';
@@ -38,8 +38,15 @@
 		try {
 			googleLoading = true;
 			error = '';
-			await signInWithGoogle();
-			// The redirect happens automatically, no need to call goto()
+			const result = await signInWithGoogleSmart();
+			
+			// For popup flow, result contains user/session data
+			// For redirect flow, the OAuth redirect will handle navigation
+			if (result && typeof result === 'object' && (result as any).user) {
+				console.log('✅ Google OAuth completed successfully');
+				// Refresh the page to trigger auth state change
+				window.location.reload();
+			}
 		} catch (err: any) {
 			error = err.message || 'Failed to sign in with Google';
 			googleLoading = false;

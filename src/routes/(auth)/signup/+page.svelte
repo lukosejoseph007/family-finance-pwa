@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Button, Input } from '$lib/components';
-	import { signUp, signInWithGoogle } from '$lib/supabaseClient';
+	import { signUp, signInWithGoogleSmart } from '$lib/supabaseClient';
 	import { joinFamily, findFamilyByInviteCode } from '$lib/services/familyService';
 
 	let email = $state('');
@@ -41,7 +41,9 @@
 		}
 	}
 
-	async function handleSignup() {
+	async function handleSignup(event: SubmitEvent) {
+		event.preventDefault();
+		
 		if (!email || !password || !confirmPassword || !displayName) {
 			error = 'Please fill in all fields';
 			return;
@@ -93,7 +95,9 @@
 
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.key === 'Enter') {
-			handleSignup();
+			// Create a mock submit event for the handler
+			const submitEvent = new Event('submit') as SubmitEvent;
+			handleSignup(submitEvent);
 		}
 	}
 
@@ -108,8 +112,15 @@
 				sessionStorage.setItem('pendingDisplayName', displayName || '');
 			}
 			
-			await signInWithGoogle();
-			// The redirect happens automatically, no need to call goto()
+			const result = await signInWithGoogleSmart();
+			
+			// For popup flow, result contains user/session data
+			// For redirect flow, the OAuth redirect will handle navigation
+			if (result && typeof result === 'object' && (result as any).user) {
+				console.log('✅ Google OAuth completed successfully');
+				// Refresh the page to trigger auth state change
+				window.location.reload();
+			}
 		} catch (err: any) {
 			error = err.message || 'Failed to sign up with Google';
 			googleLoading = false;
@@ -152,7 +163,7 @@
 			</p>
 		</div>
 
-		<form on:submit|preventDefault={handleSignup} class="space-y-6">
+		<form onsubmit={handleSignup} class="space-y-6">
 			{#if error}
 				<div class="rounded-md bg-red-50 p-4">
 					<div class="text-sm text-red-700">{error}</div>
