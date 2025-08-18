@@ -495,7 +495,7 @@
 
 				<!-- Budget Performance Details -->
 				{#if budgetComparisonChart}
-					<div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+					<div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mt-6">
 						<div class="flex items-center justify-between mb-6">
 							<h3 class="text-xl font-semibold text-gray-900">Budget vs Actual Spending</h3>
 							<span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">This Month</span>
