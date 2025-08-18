@@ -23,22 +23,23 @@ export async function load({ url, cookies }: RequestEvent) {
 			
 			if (error) {
 				console.error('Auth callback error:', error);
-				throw redirect(303, `/auth/error?message=${encodeURIComponent(error.message)}`);
+				// Use replace instead of redirect for PWA context preservation
+				throw redirect(303, `/auth/error?message=${encodeURIComponent(error.message)}&pwa=1`);
 			}
 
 			if (data.user) {
 				console.log('Email verified successfully for user:', data.user.email);
 				
-				// Check if user has pending invite code from session storage
-				// This will be handled on the client side
-				throw redirect(303, '/onboarding');
+				// Add PWA flag to maintain standalone context
+				throw redirect(303, '/onboarding?pwa=1&auth_success=1');
 			}
 		} catch (err) {
 			console.error('Unexpected error in auth callback:', err);
-			throw redirect(303, '/auth/error?message=Verification failed');
+			// Preserve PWA context in error redirects
+			throw redirect(303, '/auth/error?message=Verification failed&pwa=1');
 		}
 	}
 
-	// If no code, redirect to login
-	throw redirect(303, '/login');
+	// If no code, redirect to login with PWA preservation
+	throw redirect(303, '/login?pwa=1');
 }

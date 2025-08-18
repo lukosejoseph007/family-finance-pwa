@@ -1,157 +1,120 @@
 import { createBrowserClient } from '@supabase/ssr';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
+// TypeScript interface for iOS Safari standalone mode
+interface NavigatorWithStandalone extends Navigator {
+	standalone?: boolean;
+}
+
 export const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
-// Central redirect target for iOS PWA safety
-const redirectTo = `${window.location.origin}/auth/callback`;
+// Check if running as PWA
+const isPWA = () => {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         (window.navigator as NavigatorWithStandalone).standalone === true ||
+         document.referrer.includes('android-app://');
+};
+
+// Central redirect target with PWA awareness
+const getRedirectTo = (path: string = '/auth/callback') => {
+  const baseUrl = `${window.location.origin}${path}`;
+  return isPWA() ? `${baseUrl}?pwa=1` : baseUrl;
+};
+
+// ------------------ SIGN UP / EMAIL ------------------
 
 export const signUp = async (email: string, password: string) => {
-	console.log('🚀 Starting signup process...');
-	console.log('📧 Email:', email);
-	console.log('🔗 Redirect URL:', redirectTo);
-	console.log('🌐 Current origin:', window.location.origin);
+	const redirectTo = getRedirectTo();
+	console.log('🚀 Starting signup process...', email, redirectTo);
 
-	const signUpOptions = {
+	const { data, error } = await supabase.auth.signUp({
 		email,
 		password,
 		options: { emailRedirectTo: redirectTo }
-	};
+	});
 
-	console.log('📝 Signup options:', signUpOptions);
+	console.log('📊 SignUp response:', { data, error });
 
-	const { data, error } = await supabase.auth.signUp(signUpOptions);
-
-	console.log('📊 Raw Supabase response:', { data, error });
-
-	if (error) {
-		console.error('❌ Sign up error:', error);
-		console.error('❌ Error details:', {
-			message: error.message,
-			status: error.status,
-			name: error.name
-		});
-		throw error;
-	}
-
-	console.log('✅ Sign up successful!');
-	console.log('👤 User data:', data.user);
-	console.log('🔐 Session data:', data.session);
-	console.log('📧 Email confirmation needed:', !data.session);
-
+	if (error) throw error;
 	return data;
 };
+
+// ------------------ EMAIL / PASSWORD SIGN IN ------------------
 
 export const signIn = async (email: string, password: string) => {
 	const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-	if (error) {
-		console.error('Sign in error:', error);
-		throw error;
-	}
+	if (error) throw error;
 	return data;
 };
 
-/**
- * Magic link / passwordless sign-in
- */
+// ------------------ MAGIC LINK / PASSWORDLESS ------------------
+
 export const signInWithMagicLink = async (email: string) => {
-	console.log('🚀 Starting magic link sign-in...');
-	console.log('📧 Email:', email);
-	console.log('🔗 Redirect URL:', redirectTo);
+	const redirectTo = getRedirectTo();
+	console.log('🚀 Starting magic link sign-in...', email);
 
 	const { data, error } = await supabase.auth.signInWithOtp({
 		email,
 		options: { emailRedirectTo: redirectTo }
 	});
 
-	if (error) {
-		console.error('❌ Magic link error:', error);
-		throw error;
-	}
-
-	console.log('✅ Magic link email sent successfully');
+	if (error) throw error;
 	return data;
 };
 
+// ------------------ SIGN OUT ------------------
+
 export const signOut = async () => {
 	const { error } = await supabase.auth.signOut();
-	if (error) {
-		console.error('Sign out error:', error);
-		throw error;
-	}
+	if (error) throw error;
 };
 
+// ------------------ PASSWORD RESET ------------------
+
 export const resetPassword = async (email: string) => {
+	const redirectTo = getRedirectTo('/auth/reset-password');
 	const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-		redirectTo: `${window.location.origin}/auth/reset-password`
+		redirectTo
 	});
-	if (error) {
-		console.error('Reset password error:', error);
-		throw error;
-	}
-	console.log('Reset password email sent successfully');
+	if (error) throw error;
 	return data;
 };
 
 export const updatePassword = async (newPassword: string) => {
 	const { data, error } = await supabase.auth.updateUser({ password: newPassword });
-	if (error) {
-		console.error('Update password error:', error);
-		throw error;
-	}
-	console.log('Password updated successfully');
+	if (error) throw error;
 	return data;
 };
 
-export const signInWithGoogle = async () => {
-	console.log('🚀 Starting Google OAuth sign-in with redirect...');
-	console.log('🔗 Redirect URL:', redirectTo);
+// ------------------ OAUTH SIGN IN ------------------
 
-	const { data, error } = await supabase.auth.signInWithOAuth({
-		provider: 'google',
-		options: {
-			redirectTo,
-			queryParams: { prompt: 'consent' } // helps on iOS
-		}
-	});
-
-	if (error) {
-		console.error('❌ Google sign-in error:', error);
-		throw error;
-	}
-
-	console.log('✅ Google OAuth redirect initiated successfully');
-	return data;
-};
-
-/**
- * Generic OAuth helper (Apple, GitHub, etc.)
- */
 export const signInWithProvider = async (provider: 'google' | 'apple' | 'github') => {
-	console.log(`🚀 Starting ${provider} OAuth sign-in with redirect...`);
+	const redirectTo = getRedirectTo();
+	console.log(`🚀 Starting ${provider} OAuth sign-in...`);
+	console.log('📱 PWA Mode:', isPWA());
 	console.log('🔗 Redirect URL:', redirectTo);
 
 	const { data, error } = await supabase.auth.signInWithOAuth({
 		provider,
-		options: {
+		options: { 
 			redirectTo,
-			queryParams: { prompt: 'consent' }
+			queryParams: { prompt: 'consent' },
+			// Add skipBrowserRedirect for PWA to handle auth manually
+			skipBrowserRedirect: isPWA()
 		}
 	});
 
-	if (error) {
-		console.error(`❌ ${provider} sign-in error:`, error);
-		throw error;
-	}
-
-	console.log(`✅ ${provider} OAuth redirect initiated successfully`);
+	if (error) throw error;
 	return data;
 };
 
+// Convenience wrapper for Google
+export const signInWithGoogle = () => signInWithProvider('google');
+
+// ------------------ ACCOUNT CHECK ------------------
+
 export const checkUserExists = async (email: string) => {
 	try {
-		console.log('🔍 Checking if user exists with email:', email);
-
 		const { error } = await supabase.auth.signInWithPassword({
 			email,
 			password: 'dummy-password-for-checking'
@@ -167,86 +130,75 @@ export const checkUserExists = async (email: string) => {
 			}
 			return { exists: false, needsConfirmation: false };
 		}
-
 		return { exists: true, needsConfirmation: false };
-	} catch (err) {
-		console.error('Error checking user existence:', err);
+	} catch {
 		return { exists: false, needsConfirmation: false };
 	}
 };
 
+// ------------------ LINK / UNLINK OAUTH ------------------
+
 export const linkGoogleAccount = async () => {
-	try {
-		console.log('🔗 Starting Google account linking with redirect...');
-
-		const { data, error } = await supabase.auth.linkIdentity({
-			provider: 'google',
-			options: { redirectTo: `${window.location.origin}/auth/callback?next=/settings` }
-		});
-
-		if (error) {
-			console.error('❌ Google account linking error:', error);
-			throw error;
+	const redirectTo = getRedirectTo('/auth/callback?next=/settings');
+	const { data, error } = await supabase.auth.linkIdentity({
+		provider: 'google',
+		options: { 
+			redirectTo,
+			skipBrowserRedirect: isPWA()
 		}
-
-		console.log('✅ Google account linking redirect initiated');
-		return data;
-	} catch (err) {
-		console.error('Error linking Google account:', err);
-		throw err;
-	}
+	});
+	if (error) throw error;
+	return data;
 };
 
 export const unlinkGoogleAccount = async () => {
+	const { data: { user }, error: userError } = await supabase.auth.getUser();
+	if (userError || !user) throw new Error('User not found');
+
+	const googleIdentity = user.identities?.find((i) => i.provider === 'google');
+	if (!googleIdentity) throw new Error('Google account not linked');
+
+	const { data, error } = await supabase.auth.unlinkIdentity(googleIdentity);
+	if (error) throw error;
+	return data;
+};
+
+// ------------------ GET LINKED PROVIDERS ------------------
+
+export const getLinkedProviders = async () => {
+	const { data: { user }, error } = await supabase.auth.getUser();
+	if (error || !user) return [];
+	return user.identities?.map((i) => i.provider) || [];
+};
+
+// ------------------ PWA SPECIFIC HELPERS ------------------
+
+// Handle OAuth redirect manually for PWA
+export const handlePWAOAuthRedirect = async (url: string) => {
+	if (!isPWA()) return false;
+	
 	try {
-		console.log('🔗 Unlinking Google account...');
-
-		const {
-			data: { user },
-			error: userError
-		} = await supabase.auth.getUser();
-
-		if (userError || !user) throw new Error('User not found');
-
-		const googleIdentity = user.identities?.find((identity) => identity.provider === 'google');
-
-		if (!googleIdentity) throw new Error('Google account not linked');
-
-		const { data, error } = await supabase.auth.unlinkIdentity(googleIdentity);
-
-		if (error) {
-			console.error('❌ Google account unlinking error:', error);
-			throw error;
-		}
-
-		console.log('✅ Google account unlinked successfully');
-		return data;
-	} catch (err) {
-		console.error('Error unlinking Google account:', err);
-		throw err;
+		// Open OAuth in a popup or external browser
+		window.open(url, '_blank');
+		return true;
+	} catch (error) {
+		console.error('Failed to handle PWA OAuth redirect:', error);
+		return false;
 	}
 };
 
-export const getLinkedProviders = async () => {
-	try {
-		const {
-			data: { user },
-			error
-		} = await supabase.auth.getUser();
+// Listen for auth state changes and handle PWA redirects
+export const setupPWAAuthListener = () => {
+	if (!isPWA()) return;
 
-		if (error) {
-			console.error('Error getting user:', error);
-			return [];
+	supabase.auth.onAuthStateChange((event, session) => {
+		console.log('🔄 Auth state changed in PWA:', event, session?.user?.email);
+		
+		if (event === 'SIGNED_IN' && session) {
+			// Navigate programmatically instead of relying on redirects
+			const params = new URLSearchParams(window.location.search);
+			const next = params.get('next') || '/onboarding';
+			window.location.href = `${next}?auth_success=1&pwa=1`;
 		}
-
-		if (!user) return [];
-
-		const providers = user.identities?.map((identity) => identity.provider) || [];
-		console.log('🔗 Linked providers:', providers);
-
-		return providers;
-	} catch (err) {
-		console.error('Error getting linked providers:', err);
-		return [];
-	}
+	});
 };
