@@ -266,3 +266,21 @@ export interface BudgetPerformance {
 	total_variance: number;
 	performance_score: number; // Percentage score
 }
+
+export interface AuthUser {
+    id: string;
+    email?: string;
+    user_metadata?: {
+        display_name?: string;
+        full_name?: string;
+        avatar_url?: string;
+    };
+    identities?: Array<{
+        provider: string;
+        identity_data?: {
+            name?: string;
+            email?: string;
+            picture?: string;
+        };
+    }>;
+}

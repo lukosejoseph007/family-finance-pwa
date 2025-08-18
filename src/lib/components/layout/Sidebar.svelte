@@ -3,8 +3,13 @@
 	import { goto } from '$app/navigation';
 	import { signOut } from '$lib/supabaseClient';
 	import { Button } from '$lib/components';
+	import { getUserDisplayName, getUserInitials } from '$lib/utils/user';
+	import type { AuthUser } from '$lib/types';
 
-	let { data, sidebarOpen = $bindable(false) } = $props();
+	let { data, sidebarOpen = $bindable(false) } = $props<{
+	data: { session?: { user?: AuthUser } };
+	sidebarOpen?: boolean;
+}>();
 
 	// Navigation items
 	const navigation = [
@@ -100,15 +105,13 @@
 			<div class="flex-shrink-0">
 				<div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-400/80 to-indigo-500/80 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
 					<span class="text-white text-sm lg:text-base font-medium">
-						{(data.session?.user?.user_metadata?.display_name || data.session?.user?.email || 'U').charAt(0).toUpperCase()}
+						{getUserInitials(data.session?.user)}
 					</span>
 				</div>
 			</div>
 			<div class="flex-1 min-w-0">
 				<p class="text-sm lg:text-base font-medium text-gray-800 truncate">
-					{data.session?.user?.user_metadata?.display_name ||
-					 data.session?.user?.email?.split('@')[0] ||
-					 'User'}
+					{getUserDisplayName(data.session?.user)}
 				</p>
 				<p class="text-xs lg:text-sm text-gray-600 truncate">
 					{data.session?.user?.email}

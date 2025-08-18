@@ -8,6 +8,7 @@
 		createBudgetComparison,
 		formatCurrency
 	} from '$lib/components/charts/ChartUtils';
+	import { getUserDisplayName } from '$lib/utils/user';
 	import {
 		getMonthlyReport,
 		getCategorySpendingReport,
@@ -134,7 +135,7 @@
 			<!-- Welcome Header -->
 			<div class="text-center mb-8">
 				<h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2">
-					Welcome back, {data.session?.user?.user_metadata?.display_name || data.session?.user?.email?.split('@')[0]}!
+					Welcome back, {getUserDisplayName(data.session?.user).split(' ')[0]}!
 				</h1>
 				<p class="text-blue-100 text-base sm:text-lg opacity-90">
 					{new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -149,7 +150,7 @@
 						<div class="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
 							<span class="text-3xl">💰</span>
 						</div>
-						<h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">Quick Transaction</h2>
+						<h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">Record An Expense</h2>
 						<p class="text-blue-100 mb-6 text-base sm:text-lg">Record your latest expense or income instantly</p>
 						
 						<a href="/transactions" class="block">
@@ -172,7 +173,7 @@
 									<span class="text-4xl xl:text-5xl">💰</span>
 								</div>
 								<div>
-									<h2 class="text-3xl xl:text-4xl font-bold text-white mb-2">Quick Transaction</h2>
+									<h2 class="text-3xl xl:text-4xl font-bold text-white mb-2">Record An Expense</h2>
 									<p class="text-blue-100 text-lg xl:text-xl">Record your latest expense or income instantly</p>
 								</div>
 							</div>

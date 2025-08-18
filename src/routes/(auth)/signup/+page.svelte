@@ -77,7 +77,7 @@
 			console.log('Invite Code:', inviteCode);
 			console.log('Family Preview:', familyPreview);
 			console.log('Button disabled:', loading || !email || !password || !confirmPassword || !displayName || (inviteCode && !familyPreview.includes("You'll join")));
-			await signUp(email, password);
+			await signUp(email, password, displayName);
 			
 			// Store invite code for post-signup processing
 			if (inviteCode) {
