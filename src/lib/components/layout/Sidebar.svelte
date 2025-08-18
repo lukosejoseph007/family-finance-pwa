@@ -68,7 +68,7 @@
 <!-- Sidebar with Glassmorphism -->
 <div class="fixed inset-y-0 left-0 z-50 w-72 lg:w-80 xl:w-84 bg-white/70 backdrop-blur-2xl border-r border-white/30 shadow-2xl shadow-black/10 transform transition-all duration-300 ease-in-out
 	{sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-	lg:translate-x-0 lg:static lg:inset-0">
+	lg:translate-x-0 lg:static lg:inset-0 pb-[env(safe-area-inset-bottom)]">
 	
 	<!-- Sidebar header with glassmorphism -->
 	<div class="flex items-center justify-between h-16 lg:h-20 px-6 lg:px-8 bg-gradient-to-r from-blue-500/80 to-indigo-600/80 backdrop-blur-xl border-b border-white/20">
