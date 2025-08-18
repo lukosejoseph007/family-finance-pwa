@@ -369,8 +369,9 @@
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Account</label>
+					<label for="account-filter" class="block text-sm font-medium text-gray-700 mb-1">Account</label>
 					<select
+						id="account-filter"
 						bind:value={selectedAccount}
 						onchange={handleFilterChange}
 						class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
@@ -383,8 +384,9 @@
 				</div>
 
 				<div>
-					<label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+					<label for="category-filter" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
 					<select
+						id="category-filter"
 						bind:value={selectedCategory}
 						onchange={handleFilterChange}
 						class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
@@ -497,7 +499,7 @@
 									<button
 										onclick={() => handleToggleCleared(transaction)}
 										class="p-1 rounded {transaction.is_cleared ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600'}"
-										title={transaction.is_cleared ? 'Mark as pending' : 'Mark as cleared'}
+										aria-label={transaction.is_cleared ? 'Mark as pending' : 'Mark as cleared'}
 									>
 										<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
 											<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -508,7 +510,7 @@
 									<button
 										onclick={() => openEditModal(transaction)}
 										class="p-1 text-gray-400 hover:text-gray-600"
-										title="Edit transaction"
+										aria-label="Edit transaction"
 									>
 										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -519,7 +521,7 @@
 									<button
 										onclick={() => openDeleteModal(transaction)}
 										class="p-1 text-gray-400 hover:text-red-600"
-										title="Delete transaction"
+										aria-label="Delete transaction"
 									>
 										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -579,8 +581,9 @@
 
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">Account *</label>
-				<select 
+				<label for="add-account" class="block text-sm font-medium text-gray-700 mb-1">Account *</label>
+				<select
+					id="add-account"
 					bind:value={formData.account_id}
 					class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
 					required
@@ -593,8 +596,9 @@
 			</div>
 
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-				<select 
+				<label for="add-category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+				<select
+					id="add-category"
 					bind:value={formData.category_id}
 					class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
 				>
@@ -672,8 +676,9 @@
 
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">Account *</label>
-				<select 
+				<label for="edit-account" class="block text-sm font-medium text-gray-700 mb-1">Account *</label>
+				<select
+					id="edit-account"
 					bind:value={formData.account_id}
 					class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
 					required
@@ -686,8 +691,9 @@
 			</div>
 
 			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-				<select 
+				<label for="edit-category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+				<select
+					id="edit-category"
 					bind:value={formData.category_id}
 					class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
 				>
