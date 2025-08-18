@@ -21,7 +21,7 @@
 
 	// Context-aware FAB configuration
 	const fabConfigs: Record<string, { icon: string; label: string; href?: string; action?: string; show: boolean }> = {
-		'/dashboard': { icon: 'plus', label: 'Add Transaction', href: '/transactions', show: true },
+		'/dashboard': { icon: 'plus', label: 'Add Transaction', action: 'modal', show: true },
 		'/transactions': { icon: 'plus', label: 'Add Transaction', action: 'modal', show: false }, // Header has add button
 		'/accounts': { icon: 'plus', label: 'Add Account', action: 'modal', show: false }, // Header has add button
 		'/categories': { icon: 'plus', label: 'Add Category', action: 'modal', show: false }, // Header has add button

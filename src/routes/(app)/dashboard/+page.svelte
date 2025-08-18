@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { user } from '$lib/store';
-	import { Card, Button, FinanceChart } from '$lib/components';
+	import { Card, Button, FinanceChart, Modal, Input } from '$lib/components';
 	import {
 		createExpenseByCategory,
 		createMonthlyTrend,
@@ -15,8 +15,11 @@
 		getAccountBalanceDistribution,
 		getBudgetPerformance
 	} from '$lib/services/reportingService';
-	import { getAccountSummary } from '$lib/services/accountService';
+	import { getAccountSummary, getAccounts } from '$lib/services/accountService';
+	import { getCategories } from '$lib/services/categoryService';
+	import { createTransaction, validateTransactionData } from '$lib/services/transactionService';
 	import { getCurrentMonth } from '$lib/services/budgetService';
+	import type { TransactionFormData, Account, Category } from '$lib/types';
 
 	let { data } = $props();
 
@@ -28,6 +31,7 @@
 	// Dashboard data state
 	let loading = $state(true);
 	let error = $state('');
+	let success = $state('');
 	let accountSummary = $state({
 		total_assets: 0,
 		total_liabilities: 0,
@@ -52,8 +56,47 @@
 	let trendChart = $state<any>(null);
 	let budgetComparisonChart = $state<any>(null);
 
-	onMount(async () => {
-		await loadDashboardData();
+	// Modal states
+	let addModalOpen = $state(false);
+	let formData: TransactionFormData = $state({
+		account_id: '',
+		category_id: null,
+		amount: '',
+		transaction_date: new Date().toISOString().split('T')[0],
+		description: '',
+		memo: '',
+		is_cleared: false
+	});
+	let formErrors: string[] = $state([]);
+	let saving = $state(false);
+	let accounts: Account[] = $state([]);
+	let categories: Category[] = $state([]);
+
+		onMount(() => {
+		// Async part
+		const loadAsyncData = async () => {
+			await loadDashboardData();
+			const accountsData = await getAccounts();
+			accounts = accountsData.filter(acc => acc.is_active);
+			const categoriesData = await getCategories();
+			categories = categoriesData.filter(cat => cat.is_active);
+		};
+
+		loadAsyncData();
+
+		// Sync part
+		const handleFabClick = (event: CustomEvent) => {
+			if (event.detail.page === '/dashboard') {
+				openAddModal();
+			}
+		};
+		
+		window.addEventListener('fab-click', handleFabClick as EventListener);
+		
+		// Return cleanup function synchronously
+		return () => {
+			window.removeEventListener('fab-click', handleFabClick as EventListener);
+		};
 	});
 
 	async function loadDashboardData() {
@@ -117,6 +160,49 @@
 			loading = false;
 		}
 	}
+
+	function openAddModal() {
+        formData = {
+            account_id: accounts.length > 0 ? accounts[0].id : '',
+            category_id: null,
+            amount: '',
+            transaction_date: new Date().toISOString().split('T')[0],
+            description: '',
+            memo: '',
+            is_cleared: false
+        };
+        formErrors = [];
+        addModalOpen = true;
+    }
+
+    async function handleSave() {
+        formErrors = validateTransactionData(formData);
+        if (formErrors.length > 0) return;
+
+        try {
+            saving = true;
+            error = '';
+
+            const isIncome = categories.find(c => c.id === formData.category_id)?.type === 'income';
+            const amount = isIncome ? Math.abs(parseFloat(formData.amount)) : -Math.abs(parseFloat(formData.amount));
+
+            const transactionData = {
+                ...formData,
+                amount: amount.toString()
+            };
+
+            await createTransaction(transactionData);
+            addModalOpen = false;
+            success = 'Transaction added successfully';
+            
+            await loadDashboardData(); // Refresh dashboard data
+            setTimeout(() => success = '', 3000);
+        } catch (err: any) {
+            error = err.message || 'Failed to save transaction';
+        } finally {
+            saving = false;
+        }
+    }
 </script>
 
 <svelte:head>
@@ -153,16 +239,14 @@
 						<h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">Record A Transaction</h2>
 						<p class="text-blue-100 mb-6 text-base sm:text-lg">Record your latest expense or income instantly</p>
 						
-						<a href="/transactions" class="block">
-							<button class="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-300 hover:to-orange-300 text-gray-900 font-bold py-5 px-8 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl text-lg">
-								<span class="inline-flex items-center justify-center">
-									<svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-									</svg>
-									Add Transaction Now
-								</span>
-							</button>
-						</a>
+						<button onclick={openAddModal} class="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-300 hover:to-orange-300 text-gray-900 font-bold py-5 px-8 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl text-lg">
+							<span class="inline-flex items-center justify-center">
+								<svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+								</svg>
+								Add Transaction Now
+							</span>
+						</button>
 					</div>
 					
 					<!-- Desktop Layout (simplified and centered) -->
@@ -180,16 +264,14 @@
 							
 							<!-- Single centered CTA button -->
 							<div class="flex justify-center">
-								<a href="/transactions" class="block">
-									<button class="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-300 hover:to-orange-300 text-gray-900 font-bold py-6 xl:py-8 px-12 xl:px-16 rounded-2xl shadow-2xl transform transition-all duration-200 hover:scale-105 hover:shadow-3xl text-xl xl:text-2xl">
-										<span class="flex items-center justify-center space-x-4">
-											<svg class="w-8 h-8 xl:w-10 xl:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-											</svg>
-											<span class="whitespace-nowrap">Add Transaction</span>
-										</span>
-									</button>
-								</a>
+								<button onclick={openAddModal} class="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-300 hover:to-orange-300 text-gray-900 font-bold py-6 xl:py-8 px-12 xl:px-16 rounded-2xl shadow-2xl transform transition-all duration-200 hover:scale-105 hover:shadow-3xl text-xl xl:text-2xl">
+									<span class="flex items-center justify-center space-x-4">
+										<svg class="w-8 h-8 xl:w-10 xl:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+										</svg>
+										<span class="whitespace-nowrap">Add Transaction</span>
+									</span>
+								</button>
 							</div>
 						</div>
 					</div>
@@ -425,3 +507,98 @@
 		</div>
 	</div>
 </div>
+
+<!-- Add Transaction Modal -->
+<Modal bind:open={addModalOpen} title="Add New Transaction">
+	<form onsubmit={(e) => { e.preventDefault(); handleSave(); }} class="space-y-6">
+		{#if formErrors.length > 0}
+			<div class="rounded-md bg-red-50 p-4">
+				<ul class="text-sm text-red-700 space-y-1">
+					{#each formErrors as error}
+						<li>• {error}</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
+
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div>
+				<label for="add-account" class="block text-sm font-medium text-gray-700 mb-1">Account *</label>
+				<select
+					id="add-account"
+					bind:value={formData.account_id}
+					class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
+					required
+				>
+					<option value="">Select an account</option>
+					{#each accounts as account}
+						<option value={account.id}>{account.name}</option>
+					{/each}
+				</select>
+			</div>
+
+			<div>
+				<label for="add-category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+				<select
+					id="add-category"
+					bind:value={formData.category_id}
+					class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
+				>
+					<option value="">Select a category</option>
+					{#each categories as category}
+						<option value={category.id}>{category.name}</option>
+					{/each}
+				</select>
+			</div>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<Input
+				label="Amount *"
+				type="number"
+				step="0.01"
+				bind:value={formData.amount}
+				placeholder="0.00"
+				required
+			/>
+
+			<Input
+				label="Date *"
+				type="date"
+				bind:value={formData.transaction_date}
+				required
+			/>
+		</div>
+
+		<Input
+			label="Description *"
+			bind:value={formData.description}
+			placeholder="e.g., Grocery shopping, Salary deposit"
+			required
+		/>
+
+		<Input
+			label="Memo (Optional)"
+			bind:value={formData.memo}
+			placeholder="Additional notes..."
+		/>
+
+		<div class="flex items-center">
+			<input
+				type="checkbox"
+				bind:checked={formData.is_cleared}
+				class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+			/>
+			<span class="ml-2 text-sm text-gray-700">Mark as cleared</span>
+		</div>
+	</form>
+
+	<div slot="footer">
+		<Button variant="outline" on:click={() => addModalOpen = false}>
+			Cancel
+		</Button>
+		<Button on:click={handleSave} loading={saving} disabled={saving}>
+			{saving ? 'Adding...' : 'Add Transaction'}
+		</Button>
+	</div>
+</Modal>
