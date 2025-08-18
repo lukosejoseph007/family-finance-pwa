@@ -150,7 +150,7 @@
 						<div class="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-4">
 							<span class="text-3xl">💰</span>
 						</div>
-						<h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">Record An Expense</h2>
+						<h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">Record A Transaction</h2>
 						<p class="text-blue-100 mb-6 text-base sm:text-lg">Record your latest expense or income instantly</p>
 						
 						<a href="/transactions" class="block">
@@ -159,7 +159,7 @@
 									<svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
 									</svg>
-									Add Expense Now
+									Add Transaction Now
 								</span>
 							</button>
 						</a>
@@ -173,7 +173,7 @@
 									<span class="text-4xl xl:text-5xl">💰</span>
 								</div>
 								<div>
-									<h2 class="text-3xl xl:text-4xl font-bold text-white mb-2">Record An Expense</h2>
+									<h2 class="text-3xl xl:text-4xl font-bold text-white mb-2">Record A Transaction</h2>
 									<p class="text-blue-100 text-lg xl:text-xl">Record your latest expense or income instantly</p>
 								</div>
 							</div>
@@ -186,7 +186,7 @@
 											<svg class="w-8 h-8 xl:w-10 xl:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
 											</svg>
-											<span class="whitespace-nowrap">Add Expense</span>
+											<span class="whitespace-nowrap">Add Transaction</span>
 										</span>
 									</button>
 								</a>
