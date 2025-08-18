@@ -81,7 +81,7 @@
 	});
 </script>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex overflow-x-hidden pb-[env(safe-area-inset-bottom)]">
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 flex overflow-x-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
 	<!-- Sidebar -->
 	<Sidebar {data} bind:sidebarOpen />
 
