@@ -115,7 +115,7 @@
 		</header>
 
 		<!-- Main Content -->
-		<main class="flex-1 p-3 sm:p-6 lg:p-8 pb-20 sm:pb-24 overflow-x-hidden overflow-y-auto">
+		<main class="flex-1 sm:p-6 lg:p-8 pb-20 sm:pb-24 overflow-x-hidden overflow-y-auto">
 			{@render children?.()}
 		</main>
 
