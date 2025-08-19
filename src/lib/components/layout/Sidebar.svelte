@@ -84,7 +84,7 @@
 			</div>
 			<div>
 				<h1 class="app-title font-bold text-white leading-tight">Family Finance</h1>
-				<p class="app-tagline text-blue-100/90 mt-0.5">YNAB for Indian Families</p>
+				<p class="app-tagline text-blue-100/90 mt-0.5">Budgeting & Expense Tracker</p>
 			</div>
 		</div>
 		

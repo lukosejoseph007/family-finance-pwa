@@ -16,7 +16,7 @@
 	<div class="sm:mx-auto sm:w-full sm:max-w-md">
 		<div class="text-center">
 			<h1 class="text-3xl font-bold text-gray-900">Family Finance</h1>
-			<p class="mt-2 text-sm text-gray-600">Track your family's finances with YNAB methodology</p>
+			<p class="mt-2 text-sm text-gray-600">Track your family's finances with our proven budgeting methodology</p>
 		</div>
 	</div>
 

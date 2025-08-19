@@ -267,7 +267,7 @@
 					<div class="space-y-4">
 						<h4 class="font-medium text-gray-900">Chart Features</h4>
 						<ul class="text-sm text-gray-600 space-y-2">
-							<li>• Interactive tooltips with Indian currency formatting</li>
+							<li>• Interactive tooltips with global currency formatting</li>
 							<li>• Responsive design for all screen sizes</li>
 							<li>• Real-time data updates</li>
 							<li>• Multiple chart types (line, bar, doughnut)</li>

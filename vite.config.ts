@@ -21,13 +21,13 @@ export default defineConfig({
 			selfDestroying: false,
 			manifest: {
 				short_name: 'Family Finance',
-				name: 'Family Finance - YNAB for Indian Families',
+				name: 'Family Finance - Budgeting & Expense Tracker',
 				start_url: '/',
 				scope: '/',
 				display: 'standalone',
 				theme_color: '#2563eb',
 				background_color: '#ffffff',
-				description: 'A comprehensive family finance management PWA using YNAB methodology, designed specifically for Indian families with rupee support.',
+				description: 'A comprehensive family finance management PWA using our proven budgeting methodology, designed specifically for families.',
 				categories: ['finance', 'productivity', 'business'],
 				icons: [
 					{

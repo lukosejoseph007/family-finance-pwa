@@ -301,7 +301,7 @@
 						<div>
 							<h1 class="text-3xl sm:text-4xl font-bold text-white">Monthly Budget</h1>
 							<p class="text-purple-100 text-base sm:text-lg opacity-90 mt-1">
-								Give every rupee a job - YNAB Rule 1
+								Budget for every penny you earn.
 							</p>
 						</div>
 					</div>
@@ -495,7 +495,7 @@
 				</div>
 				<h3 class="text-lg font-medium text-gray-900 mb-2">No budget allocated yet</h3>
 				<p class="text-gray-600 mb-6">
-					Start allocating your income to categories to follow YNAB methodology.
+					Start allocating your income to categories to follow our proven budgeting methodology.
 				</p>
 				<Button on:click={() => openAllocateModal()}>Start Budgeting</Button>
 			</Card>

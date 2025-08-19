@@ -260,7 +260,7 @@
 						<div>
 							<h1 class="text-3xl sm:text-4xl font-bold text-white">Budget Categories</h1>
 							<p class="text-green-100 text-base sm:text-lg opacity-90 mt-1">
-								Organize your spending with YNAB methodology for Indian families
+								Organize your spending with the best budgeting methodology for families
 							</p>
 						</div>
 					</div>
@@ -359,7 +359,7 @@
 				</div>
 				<h3 class="text-lg font-medium text-gray-900 mb-2">No categories yet</h3>
 				<p class="text-gray-600 mb-6">
-					Create your first category to start organizing your family budget with YNAB methodology.
+					Create your first category to start organizing your family budget with our budgeting methodology.
 				</p>
 				<Button on:click={openAddModal}>Add Your First Category</Button>
 			</Card>
@@ -517,7 +517,7 @@
 
 		<div class="bg-blue-50 p-4 rounded-lg">
 			<p class="text-sm text-blue-800">
-				<strong>YNAB Rule 1:</strong> Give every rupee a job. 
+				<strong>Budgeting Rule 1:</strong> Every penny must be accounted for. 
 				Set a realistic budget amount for this category based on your monthly income.
 			</p>
 		</div>

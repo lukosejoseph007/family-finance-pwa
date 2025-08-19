@@ -94,7 +94,7 @@ export const POST: RequestHandler = async ({ request }) => {
                 </ol>
             </div>
             
-            <p>Family Finance helps families track expenses, manage budgets, and reach financial goals together using the proven YNAB methodology.</p>
+            <p>Family Finance helps families track expenses, manage budgets, and reach financial goals together using our proven budgeting methodology.</p>
             
             <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
                 This invitation was sent by ${senderName}. If you didn't expect this invitation, you can safely ignore this email.

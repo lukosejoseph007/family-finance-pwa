@@ -179,7 +179,7 @@
 				</div>
 				<h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome to Family Finance!</h1>
 				<p class="text-lg text-gray-600">
-					Let's set up your family's financial management system using the proven YNAB methodology.
+					Let's set up your family's financial management system using the proven budgeting methodology.
 				</p>
 			</div>
 
@@ -338,7 +338,7 @@
 				<div class="bg-gray-50 p-4 rounded-lg text-left">
 					<h3 class="font-medium text-gray-900 mb-2">What happens next:</h3>
 					<ul class="text-sm text-gray-600 space-y-1">
-						<li>• Your family will be created with Indian market settings</li>
+						<li>• Your family will be created with suitable settings</li>
 						<li>• You'll be taken to your dashboard to start budgeting</li>
 						<li>• You can add bank accounts and start tracking expenses</li>
 						<li>• Invite family members to collaborate on your budget</li>

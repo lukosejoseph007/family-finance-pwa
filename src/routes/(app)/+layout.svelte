@@ -106,7 +106,7 @@
 					</div>
 					<div class="text-center">
 						<h1 class="text-xl font-bold text-gray-900">Family Finance</h1>
-						<p class="text-sm text-gray-500 -mt-1">YNAB for Indian Families</p>
+						<p class="text-sm text-gray-500 -mt-1">Budgeting & Expense Tracker</p>
 					</div>
 				</div>
 				
@@ -124,7 +124,7 @@
 			<div class="px-4 lg:px-8 py-4">
 				<div class="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0">
 					<p class="text-base text-gray-600 text-center sm:text-left">
-						© 2024 Family Finance. Built with YNAB methodology for Indian families.
+						© 2024 Family Finance. Built for family budgeting and expense tracking.
 					</p>
 					<div class="flex space-x-4 text-base">
 						<a href="/reports" class="text-gray-500 hover:text-blue-600 transition-colors">Reports</a>
