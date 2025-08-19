@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { invalidateAll } from '$app/navigation';
 	import { Button, Input, Card } from '$lib/components';
+	import { supabase } from '$lib/supabaseClient';
 	import { joinFamily, decodeInviteCode, getFamily } from '$lib/services/familyService';
 
 	let { data } = $props();
@@ -36,7 +37,7 @@
 				const family = await getFamily(familyId);
 				if (family) {
 					familyPreview = `You'll join "${family.name}" family`;
-					console.log('✅ Valid invite code for family:', family.name);
+					console.log('✅ Valid invite code for family:', family?.name);
 				} else {
 					familyPreview = 'Invalid invite code';
 					console.log('❌ Invalid invite code - family not found');
@@ -73,7 +74,8 @@
 			
 			console.log('✅ Successfully joined family:', result.family.name);
 			
-			// Invalidate all cached data and redirect
+			// Refresh session and data
+			await supabase.auth.refreshSession();
 			await invalidateAll();
 			
 			setTimeout(() => {
@@ -157,7 +159,7 @@
 				<button 
 					type="button"
 					class="text-sm text-gray-600 hover:text-gray-500 underline"
-					on:click={() => goto('/settings')}
+					onclick={() => goto('/settings')}
 				>
 					Go back to settings
 				</button>

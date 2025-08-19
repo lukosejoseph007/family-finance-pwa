@@ -87,7 +87,9 @@ export async function getTransactionById(id: string): Promise<Transaction> {
 }
 
 export async function createTransaction(transactionData: TransactionFormData): Promise<Transaction> {
+	console.log('Creating transaction', transactionData);
 	const amount = parseFloat(transactionData.amount);
+	console.log('Parsed amount', amount);
 	
 	// Start a transaction to update both transaction and account balance
 	const { data: transaction, error: transactionError } = await supabase
@@ -109,10 +111,14 @@ export async function createTransaction(transactionData: TransactionFormData): P
 		.single();
 
 	if (transactionError) {
+		console.error('Failed to create transaction', transactionError);
 		throw new Error(`Failed to create transaction: ${transactionError.message}`);
 	}
+	
+	console.log('Transaction created successfully', transaction);
 
 	// Update account balance
+	console.log('Updating account balance for account', transactionData.account_id, 'with amount', amount);
 	await updateAccountBalance(transactionData.account_id, amount);
 
 	return transaction;
@@ -202,12 +208,15 @@ export async function toggleTransactionCleared(id: string): Promise<Transaction>
 
 // Helper function to update account balance
 async function updateAccountBalance(accountId: string, amountChange: number): Promise<void> {
+	console.log('Updating account balance', { accountId, amountChange });
+	
 	const { error } = await supabase.rpc('update_account_balance', {
 		account_id: accountId,
 		amount_change: amountChange
 	});
 
 	if (error) {
+		console.error('Failed to update account balance via RPC', error);
 		// Fallback to manual balance update if RPC not available
 		const { data: account, error: fetchError } = await supabase
 			.from('accounts')
@@ -215,11 +224,15 @@ async function updateAccountBalance(accountId: string, amountChange: number): Pr
 			.eq('id', accountId)
 			.single();
 
+		
 		if (fetchError) {
+			console.error('Failed to fetch account balance', fetchError);
 			throw new Error(`Failed to fetch account balance: ${fetchError.message}`);
 		}
-
+		
+		console.log('Current account balance', account.balance);
 		const newBalance = account.balance + amountChange;
+		console.log('New account balance', newBalance);
 
 		const { error: updateError } = await supabase
 			.from('accounts')
@@ -227,6 +240,7 @@ async function updateAccountBalance(accountId: string, amountChange: number): Pr
 			.eq('id', accountId);
 
 		if (updateError) {
+			console.error('Failed to update account balance manually', updateError);
 			throw new Error(`Failed to update account balance: ${updateError.message}`);
 		}
 	}

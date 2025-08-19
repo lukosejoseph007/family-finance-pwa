@@ -24,6 +24,7 @@
 		yellow: 'border-yellow-500',
 		indigo: 'border-indigo-500'
 	};
+
 </script>
 
 <div class="{centered ? 'flex justify-center items-center' : ''} {className}">

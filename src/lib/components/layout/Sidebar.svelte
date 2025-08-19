@@ -20,6 +20,7 @@
 		{ name: 'Budget', href: '/budget', icon: '📊' },
 		{ name: 'Goals', href: '/goals', icon: '🎯' },
 		{ name: 'Reports', href: '/reports', icon: '📈' },
+		{ name: 'Export', href: '/exports', icon: '📤' },
 		{ name: 'Settings', href: '/settings', icon: '⚙️' }
 	];
 
