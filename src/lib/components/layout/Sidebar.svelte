@@ -77,7 +77,7 @@
 	lg:translate-x-0 lg:static lg:inset-0 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
 	
 	<!-- Sidebar header with glassmorphism -->
-	<div class="flex items-center justify-between h-16 lg:h-20 px-6 lg:px-8 bg-gradient-to-r from-blue-500/80 to-indigo-600/80 backdrop-blur-xl border-b border-white/20">
+	<div class="flex items-center justify-between h-24 lg:h-30 px-6 lg:px-8 bg-gradient-to-r from-blue-500/80 to-indigo-600/80 backdrop-blur-xl border-b border-white/20">
 		<div class="flex items-center space-x-3 lg:space-x-4">
 			<div class="flex items-center justify-center w-10 h-10 lg:w-12 lg:h-12 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg">
 				<span class="text-blue-600 text-lg lg:text-xl font-bold">₹</span>
@@ -126,7 +126,7 @@
 		{#each navigation as item}
 			<a
 				href={item.href}
-				class="group flex items-center px-4 lg:px-6 py-3.5 lg:py-4 text-sm lg:text-base font-medium rounded-xl transition-all duration-200
+				class="group flex items-center px-4 lg:px-6 py-1 lg:py-4 text-sm lg:text-base font-medium rounded-xl transition-all duration-200
 					{currentPath === item.href
 						? 'bg-white/60 backdrop-blur-sm text-blue-700 shadow-lg shadow-blue-500/10 border border-white/40'
 						: 'text-gray-600 hover:text-blue-700 hover:bg-white/40 hover:backdrop-blur-sm hover:shadow-md hover:shadow-black/5'}"

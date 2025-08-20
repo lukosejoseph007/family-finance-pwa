@@ -142,33 +142,38 @@
 
 <div class="max-w-2xl mx-auto">
 	<!-- Progress Indicator -->
-	<div class="mb-8">
-		<div class="flex items-center justify-between">
-			{#each [1, 2, 3] as step}
-				<div class="flex items-center">
-					<div
-						class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors
-							{currentStep >= step 
-								? 'bg-blue-600 border-blue-600 text-white' 
-								: 'border-gray-300 text-gray-500'}"
-					>
-						{step}
-					</div>
-					{#if step < 3}
-						<div
-							class="w-16 h-0.5 ml-2 transition-colors
-								{currentStep > step ? 'bg-blue-600' : 'bg-gray-300'}"
-						></div>
-					{/if}
-				</div>
-			{/each}
+	<div class="my-8 mx-4">
+	<div class="flex items-center w-full justify-between">
+		{#each [1, 2, 3] as step}
+		<div class="flex-1 flex flex-col items-center">
+			<!-- Step Circle -->
+			<div
+			class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors
+				{currentStep >= step 
+				? 'bg-blue-600 border-blue-600 text-white' 
+				: 'border-gray-300 text-gray-500'}"
+			>
+			{step}
+			</div>
+
+			<!-- Label -->
+			<span class="mt-2 text-sm text-center text-gray-600">
+			{step === 1 ? 'Welcome Aboard' : step === 2 ? 'Family Setup' : 'Get Started'}
+			</span>
 		</div>
-		<div class="flex justify-between mt-2 text-sm text-gray-600">
-			<span>Welcome</span>
-			<span>Family Setup</span>
-			<span>Get Started</span>
-		</div>
+
+		<!-- Connector Line -->
+		{#if step < 3}
+			<div
+			class="flex-1 h-0.5 mx-2 transition-colors
+				{currentStep > step ? 'bg-blue-600' : 'bg-gray-300'}"
+			></div>
+		{/if}
+		{/each}
 	</div>
+	</div>
+
+
 
 	<!-- Step Content -->
 	{#if currentStep === 1}
