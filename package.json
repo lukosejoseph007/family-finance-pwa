@@ -26,7 +26,8 @@
 		"db:studio": "drizzle-kit studio",
 		"deploy": "npm run build && vercel --prod",
 		"deploy:preview": "npm run build && vercel",
-		"analyze": "vite build --stats --open"
+		"analyze": "vite build --stats --open",
+		"supabase": "supabase"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -49,6 +50,7 @@
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
+		"supabase": "^2.34.3",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"tailwindcss": "^4.0.0",

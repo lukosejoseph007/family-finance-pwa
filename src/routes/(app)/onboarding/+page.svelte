@@ -4,6 +4,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { Button, Input, Card } from '$lib/components';
 	import { createFamily, joinFamily } from '$lib/services/familyService';
+	import { supabase } from '$lib/supabaseClient';
 	import type { FamilyFormData } from '$lib/types';
 
 	let { data } = $props();
@@ -50,24 +51,51 @@
 			error = 'Please enter a family name';
 			return;
 		}
-
+	
 		loading = true;
 		error = '';
-
+	
 		try {
 			// Create the family (this now also adds the user as admin)
 			const family = await createFamily(familyData);
-			console.log('Family created successfully:', family);
+			console.log('✅ Family created successfully:', family);
 			
-			// Invalidate all cached data and redirect with delay
-			console.log('Invalidating cache and redirecting...');
+			// Invalidate all cached data
+			console.log('♻️ Invalidating cache...');
 			await invalidateAll();
 			
-			// Add delay to ensure database consistency
-			setTimeout(() => {
-				console.log('Redirecting to dashboard...');
-				goto('/dashboard', { replaceState: true, invalidateAll: true });
-			}, 1000);
+			// Simple verification - check if user exists in users table with family_id
+			console.log('🔍 Verifying user family membership...');
+			const { data: authUser } = await supabase.auth.getUser();
+			if (authUser?.user) {
+				console.log('🔍 Auth user found:', authUser.user.id);
+				
+				const { data: user, error: userError } = await supabase
+					.from('users')
+					.select('family_id')
+					.eq('id', authUser.user.id)
+					.single();
+
+				console.log('🔍 User query result:', { user, userError });
+
+				if (userError || !user?.family_id) {
+					console.error('❌ User verification failed:', userError);
+					console.log('🔍 User data received:', user);
+					
+					// Since family was created successfully, try direct redirect without verification
+					console.log('⚠️ Verification failed but family was created. Attempting direct redirect...');
+					window.location.href = '/dashboard';
+					return;
+				}
+
+				console.log('✅ User verified as family member, redirecting to dashboard...');
+				// Force a full page reload to bypass any server-side redirects
+				window.location.href = '/dashboard';
+			} else {
+				console.error('❌ User not authenticated');
+				error = 'Authentication error. Please try logging out and back in.';
+				loading = false;
+			}
 			
 		} catch (err: any) {
 			console.error('Error creating family:', err);
@@ -81,10 +109,10 @@
 			error = 'Please enter both invite code and display name';
 			return;
 		}
-
+	
 		loading = true;
 		error = '';
-
+	
 		try {
 			console.log('👥 Joining family with code:', inviteCode);
 			const result = await joinFamily({
@@ -94,12 +122,34 @@
 			
 			console.log('✅ Successfully joined family:', result.family.name);
 			
-			// Invalidate all cached data and redirect
+			// Invalidate all cached data
 			await invalidateAll();
 			
-			setTimeout(() => {
-				goto('/dashboard', { replaceState: true, invalidateAll: true });
-			}, 1000);
+			// Simple verification - check if user exists in users table with family_id
+			console.log('🔍 Verifying user family membership...');
+			const { data: authUser } = await supabase.auth.getUser();
+			if (authUser?.user) {
+				const { data: user, error: userError } = await supabase
+					.from('users')
+					.select('family_id')
+					.eq('id', authUser.user.id)
+					.single();
+
+				if (userError || !user?.family_id) {
+					console.error('❌ User verification failed:', userError);
+					error = 'Family joined but verification failed. Please refresh the page and try again.';
+					loading = false;
+					return;
+				}
+
+				console.log('✅ User verified as family member, redirecting to dashboard...');
+				// Force a full page reload to bypass any server-side redirects
+				window.location.href = '/dashboard';
+			} else {
+				console.error('❌ User not authenticated');
+				error = 'Authentication error. Please try logging out and back in.';
+				loading = false;
+			}
 			
 		} catch (err: any) {
 			console.error('❌ Error joining family:', err);

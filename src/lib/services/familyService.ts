@@ -24,22 +24,59 @@ export async function createFamily(data: CreateFamilyData): Promise<Family> {
 		throw new Error('User not authenticated');
 	}
 
-	// Use the stored procedure to create family and user atomically
-	// Allow replacing existing family membership for development/testing
-	const { data: result, error } = await supabase.rpc('create_family_with_admin', {
-		family_name: data.name,
-		user_id: authUser.user.id,
-		user_email: authUser.user.email!,
-		user_display_name: authUser.user.user_metadata?.display_name || authUser.user.email?.split('@')[0],
-		allow_replace: true // Allow replacing existing family membership
-	});
+	console.log('🏗️ Creating family with direct database queries:', data.name);
+	console.log('🆔 User ID:', authUser.user.id);
+	console.log('📧 User email:', authUser.user.email);
 
-	if (error) {
-		console.error('Error creating family:', error);
-		throw new Error(`Failed to create family: ${error.message}`);
+	// 1. Create the family first
+	const { data: family, error: familyError } = await supabase
+		.from('families')
+		.insert({
+			name: data.name,
+			settings: data.settings || {
+				currency: 'INR',
+				date_format: 'DD/MM/YYYY',
+				start_of_week: 1,
+				timezone: 'Asia/Kolkata'
+			}
+		})
+		.select()
+		.single();
+
+	if (familyError) {
+		console.error('❌ Error creating family:', familyError);
+		console.error('❌ Family error details:', JSON.stringify(familyError, null, 2));
+		throw new Error(`Failed to create family: ${familyError.message}`);
 	}
 
-	return result as Family;
+	console.log('✅ Family created successfully:', family.id);
+
+	// 2. Add user as admin to the family
+	const userData = {
+		id: authUser.user.id,
+		family_id: family.id,
+		email: authUser.user.email!,
+		role: 'admin' as const,
+		display_name: authUser.user.user_metadata?.display_name || authUser.user.email?.split('@')[0]
+	};
+	
+	console.log('👤 Adding user data:', userData);
+
+	const { error: userError } = await supabase
+		.from('users')
+		.upsert(userData);
+
+	if (userError) {
+		console.error('❌ Error adding user to family:', userError);
+		console.error('❌ User error details:', JSON.stringify(userError, null, 2));
+		// Cleanup: delete the created family since user addition failed
+		console.log('🧹 Cleaning up created family due to user addition failure');
+		await supabase.from('families').delete().eq('id', family.id);
+		throw new Error(`Failed to add user to family: ${userError.message}`);
+	}
+
+	console.log('✅ User added as admin to family:', family.name);
+	return family;
 }
 
 // Add user to family
@@ -453,4 +490,56 @@ export async function sendEmailInvitation(familyName: string, inviteCode: string
 		console.error('❌ Failed to send email invitation:', error);
 		throw new Error(`Failed to send email invitation: ${error instanceof Error ? error.message : 'Unknown error'}`);
 	}
+}
+
+// Get abandoned families (families without users created more than a week ago)
+export async function getAbandonedFamilies(): Promise<any[]> {
+	console.log('🔍 Fetching abandoned families...');
+	const { data, error } = await supabase.rpc('get_abandoned_families');
+	
+	if (error) {
+		console.error('❌ Error fetching abandoned families:', error);
+		throw new Error('Failed to fetch abandoned families');
+	}
+	
+	return data || [];
+}
+
+// Cleanup abandoned families
+export async function cleanupAbandonedFamilies(): Promise<{ deleted_count: number; deleted_families: string[] }> {
+	console.log('🧹 Cleaning up abandoned families...');
+	const { data, error } = await supabase.rpc('cleanup_abandoned_families');
+	
+	if (error) {
+		console.error('❌ Error cleaning up abandoned families:', error);
+		throw new Error('Failed to cleanup abandoned families');
+	}
+	
+	return {
+		deleted_count: data[0]?.deleted_count || 0,
+		deleted_families: data[0]?.deleted_families || []
+	};
+}
+
+// Link user to an abandoned family
+export async function linkUserToAbandonedFamily(
+	familyId: string,
+	userId: string,
+	userEmail: string,
+	userDisplayName?: string
+): Promise<Family> {
+	console.log('🔗 Linking user to abandoned family:', familyId);
+	const { data, error } = await supabase.rpc('link_user_to_abandoned_family', {
+		target_family_id: familyId,
+		user_id: userId,
+		user_email: userEmail,
+		user_display_name: userDisplayName
+	});
+	
+	if (error) {
+		console.error('❌ Error linking user to abandoned family:', error);
+		throw new Error(`Failed to link user to family: ${error.message}`);
+	}
+	
+	return data as Family;
 }
