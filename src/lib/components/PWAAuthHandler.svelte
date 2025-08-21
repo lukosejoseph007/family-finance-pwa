@@ -44,8 +44,11 @@
 			if (isPWA()) {
 				if (event === 'SIGNED_IN' && session) {
 					// Handle successful authentication in PWA
-					const next = $page.url.searchParams.get('next') || '/onboarding';
-					handlePWANavigation(`${next}?auth_success=1&pwa=1`, true);
+					// Check if we're already on the onboarding page to prevent infinite redirect loop
+					if ($page.url.pathname !== '/onboarding') {
+						const next = $page.url.searchParams.get('next') || '/onboarding';
+						handlePWANavigation(`${next}?auth_success=1&pwa=1`, true);
+					}
 				} else if (event === 'SIGNED_OUT') {
 					// Handle sign out in PWA
 					handlePWANavigation('/login?pwa=1', true);

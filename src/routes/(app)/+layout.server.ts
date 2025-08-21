@@ -10,14 +10,28 @@ export const load: LayoutServerLoad = async ({ locals: { safeGetSession, supabas
 
 	// Check if user has a family (unless they're on the onboarding page)
 	if (url.pathname !== '/onboarding') {
-		const { data: user, error: userError } = await supabase
-			.from('users')
-			.select('family_id')
-			.eq('id', session.user.id)
-			.single();
+		try {
+			const { data: user, error: userError } = await supabase
+				.from('users')
+				.select('family_id')
+				.eq('id', session.user.id)
+				.single();
 
-		// If user doesn't exist in users table or doesn't have a family, redirect to onboarding
-		if (!user || !user.family_id) {
+			// Log any errors for debugging
+			if (userError) {
+				console.error('❌ Error fetching user family:', userError);
+				console.log('🔍 User ID:', session.user.id);
+				// Redirect to onboarding if there's an error fetching user data
+				redirect(303, '/onboarding');
+			}
+
+			// If user doesn't exist in users table or doesn't have a family, redirect to onboarding
+			if (!user || !user.family_id) {
+				redirect(303, '/onboarding');
+			}
+		} catch (error) {
+			console.error('❌ Unexpected error checking user family:', error);
+			// Redirect to onboarding if there's an unexpected error
 			redirect(303, '/onboarding');
 		}
 	}

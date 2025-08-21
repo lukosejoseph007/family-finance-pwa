@@ -49,20 +49,25 @@
 			document.body.setAttribute('data-route', 'onboarding');
 			
 			// Clear any problematic state that might cause refresh loops
-			clearOnboardingState();
+			// Only clear onboarding state if we're not already in the middle of onboarding
+			const url = new URL(window.location.href);
+			if (!url.searchParams.has('step')) {
+				clearOnboardingState();
+			}
 			
 			// Prevent excessive refreshing in PWA mode
-			const preventRefresh = (e: BeforeUnloadEvent) => {
-				refreshCount++;
-				if (refreshCount > MAX_REFRESH_COUNT) {
-					console.warn('🚨 Preventing excessive refresh in onboarding');
-					e.preventDefault();
-					e.returnValue = 'Are you sure you want to leave?';
-					return 'Are you sure you want to leave?';
-				}
-			};
+			// Commented out to prevent continuous refresh issues
+			// const preventRefresh = (e: BeforeUnloadEvent) => {
+			// 	refreshCount++;
+			// 	if (refreshCount > MAX_REFRESH_COUNT) {
+			// 		console.warn('🚨 Preventing excessive refresh in onboarding');
+			// 		e.preventDefault();
+			// 		e.returnValue = 'Are you sure you want to leave?';
+			// 		return 'Are you sure you want to leave?';
+			// 	}
+			// };
 			
-			window.addEventListener('beforeunload', preventRefresh);
+			// window.addEventListener('beforeunload', preventRefresh);
 			
 			// Handle PWA scroll container setup
 			if (containerRef) {
@@ -164,15 +169,19 @@
 		}
 		
 		// In PWA mode, update URL without causing refresh
+		// Only update if the step parameter is different from the current step
 		if (pwaMode && typeof window !== 'undefined') {
 			const url = new URL(window.location.href);
-			url.searchParams.set('step', currentStep.toString());
-			
-			// Use replaceState to avoid adding to history
-			try {
-				window.history.replaceState({ step: currentStep }, '', url.toString());
-			} catch (e) {
-				console.warn('Could not update URL state:', e);
+			const currentStepParam = url.searchParams.get('step');
+			if (currentStepParam !== currentStep.toString()) {
+				url.searchParams.set('step', currentStep.toString());
+				
+				// Use replaceState to avoid adding to history
+				try {
+					window.history.replaceState({ step: currentStep }, '', url.toString());
+				} catch (e) {
+					console.warn('Could not update URL state:', e);
+				}
 			}
 		}
 	});
