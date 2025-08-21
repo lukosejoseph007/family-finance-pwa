@@ -33,12 +33,12 @@
 	}
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-	<div class="max-w-md w-full space-y-8 p-8">
+<div
+	class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"
+>
+	<div class="w-full max-w-md space-y-8 p-8">
 		<div class="text-center">
-			<h2 class="text-3xl font-extrabold text-gray-900">
-				Reset your password
-			</h2>
+			<h2 class="text-3xl font-extrabold text-gray-900">Reset your password</h2>
 			<p class="mt-2 text-sm text-gray-600">
 				Enter your email address and we'll send you a link to reset your password.
 			</p>
@@ -60,7 +60,8 @@
 						<h3 class="text-sm font-medium text-green-800">Reset email sent!</h3>
 						<div class="mt-2 text-sm text-green-700">
 							<p>
-								Check your email for a link to reset your password. If it doesn't appear within a few minutes, check your spam folder.
+								Check your email for a link to reset your password. If it doesn't appear within a
+								few minutes, check your spam folder.
 							</p>
 						</div>
 					</div>
@@ -85,12 +86,7 @@
 					id="email"
 				/>
 
-				<Button
-					type="submit"
-					fullWidth
-					{loading}
-					disabled={loading || !email}
-				>
+				<Button type="submit" fullWidth {loading} disabled={loading || !email}>
 					{loading ? 'Sending...' : 'Send reset email'}
 				</Button>
 			</form>
@@ -99,9 +95,7 @@
 		<div class="text-center">
 			<p class="text-sm text-gray-600">
 				Remember your password?
-				<a href="/login" class="font-medium text-blue-600 hover:text-blue-500">
-					Sign in here
-				</a>
+				<a href="/login" class="font-medium text-blue-600 hover:text-blue-500"> Sign in here </a>
 			</p>
 		</div>
 	</div>

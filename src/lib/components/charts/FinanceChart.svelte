@@ -37,7 +37,12 @@
 		DoughnutController
 	);
 
-	let { type = 'line', data, title = '', height = '400px' } = $props<{
+	let {
+		type = 'line',
+		data,
+		title = '',
+		height = '400px'
+	} = $props<{
 		type?: 'line' | 'bar' | 'doughnut';
 		data: FinanceChartData;
 		title?: string;
@@ -155,7 +160,7 @@
 
 		// Create a deep copy of data to avoid Svelte 5 reactivity issues
 		const chartData = untrack(() => JSON.parse(JSON.stringify(data)));
-		
+
 		chart = new ChartJS(ctx, {
 			type: type,
 			data: chartData,

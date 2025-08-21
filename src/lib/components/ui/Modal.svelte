@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-    import { portal } from '$lib/utils/portal'; // Import the new action
+	import { portal } from '$lib/utils/portal'; // Import the new action
 
 	export let open = false;
 	export let title = '';
@@ -50,9 +50,17 @@
 <svelte:window on:keydown={handleKeydown} />
 
 {#if open}
-	<div use:portal class={modalClasses} on:click={handleBackdropClick} on:keydown={handleKeydown} role="dialog" aria-modal="true" tabindex="-1">
+	<div
+		use:portal
+		class={modalClasses}
+		on:click={handleBackdropClick}
+		on:keydown={handleKeydown}
+		role="dialog"
+		aria-modal="true"
+		tabindex="-1"
+	>
 		<!-- Backdrop with glassmorphism -->
-		<div class="bg-black/40 backdrop-blur-sm fixed inset-0 transition-opacity duration-300"></div>
+		<div class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300"></div>
 
 		<!-- Modal content -->
 		<div class={contentClasses}>
@@ -68,19 +76,19 @@
 					{#if closable}
 						<button
 							type="button"
-							class="text-gray-500 hover:text-gray-700 p-2 rounded-xl bg-white/40 hover:bg-white/60 backdrop-blur-sm transition-all duration-200"
+							class="rounded-xl bg-white/40 p-2 text-gray-500 backdrop-blur-sm transition-all duration-200 hover:bg-white/60 hover:text-gray-700"
 							on:click={closeModal}
 							aria-label="Close"
 						>
-								<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M6 18L18 6M6 6l12 12"
-									/>
-								</svg>
-							</button>
+							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								/>
+							</svg>
+						</button>
 					{/if}
 				</div>
 			{/if}
@@ -92,7 +100,9 @@
 
 			<!-- Footer -->
 			{#if $$slots.footer}
-				<div class="flex justify-end gap-3 border-t border-white/30 p-6 bg-white/20 backdrop-blur-sm rounded-b-2xl">
+				<div
+					class="flex justify-end gap-3 rounded-b-2xl border-t border-white/30 bg-white/20 p-6 backdrop-blur-sm"
+				>
 					<slot name="footer" />
 				</div>
 			{/if}

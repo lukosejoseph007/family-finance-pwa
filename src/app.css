@@ -1,93 +1,109 @@
 @import 'tailwindcss';
 
 /* Global overflow prevention and mobile fixes */
-html, body {
-  overflow-x: hidden;
-  max-width: 100vw;
-  position: relative;
+html,
+body {
+	overflow-x: hidden;
+	max-width: 100vw;
+	position: relative;
 }
 
 body {
-  font-size: 16px; /* Base font size for better readability */
+	font-size: 16px; /* Base font size for better readability */
 }
 
 /* Prevent horizontal scroll on all containers */
 * {
-  max-width: 100%;
-  box-sizing: border-box;
+	max-width: 100%;
+	box-sizing: border-box;
 }
 
 /* Mobile viewport fixes */
 @media (max-width: 768px) {
-  html, body {
-    overflow-x: hidden !important;
-    width: 100%;
-    position: relative;
-  }
-  
-  /* Ensure grids don't exceed viewport */
-  .grid {
-    overflow-x: hidden;
-  }
-  
-  /* Better text scaling on mobile */
-  body {
-    font-size: 17px; /* Slightly larger for mobile */
-  }
+	html,
+	body {
+		overflow-x: hidden !important;
+		width: 100%;
+		position: relative;
+	}
+
+	/* Ensure grids don't exceed viewport */
+	.grid {
+		overflow-x: hidden;
+	}
+
+	/* Better text scaling on mobile */
+	body {
+		font-size: 17px; /* Slightly larger for mobile */
+	}
 }
 
 /* Desktop text improvements */
 @media (min-width: 1024px) {
-  body {
-    font-size: 18px; /* Larger base font for desktop */
-  }
-  
-  /* Scale up headings more on desktop */
-  h1 { font-size: 2.5rem; }
-  h2 { font-size: 2rem; }
-  h3 { font-size: 1.75rem; }
-  h4 { font-size: 1.5rem; }
-  
-  /* Better paragraph text */
-  p {
-    font-size: 1.125rem;
-    line-height: 1.7;
-  }
+	body {
+		font-size: 18px; /* Larger base font for desktop */
+	}
+
+	/* Scale up headings more on desktop */
+	h1 {
+		font-size: 2.5rem;
+	}
+	h2 {
+		font-size: 2rem;
+	}
+	h3 {
+		font-size: 1.75rem;
+	}
+	h4 {
+		font-size: 1.5rem;
+	}
+
+	/* Better paragraph text */
+	p {
+		font-size: 1.125rem;
+		line-height: 1.7;
+	}
 }
 
 /* Prevent images and elements from causing overflow */
-img, video, canvas, svg {
-  max-width: 100%;
-  height: auto;
+img,
+video,
+canvas,
+svg {
+	max-width: 100%;
+	height: auto;
 }
 
 /* Fix for flex containers */
 .flex {
-  min-width: 0;
+	min-width: 0;
 }
 
 /* Ensure tables are responsive */
 table {
-  table-layout: fixed;
-  width: 100%;
+	table-layout: fixed;
+	width: 100%;
 }
 
 /* Card responsive fixes */
-.card, [class*="card"] {
-  overflow: hidden;
-  word-wrap: break-word;
+.card,
+[class*='card'] {
+	overflow: hidden;
+	word-wrap: break-word;
 }
 
 /* Custom width classes for better desktop sidebar */
 @layer utilities {
-  .w-84 {
-    width: 21rem; /* 336px */
-  }
+	.w-84 {
+		width: 21rem; /* 336px */
+	}
 }
 
 /* Better desktop shadow utilities */
 @media (min-width: 1024px) {
-  .hover\:shadow-3xl:hover {
-    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25), 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  }
+	.hover\:shadow-3xl:hover {
+		box-shadow:
+			0 35px 60px -12px rgba(0, 0, 0, 0.25),
+			0 20px 25px -5px rgba(0, 0, 0, 0.1);
+	}
 }

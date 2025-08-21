@@ -15,8 +15,10 @@
 	// Pre-fill display name from user data
 	$effect(() => {
 		if (data.session?.user) {
-			displayName = data.session.user.user_metadata?.display_name || 
-			             data.session.user.email?.split('@')[0] || '';
+			displayName =
+				data.session.user.user_metadata?.display_name ||
+				data.session.user.email?.split('@')[0] ||
+				'';
 		}
 	});
 
@@ -71,17 +73,16 @@
 				inviteCode: inviteCode.trim(),
 				displayName: displayName.trim()
 			});
-			
+
 			console.log('✅ Successfully joined family:', result.family.name);
-			
+
 			// Refresh session and data
 			await supabase.auth.refreshSession();
 			await invalidateAll();
-			
+
 			setTimeout(() => {
 				goto('/dashboard', { replaceState: true, invalidateAll: true });
 			}, 1000);
-			
 		} catch (err: any) {
 			console.error('❌ Error joining family:', err);
 			error = err.message || 'Failed to join family';
@@ -94,20 +95,20 @@
 	<title>Join Family - Family Finance</title>
 </svelte:head>
 
-<div class="max-w-lg mx-auto">
+<div class="mx-auto max-w-lg">
 	<Card class="p-8">
-		<div class="text-center mb-8">
-			<div class="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+		<div class="mb-8 text-center">
+			<div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
 				<span class="text-3xl">👥</span>
 			</div>
-			<h1 class="text-3xl font-bold text-gray-900 mb-2">Join a Family</h1>
+			<h1 class="mb-2 text-3xl font-bold text-gray-900">Join a Family</h1>
 			<p class="text-gray-600">
 				Enter the invite code you received to join an existing family's budget.
 			</p>
 		</div>
 
 		{#if error}
-			<div class="rounded-md bg-red-50 p-4 mb-6">
+			<div class="mb-6 rounded-md bg-red-50 p-4">
 				<div class="text-sm text-red-700">{error}</div>
 			</div>
 		{/if}
@@ -118,11 +119,16 @@
 				bind:value={inviteCode}
 				placeholder="Enter the invite code"
 				required
-				class="text-lg font-mono"
+				class="font-mono text-lg"
 			/>
 
 			{#if familyPreview}
-				<div class="p-3 rounded-lg {familyPreview.includes('Invalid') || familyPreview.includes('Error') ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}">
+				<div
+					class="rounded-lg p-3 {familyPreview.includes('Invalid') ||
+					familyPreview.includes('Error')
+						? 'bg-red-50 text-red-700'
+						: 'bg-green-50 text-green-700'}"
+				>
 					<p class="text-sm font-medium">{familyPreview}</p>
 				</div>
 			{/if}
@@ -135,9 +141,9 @@
 				class="text-lg"
 			/>
 
-			<div class="bg-blue-50 p-4 rounded-lg">
-				<h3 class="font-medium text-blue-900 mb-2">What happens next:</h3>
-				<div class="text-sm text-blue-800 space-y-1">
+			<div class="rounded-lg bg-blue-50 p-4">
+				<h3 class="mb-2 font-medium text-blue-900">What happens next:</h3>
+				<div class="space-y-1 text-sm text-blue-800">
 					<p>• You'll join the existing family as a member</p>
 					<p>• You can view and add transactions</p>
 					<p>• Budget editing depends on your assigned role</p>
@@ -145,20 +151,23 @@
 				</div>
 			</div>
 
-			<Button 
+			<Button
 				fullWidth
 				size="lg"
 				{loading}
-				disabled={loading || !inviteCode.trim() || !displayName.trim() || !familyPreview.includes("You'll join")}
+				disabled={loading ||
+					!inviteCode.trim() ||
+					!displayName.trim() ||
+					!familyPreview.includes("You'll join")}
 				on:click={handleJoinFamily}
 			>
 				{loading ? 'Joining Family...' : 'Join Family'}
 			</Button>
 
 			<div class="text-center">
-				<button 
+				<button
 					type="button"
-					class="text-sm text-gray-600 hover:text-gray-500 underline"
+					class="text-sm text-gray-600 underline hover:text-gray-500"
 					onclick={() => goto('/settings')}
 				>
 					Go back to settings

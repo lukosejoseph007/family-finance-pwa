@@ -28,7 +28,9 @@
 		border ? 'border border-white/30' : '',
 
 		// Hover effect with glassmorphism
-		hover ? 'hover:shadow-2xl hover:shadow-black/10 hover:scale-[1.02] hover:bg-white/80 cursor-pointer' : '',
+		hover
+			? 'hover:shadow-2xl hover:shadow-black/10 hover:scale-[1.02] hover:bg-white/80 cursor-pointer'
+			: '',
 
 		className
 	]

@@ -2,11 +2,11 @@
 	import { onMount } from 'svelte';
 	import { Button, Input, Card, Modal } from '$lib/components';
 	import { formatCurrency } from '$lib/components/charts/ChartUtils';
-	import { 
-		getTransactions, 
+	import {
+		getTransactions,
 		getTransactionSummary,
-		createTransaction, 
-		updateTransaction, 
+		createTransaction,
+		updateTransaction,
 		deleteTransaction,
 		toggleTransactionCleared,
 		validateTransactionData
@@ -25,7 +25,7 @@
 		transaction_count: 0,
 		uncleared_count: 0
 	});
-	
+
 	let loading = $state(true);
 	let error = $state('');
 	let success = $state('');
@@ -63,16 +63,16 @@
 	onMount(() => {
 		// Load data asynchronously
 		loadData();
-		
+
 		// Listen for FAB click events
 		const handleFabClick = (event: CustomEvent) => {
 			if (event.detail.page === '/transactions') {
 				openAddModal();
 			}
 		};
-		
+
 		window.addEventListener('fab-click', handleFabClick as EventListener);
-		
+
 		// Return cleanup function
 		return () => {
 			window.removeEventListener('fab-click', handleFabClick as EventListener);
@@ -102,11 +102,11 @@
 					date_to: dateTo || undefined
 				})
 			]);
-			
+
 			transactions = transactionData.transactions;
 			totalCount = transactionData.total_count;
-			accounts = accountsData.filter(acc => acc.is_active);
-			categories = categoriesData.filter(cat => cat.is_active);
+			accounts = accountsData.filter((acc) => acc.is_active);
+			categories = categoriesData.filter((cat) => cat.is_active);
 			summary = summaryData;
 		} catch (err: any) {
 			error = err.message || 'Failed to load transactions';
@@ -158,12 +158,12 @@
 			error = '';
 
 			// Convert amount to negative for expenses (positive for income)
-			const isIncome = selectedCategory ? 
-				categories.find(c => c.id === formData.category_id)?.type === 'income' : 
-				false;
-			const amount = isIncome ? 
-				Math.abs(parseFloat(formData.amount)) : 
-				-Math.abs(parseFloat(formData.amount));
+			const isIncome = selectedCategory
+				? categories.find((c) => c.id === formData.category_id)?.type === 'income'
+				: false;
+			const amount = isIncome
+				? Math.abs(parseFloat(formData.amount))
+				: -Math.abs(parseFloat(formData.amount));
 
 			const transactionData = {
 				...formData,
@@ -181,7 +181,7 @@
 			}
 
 			await loadData();
-			setTimeout(() => success = '', 3000);
+			setTimeout(() => (success = ''), 3000);
 		} catch (err: any) {
 			error = err.message || 'Failed to save transaction';
 		} finally {
@@ -197,7 +197,7 @@
 			deleteModalOpen = false;
 			await loadData();
 			success = 'Transaction deleted successfully';
-			setTimeout(() => success = '', 3000);
+			setTimeout(() => (success = ''), 3000);
 		} catch (err: any) {
 			error = err.message || 'Failed to delete transaction';
 		}
@@ -208,7 +208,7 @@
 			await toggleTransactionCleared(transaction.id);
 			await loadData();
 			success = `Transaction marked as ${transaction.is_cleared ? 'pending' : 'cleared'}`;
-			setTimeout(() => success = '', 3000);
+			setTimeout(() => (success = ''), 3000);
 		} catch (err: any) {
 			error = err.message || 'Failed to update transaction';
 		}
@@ -226,8 +226,8 @@
 
 	function getTransactionIcon(transaction: Transaction) {
 		if (transaction.amount > 0) return '💰';
-		
-		const account = accounts.find(a => a.id === transaction.account_id);
+
+		const account = accounts.find((a) => a.id === transaction.account_id);
 		if (account?.type === 'credit_card') return '💳';
 		if (account?.type === 'cash') return '💵';
 		return '💸';
@@ -269,34 +269,52 @@
 		<!-- Background Pattern -->
 		<div class="absolute inset-0 bg-gradient-to-r from-orange-600 via-red-600 to-pink-700"></div>
 		<div class="absolute inset-0 bg-black/10"></div>
-		<div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%)"></div>
-		
-		<div class="relative px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+		<div
+			class="absolute inset-0"
+			style="background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%)"
+		></div>
+
+		<div class="relative px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+			<div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
 				<div class="flex-1">
-					<div class="flex items-center space-x-3 mb-4">
-						<div class="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
-							<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+					<div class="mb-4 flex items-center space-x-3">
+						<div class="rounded-2xl bg-white/20 p-3 backdrop-blur-sm">
+							<svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+								/>
 							</svg>
 						</div>
 						<div>
-							<h1 class="text-3xl sm:text-4xl font-bold text-white">Transactions</h1>
-							<p class="text-orange-100 text-base sm:text-lg opacity-90 mt-1">
+							<h1 class="text-3xl font-bold text-white sm:text-4xl">Transactions</h1>
+							<p class="mt-1 text-base text-orange-100 opacity-90 sm:text-lg">
 								Track your family's income and expenses
 							</p>
 						</div>
 					</div>
 				</div>
-				
+
 				<div class="flex-shrink-0">
 					<button
 						onclick={openAddModal}
-						class="group bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
+						class="group transform rounded-xl border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:bg-white/20 hover:shadow-xl"
 					>
 						<span class="inline-flex items-center">
-							<svg class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+							<svg
+								class="mr-2 h-5 w-5 transition-transform duration-200 group-hover:rotate-90"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 4v16m8-8H4"
+								/>
 							</svg>
 							Add Transaction
 						</span>
@@ -308,270 +326,308 @@
 
 	<!-- Content Section -->
 	<div class="relative">
-		<div class="px-4 sm:px-6 lg:px-8 py-8 pb-12 space-y-6">
-
-	{#if loading}
-		<div class="text-center py-12">
-			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-			<p class="mt-2 text-gray-600">Loading transactions...</p>
-		</div>
-	{:else}
-		<!-- Success/Error Messages -->
-		{#if success}
-			<div class="rounded-md bg-green-50 p-4">
-				<div class="text-sm text-green-700">{success}</div>
-			</div>
-		{/if}
-
-		{#if error}
-			<div class="rounded-md bg-red-50 p-4">
-				<div class="text-sm text-red-700">{error}</div>
-			</div>
-		{/if}
-
-		<!-- Summary Cards -->
-		<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-			<Card class="text-center">
-				<div class="text-2xl font-bold text-green-600">{formatCurrency(summary.total_income)}</div>
-				<p class="text-sm text-gray-600 mt-1">Total Income</p>
-			</Card>
-			
-			<Card class="text-center">
-				<div class="text-2xl font-bold text-red-600">{formatCurrency(summary.total_expenses)}</div>
-				<p class="text-sm text-gray-600 mt-1">Total Expenses</p>
-			</Card>
-			
-			<Card class="text-center">
-				<div class="text-2xl font-bold {summary.net_amount >= 0 ? 'text-green-600' : 'text-red-600'}">
-					{formatCurrency(summary.net_amount)}
+		<div class="space-y-6 px-4 py-8 pb-12 sm:px-6 lg:px-8">
+			{#if loading}
+				<div class="py-12 text-center">
+					<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+					<p class="mt-2 text-gray-600">Loading transactions...</p>
 				</div>
-				<p class="text-sm text-gray-600 mt-1">Net Amount</p>
-			</Card>
-			
-			<Card class="text-center">
-				<div class="text-2xl font-bold text-gray-900">{summary.transaction_count}</div>
-				<p class="text-sm text-gray-600 mt-1">
-					{summary.uncleared_count > 0 ? `${summary.uncleared_count} Pending` : 'All Cleared'}
-				</p>
-			</Card>
-		</div>
-
-		<!-- Filters -->
-		<Card class="p-6">
-			<div class="grid grid-cols-1 md:grid-cols-6 gap-4">
-				<div class="md:col-span-2">
-					<Input
-						label="Search"
-						bind:value={searchQuery}
-						placeholder="Search transactions..."
-						on:input={handleFilterChange}
-					/>
-				</div>
-
-				<div>
-					<label for="account-filter" class="block text-sm font-medium text-gray-700 mb-1">Account</label>
-					<select
-						id="account-filter"
-						bind:value={selectedAccount}
-						onchange={handleFilterChange}
-						class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
-					>
-						<option value="">All Accounts</option>
-						{#each accounts as account}
-							<option value={account.id}>{account.name}</option>
-						{/each}
-					</select>
-				</div>
-
-				<div>
-					<label for="category-filter" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-					<select
-						id="category-filter"
-						bind:value={selectedCategory}
-						onchange={handleFilterChange}
-						class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
-					>
-						<option value="">All Categories</option>
-						{#each categories as category}
-							<option value={category.id}>{category.name}</option>
-						{/each}
-					</select>
-				</div>
-
-				<div>
-					<Input
-						label="From Date"
-						type="date"
-						bind:value={dateFrom}
-						on:change={handleFilterChange}
-					/>
-				</div>
-
-				<div>
-					<Input
-						label="To Date"
-						type="date"
-						bind:value={dateTo}
-						on:change={handleFilterChange}
-					/>
-				</div>
-			</div>
-
-			<div class="flex items-center justify-between mt-4">
-				<div class="flex items-center space-x-4">
-					<label class="flex items-center">
-						<input
-							type="checkbox"
-							bind:checked={showClearedOnly}
-							onchange={handleFilterChange}
-							class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-						/>
-						<span class="ml-2 text-sm text-gray-700">Cleared only</span>
-					</label>
-				</div>
-
-				<Button variant="outline" on:click={clearFilters}>
-					Clear Filters
-				</Button>
-			</div>
-		</Card>
-
-		<!-- Transactions List -->
-		{#if transactions.length === 0}
-			<Card class="text-center py-12">
-				<div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-					<span class="text-3xl">💰</span>
-				</div>
-				<h3 class="text-lg font-medium text-gray-900 mb-2">No transactions found</h3>
-				<p class="text-gray-600 mb-6">
-					{searchQuery || selectedAccount || selectedCategory ? 
-						'Try adjusting your filters or search terms.' : 
-						'Add your first transaction to start tracking your finances.'}
-				</p>
-				{#if !searchQuery && !selectedAccount && !selectedCategory}
-					<Button on:click={openAddModal}>Add Your First Transaction</Button>
+			{:else}
+				<!-- Success/Error Messages -->
+				{#if success}
+					<div class="rounded-md bg-green-50 p-4">
+						<div class="text-sm text-green-700">{success}</div>
+					</div>
 				{/if}
-			</Card>
-		{:else}
-			<Card>
-				<div class="divide-y divide-gray-200">
-					{#each transactions as transaction (transaction.id)}
-						<div class="p-4 hover:bg-gray-50">
-							<div class="flex items-center justify-between">
-								<div class="flex items-start space-x-4 flex-1">
-									<div class="text-2xl">{getTransactionIcon(transaction)}</div>
-									
-									<div class="flex-1 min-w-0">
-										<div class="flex items-center justify-between">
-											<h4 class="font-medium text-gray-900 truncate">
-												{transaction.description}
-											</h4>
-											<div class="text-right ml-4">
-												<div class="font-semibold {getTransactionColor(transaction)}">
-													{formatTransactionAmount(transaction.amount)}
+
+				{#if error}
+					<div class="rounded-md bg-red-50 p-4">
+						<div class="text-sm text-red-700">{error}</div>
+					</div>
+				{/if}
+
+				<!-- Summary Cards -->
+				<div class="grid grid-cols-1 gap-6 md:grid-cols-4">
+					<Card class="text-center">
+						<div class="text-2xl font-bold text-green-600">
+							{formatCurrency(summary.total_income)}
+						</div>
+						<p class="mt-1 text-sm text-gray-600">Total Income</p>
+					</Card>
+
+					<Card class="text-center">
+						<div class="text-2xl font-bold text-red-600">
+							{formatCurrency(summary.total_expenses)}
+						</div>
+						<p class="mt-1 text-sm text-gray-600">Total Expenses</p>
+					</Card>
+
+					<Card class="text-center">
+						<div
+							class="text-2xl font-bold {summary.net_amount >= 0
+								? 'text-green-600'
+								: 'text-red-600'}"
+						>
+							{formatCurrency(summary.net_amount)}
+						</div>
+						<p class="mt-1 text-sm text-gray-600">Net Amount</p>
+					</Card>
+
+					<Card class="text-center">
+						<div class="text-2xl font-bold text-gray-900">{summary.transaction_count}</div>
+						<p class="mt-1 text-sm text-gray-600">
+							{summary.uncleared_count > 0 ? `${summary.uncleared_count} Pending` : 'All Cleared'}
+						</p>
+					</Card>
+				</div>
+
+				<!-- Filters -->
+				<Card class="p-6">
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-6">
+						<div class="md:col-span-2">
+							<Input
+								label="Search"
+								bind:value={searchQuery}
+								placeholder="Search transactions..."
+								on:input={handleFilterChange}
+							/>
+						</div>
+
+						<div>
+							<label for="account-filter" class="mb-1 block text-sm font-medium text-gray-700"
+								>Account</label
+							>
+							<select
+								id="account-filter"
+								bind:value={selectedAccount}
+								onchange={handleFilterChange}
+								class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
+							>
+								<option value="">All Accounts</option>
+								{#each accounts as account}
+									<option value={account.id}>{account.name}</option>
+								{/each}
+							</select>
+						</div>
+
+						<div>
+							<label for="category-filter" class="mb-1 block text-sm font-medium text-gray-700"
+								>Category</label
+							>
+							<select
+								id="category-filter"
+								bind:value={selectedCategory}
+								onchange={handleFilterChange}
+								class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
+							>
+								<option value="">All Categories</option>
+								{#each categories as category}
+									<option value={category.id}>{category.name}</option>
+								{/each}
+							</select>
+						</div>
+
+						<div>
+							<Input
+								label="From Date"
+								type="date"
+								bind:value={dateFrom}
+								on:change={handleFilterChange}
+							/>
+						</div>
+
+						<div>
+							<Input
+								label="To Date"
+								type="date"
+								bind:value={dateTo}
+								on:change={handleFilterChange}
+							/>
+						</div>
+					</div>
+
+					<div class="mt-4 flex items-center justify-between">
+						<div class="flex items-center space-x-4">
+							<label class="flex items-center">
+								<input
+									type="checkbox"
+									bind:checked={showClearedOnly}
+									onchange={handleFilterChange}
+									class="focus:ring-opacity-50 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+								/>
+								<span class="ml-2 text-sm text-gray-700">Cleared only</span>
+							</label>
+						</div>
+
+						<Button variant="outline" on:click={clearFilters}>Clear Filters</Button>
+					</div>
+				</Card>
+
+				<!-- Transactions List -->
+				{#if transactions.length === 0}
+					<Card class="py-12 text-center">
+						<div
+							class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100"
+						>
+							<span class="text-3xl">💰</span>
+						</div>
+						<h3 class="mb-2 text-lg font-medium text-gray-900">No transactions found</h3>
+						<p class="mb-6 text-gray-600">
+							{searchQuery || selectedAccount || selectedCategory
+								? 'Try adjusting your filters or search terms.'
+								: 'Add your first transaction to start tracking your finances.'}
+						</p>
+						{#if !searchQuery && !selectedAccount && !selectedCategory}
+							<Button on:click={openAddModal}>Add Your First Transaction</Button>
+						{/if}
+					</Card>
+				{:else}
+					<Card>
+						<div class="divide-y divide-gray-200">
+							{#each transactions as transaction (transaction.id)}
+								<div class="p-4 hover:bg-gray-50">
+									<div class="flex items-center justify-between">
+										<div class="flex flex-1 items-start space-x-4">
+											<div class="text-2xl">{getTransactionIcon(transaction)}</div>
+
+											<div class="min-w-0 flex-1">
+												<div class="flex items-center justify-between">
+													<h4 class="truncate font-medium text-gray-900">
+														{transaction.description}
+													</h4>
+													<div class="ml-4 text-right">
+														<div class="font-semibold {getTransactionColor(transaction)}">
+															{formatTransactionAmount(transaction.amount)}
+														</div>
+														<div class="text-xs text-gray-500">
+															{new Date(transaction.transaction_date).toLocaleDateString('en-IN')}
+														</div>
+													</div>
 												</div>
-												<div class="text-xs text-gray-500">
-													{new Date(transaction.transaction_date).toLocaleDateString('en-IN')}
+
+												<div class="mt-1 flex items-center space-x-4 text-sm text-gray-600">
+													<span>
+														{accounts.find((a) => a.id === transaction.account_id)?.name ||
+															'Unknown Account'}
+													</span>
+													{#if transaction.category_id}
+														<span>•</span>
+														<span>
+															{categories.find((c) => c.id === transaction.category_id)?.name ||
+																'Unknown Category'}
+														</span>
+													{/if}
+													{#if transaction.memo}
+														<span>•</span>
+														<span class="truncate">{transaction.memo}</span>
+													{/if}
 												</div>
 											</div>
 										</div>
-										
-										<div class="mt-1 flex items-center space-x-4 text-sm text-gray-600">
-											<span>
-												{accounts.find(a => a.id === transaction.account_id)?.name || 'Unknown Account'}
-											</span>
-											{#if transaction.category_id}
-												<span>•</span>
-												<span>
-													{categories.find(c => c.id === transaction.category_id)?.name || 'Unknown Category'}
-												</span>
-											{/if}
-											{#if transaction.memo}
-												<span>•</span>
-												<span class="truncate">{transaction.memo}</span>
-											{/if}
+
+										<div class="ml-4 flex items-center space-x-2">
+											<!-- Cleared Status -->
+											<button
+												onclick={() => handleToggleCleared(transaction)}
+												class="rounded p-1 {transaction.is_cleared
+													? 'text-green-600 hover:text-green-800'
+													: 'text-gray-400 hover:text-gray-600'}"
+												aria-label={transaction.is_cleared ? 'Mark as pending' : 'Mark as cleared'}
+											>
+												<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+													<path
+														fill-rule="evenodd"
+														d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+														clip-rule="evenodd"
+													/>
+												</svg>
+											</button>
+
+											<!-- Edit -->
+											<button
+												onclick={() => openEditModal(transaction)}
+												class="p-1 text-gray-400 hover:text-gray-600"
+												aria-label="Edit transaction"
+											>
+												<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														stroke-width="2"
+														d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+													/>
+												</svg>
+											</button>
+
+											<!-- Delete -->
+											<button
+												onclick={() => openDeleteModal(transaction)}
+												class="p-1 text-gray-400 hover:text-red-600"
+												aria-label="Delete transaction"
+											>
+												<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														stroke-width="2"
+														d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+													/>
+												</svg>
+											</button>
 										</div>
 									</div>
 								</div>
+							{/each}
+						</div>
 
-								<div class="flex items-center space-x-2 ml-4">
-									<!-- Cleared Status -->
-									<button
-										onclick={() => handleToggleCleared(transaction)}
-										class="p-1 rounded {transaction.is_cleared ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600'}"
-										aria-label={transaction.is_cleared ? 'Mark as pending' : 'Mark as cleared'}
+						<!-- Pagination -->
+						{#if totalPages() > 1}
+							<div class="flex items-center justify-between border-t border-gray-200 px-4 py-3">
+								<div class="text-sm text-gray-700">
+									Showing {(currentPage - 1) * pageSize + 1} to {Math.min(
+										currentPage * pageSize,
+										totalCount
+									)} of {totalCount} transactions
+								</div>
+								<div class="flex space-x-2">
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={!hasPrevPage}
+										on:click={() => handlePageChange(currentPage - 1)}
 									>
-										<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-											<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-										</svg>
-									</button>
-
-									<!-- Edit -->
-									<button
-										onclick={() => openEditModal(transaction)}
-										class="p-1 text-gray-400 hover:text-gray-600"
-										aria-label="Edit transaction"
+										Previous
+									</Button>
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={!hasNextPage}
+										on:click={() => handlePageChange(currentPage + 1)}
 									>
-										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-										</svg>
-									</button>
-
-									<!-- Delete -->
-									<button
-										onclick={() => openDeleteModal(transaction)}
-										class="p-1 text-gray-400 hover:text-red-600"
-										aria-label="Delete transaction"
-									>
-										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-										</svg>
-									</button>
+										Next
+									</Button>
 								</div>
 							</div>
-						</div>
-					{/each}
-				</div>
-
-				<!-- Pagination -->
-				{#if totalPages() > 1}
-					<div class="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-						<div class="text-sm text-gray-700">
-							Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} transactions
-						</div>
-						<div class="flex space-x-2">
-							<Button 
-								variant="outline" 
-								size="sm" 
-								disabled={!hasPrevPage}
-								on:click={() => handlePageChange(currentPage - 1)}
-							>
-								Previous
-							</Button>
-							<Button 
-								variant="outline" 
-								size="sm" 
-								disabled={!hasNextPage}
-								on:click={() => handlePageChange(currentPage + 1)}
-							>
-								Next
-							</Button>
-						</div>
-					</div>
+						{/if}
+					</Card>
 				{/if}
-			</Card>
-		{/if}
-	{/if}
+			{/if}
 		</div>
 	</div>
 </div>
 
 <!-- Add Transaction Modal -->
 <Modal bind:open={addModalOpen} title="Add New Transaction">
-	<form onsubmit={(e) => { e.preventDefault(); handleSave(); }} class="space-y-6">
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleSave();
+		}}
+		class="space-y-6"
+	>
 		{#if formErrors.length > 0}
 			<div class="rounded-md bg-red-50 p-4">
-				<ul class="text-sm text-red-700 space-y-1">
+				<ul class="space-y-1 text-sm text-red-700">
 					{#each formErrors as error}
 						<li>• {error}</li>
 					{/each}
@@ -579,9 +635,11 @@
 			</div>
 		{/if}
 
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 			<div>
-				<label for="add-account" class="block text-sm font-medium text-gray-700 mb-1">Account *</label>
+				<label for="add-account" class="mb-1 block text-sm font-medium text-gray-700"
+					>Account *</label
+				>
 				<select
 					id="add-account"
 					bind:value={formData.account_id}
@@ -596,7 +654,9 @@
 			</div>
 
 			<div>
-				<label for="add-category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+				<label for="add-category" class="mb-1 block text-sm font-medium text-gray-700"
+					>Category</label
+				>
 				<select
 					id="add-category"
 					bind:value={formData.category_id}
@@ -610,7 +670,7 @@
 			</div>
 		</div>
 
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 			<Input
 				label="Amount *"
 				type="number"
@@ -620,12 +680,7 @@
 				required
 			/>
 
-			<Input
-				label="Date *"
-				type="date"
-				bind:value={formData.transaction_date}
-				required
-			/>
+			<Input label="Date *" type="date" bind:value={formData.transaction_date} required />
 		</div>
 
 		<Input
@@ -635,26 +690,20 @@
 			required
 		/>
 
-		<Input
-			label="Memo (Optional)"
-			bind:value={formData.memo}
-			placeholder="Additional notes..."
-		/>
+		<Input label="Memo (Optional)" bind:value={formData.memo} placeholder="Additional notes..." />
 
 		<div class="flex items-center">
 			<input
 				type="checkbox"
 				bind:checked={formData.is_cleared}
-				class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+				class="focus:ring-opacity-50 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
 			/>
 			<span class="ml-2 text-sm text-gray-700">Mark as cleared</span>
 		</div>
 	</form>
 
 	<div slot="footer">
-		<Button variant="outline" on:click={() => addModalOpen = false}>
-			Cancel
-		</Button>
+		<Button variant="outline" on:click={() => (addModalOpen = false)}>Cancel</Button>
 		<Button on:click={handleSave} loading={saving} disabled={saving}>
 			{saving ? 'Adding...' : 'Add Transaction'}
 		</Button>
@@ -663,10 +712,16 @@
 
 <!-- Edit Transaction Modal -->
 <Modal bind:open={editModalOpen} title="Edit Transaction">
-	<form onsubmit={(e) => { e.preventDefault(); handleSave(); }} class="space-y-6">
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleSave();
+		}}
+		class="space-y-6"
+	>
 		{#if formErrors.length > 0}
 			<div class="rounded-md bg-red-50 p-4">
-				<ul class="text-sm text-red-700 space-y-1">
+				<ul class="space-y-1 text-sm text-red-700">
 					{#each formErrors as error}
 						<li>• {error}</li>
 					{/each}
@@ -674,9 +729,11 @@
 			</div>
 		{/if}
 
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 			<div>
-				<label for="edit-account" class="block text-sm font-medium text-gray-700 mb-1">Account *</label>
+				<label for="edit-account" class="mb-1 block text-sm font-medium text-gray-700"
+					>Account *</label
+				>
 				<select
 					id="edit-account"
 					bind:value={formData.account_id}
@@ -691,7 +748,9 @@
 			</div>
 
 			<div>
-				<label for="edit-category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+				<label for="edit-category" class="mb-1 block text-sm font-medium text-gray-700"
+					>Category</label
+				>
 				<select
 					id="edit-category"
 					bind:value={formData.category_id}
@@ -705,7 +764,7 @@
 			</div>
 		</div>
 
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 			<Input
 				label="Amount *"
 				type="number"
@@ -715,12 +774,7 @@
 				required
 			/>
 
-			<Input
-				label="Date *"
-				type="date"
-				bind:value={formData.transaction_date}
-				required
-			/>
+			<Input label="Date *" type="date" bind:value={formData.transaction_date} required />
 		</div>
 
 		<Input
@@ -730,26 +784,20 @@
 			required
 		/>
 
-		<Input
-			label="Memo (Optional)"
-			bind:value={formData.memo}
-			placeholder="Additional notes..."
-		/>
+		<Input label="Memo (Optional)" bind:value={formData.memo} placeholder="Additional notes..." />
 
 		<div class="flex items-center">
 			<input
 				type="checkbox"
 				bind:checked={formData.is_cleared}
-				class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+				class="focus:ring-opacity-50 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
 			/>
 			<span class="ml-2 text-sm text-gray-700">Mark as cleared</span>
 		</div>
 	</form>
 
 	<div slot="footer">
-		<Button variant="outline" on:click={() => editModalOpen = false}>
-			Cancel
-		</Button>
+		<Button variant="outline" on:click={() => (editModalOpen = false)}>Cancel</Button>
 		<Button on:click={handleSave} loading={saving} disabled={saving}>
 			{saving ? 'Saving...' : 'Save Changes'}
 		</Button>
@@ -759,17 +807,15 @@
 <!-- Delete Transaction Modal -->
 <Modal bind:open={deleteModalOpen} title="Delete Transaction">
 	<div class="space-y-4">
-		<p class="text-gray-600">
-			Are you sure you want to delete this transaction?
-		</p>
+		<p class="text-gray-600">Are you sure you want to delete this transaction?</p>
 
 		{#if selectedTransaction}
-			<div class="bg-gray-50 p-4 rounded-lg">
+			<div class="rounded-lg bg-gray-50 p-4">
 				<div class="flex items-center justify-between">
 					<div>
 						<h4 class="font-medium text-gray-900">{selectedTransaction.description}</h4>
 						<p class="text-sm text-gray-600">
-							{formatTransactionAmount(selectedTransaction.amount)} • 
+							{formatTransactionAmount(selectedTransaction.amount)} •
 							{new Date(selectedTransaction.transaction_date).toLocaleDateString('en-IN')}
 						</p>
 					</div>
@@ -777,20 +823,16 @@
 			</div>
 		{/if}
 
-		<div class="bg-red-50 p-4 rounded-lg">
+		<div class="rounded-lg bg-red-50 p-4">
 			<p class="text-sm text-red-800">
-				This action cannot be undone. The transaction will be permanently removed 
-				and account balances will be updated accordingly.
+				This action cannot be undone. The transaction will be permanently removed and account
+				balances will be updated accordingly.
 			</p>
 		</div>
 	</div>
 
 	<div slot="footer">
-		<Button variant="outline" on:click={() => deleteModalOpen = false}>
-			Cancel
-		</Button>
-		<Button variant="danger" on:click={handleDelete}>
-			Delete Transaction
-		</Button>
+		<Button variant="outline" on:click={() => (deleteModalOpen = false)}>Cancel</Button>
+		<Button variant="danger" on:click={handleDelete}>Delete Transaction</Button>
 	</div>
 </Modal>

@@ -2,10 +2,10 @@
 	import { onMount } from 'svelte';
 	import { Button, Input, Card, Modal } from '$lib/components';
 	import { formatCurrency } from '$lib/components/charts/ChartUtils';
-	import { 
-		getBudgetForMonth, 
+	import {
+		getBudgetForMonth,
 		getBudgetSummary,
-		createOrUpdateBudget, 
+		createOrUpdateBudget,
 		initializeBudgetForMonth,
 		copyBudgetFromPreviousMonth,
 		moveMoney,
@@ -13,7 +13,12 @@
 		formatMonthDisplay,
 		validateBudgetData
 	} from '$lib/services/budgetService';
-	import { getCategories, categoryTypeLabels, categoryTypeIcons, categoryTypeColors } from '$lib/services/categoryService';
+	import {
+		getCategories,
+		categoryTypeLabels,
+		categoryTypeIcons,
+		categoryTypeColors
+	} from '$lib/services/categoryService';
 	import type { Budget, BudgetFormData, Category, CategoryType } from '$lib/types';
 
 	let budgets: Budget[] = $state([]);
@@ -28,7 +33,7 @@
 		category_count: 0,
 		overspent_categories: 0
 	});
-	
+
 	let loading = $state(true);
 	let error = $state('');
 	let success = $state('');
@@ -71,9 +76,9 @@
 				getCategories(),
 				getBudgetSummary(currentMonth)
 			]);
-			
+
 			budgets = budgetData;
-			categories = categoriesData.filter(cat => cat.is_active);
+			categories = categoriesData.filter((cat) => cat.is_active);
 			summary = summaryData;
 		} catch (err: any) {
 			error = err.message || 'Failed to load budget data';
@@ -91,8 +96,8 @@
 
 	function openAllocateModal(category?: Category) {
 		selectedCategory = category || null;
-		const existingBudget = budgets.find(b => b.category_id === category?.id);
-		
+		const existingBudget = budgets.find((b) => b.category_id === category?.id);
+
 		allocateFormData = {
 			category_id: category?.id || '',
 			month_year: currentMonth,
@@ -122,7 +127,7 @@
 			allocateModalOpen = false;
 			await loadBudgetData();
 			success = 'Budget allocation updated successfully';
-			setTimeout(() => success = '', 3000);
+			setTimeout(() => (success = ''), 3000);
 		} catch (err: any) {
 			error = err.message || 'Failed to allocate budget';
 		} finally {
@@ -135,7 +140,8 @@
 		const errors: string[] = [];
 		if (!moveFromCategory) errors.push('Source category is required');
 		if (!moveToCategory) errors.push('Destination category is required');
-		if (moveFromCategory === moveToCategory) errors.push('Source and destination must be different');
+		if (moveFromCategory === moveToCategory)
+			errors.push('Source and destination must be different');
 		if (!moveAmount || isNaN(parseFloat(moveAmount))) errors.push('Valid amount is required');
 		if (parseFloat(moveAmount) <= 0) errors.push('Amount must be positive');
 
@@ -150,7 +156,7 @@
 			moveMoneyModalOpen = false;
 			await loadBudgetData();
 			success = 'Money moved successfully between categories';
-			setTimeout(() => success = '', 3000);
+			setTimeout(() => (success = ''), 3000);
 		} catch (err: any) {
 			error = err.message || 'Failed to move money';
 		} finally {
@@ -164,7 +170,7 @@
 			await copyBudgetFromPreviousMonth(currentMonth);
 			await loadBudgetData();
 			success = 'Budget copied from previous month successfully';
-			setTimeout(() => success = '', 3000);
+			setTimeout(() => (success = ''), 3000);
 		} catch (err: any) {
 			error = err.message || 'Failed to copy budget from previous month';
 		}
@@ -200,7 +206,7 @@
 			deleteModalOpen = false;
 			await loadBudgetData();
 			success = 'Budget allocation removed successfully';
-			setTimeout(() => success = '', 3000);
+			setTimeout(() => (success = ''), 3000);
 		} catch (err: any) {
 			error = err.message || 'Failed to remove budget allocation';
 		}
@@ -212,7 +218,7 @@
 	}
 
 	function getBudgetForCategory(categoryId: string): Budget | undefined {
-		return budgets.find(b => b.category_id === categoryId);
+		return budgets.find((b) => b.category_id === categoryId);
 	}
 
 	function getBudgetStatusColor(budget: Budget): string {
@@ -229,7 +235,7 @@
 
 	const groupedCategories = $derived(() => {
 		const groups: Record<string, Category[]> = {};
-		categories.forEach(category => {
+		categories.forEach((category) => {
 			if (!groups[category.type]) {
 				groups[category.type] = [];
 			}
@@ -239,12 +245,12 @@
 	});
 
 	const incomeCategories = $derived(() => {
-		return categories.filter(cat => cat.type === 'income');
+		return categories.filter((cat) => cat.type === 'income');
 	});
 
 	const expenseCategories = $derived(() => {
 		const groups: Record<string, Category[]> = {};
-		categories.forEach(category => {
+		categories.forEach((category) => {
 			if (category.type !== 'income') {
 				if (!groups[category.type]) {
 					groups[category.type] = [];
@@ -256,14 +262,14 @@
 	});
 
 	const availableBudgets = $derived(() => {
-		return budgets.filter(b => b.available_amount > 0);
+		return budgets.filter((b) => b.available_amount > 0);
 	});
 
 	// Generate month options (current month + 11 months forward/backward)
 	const monthOptions = $derived(() => {
 		const options = [];
 		const currentDate = new Date();
-		
+
 		for (let i = -6; i <= 6; i++) {
 			const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
 			const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
@@ -272,7 +278,7 @@
 				label: formatMonthDisplay(monthYear)
 			});
 		}
-		
+
 		return options;
 	});
 </script>
@@ -287,60 +293,85 @@
 		<!-- Background Pattern -->
 		<div class="absolute inset-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-700"></div>
 		<div class="absolute inset-0 bg-black/10"></div>
-		<div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%)"></div>
-		
-		<div class="relative px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-			<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+		<div
+			class="absolute inset-0"
+			style="background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%)"
+		></div>
+
+		<div class="relative px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+			<div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
 				<div class="flex-1">
-					<div class="flex items-center space-x-3 mb-4">
-						<div class="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
-							<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+					<div class="mb-4 flex items-center space-x-3">
+						<div class="rounded-2xl bg-white/20 p-3 backdrop-blur-sm">
+							<svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+								/>
 							</svg>
 						</div>
 						<div>
-							<h1 class="text-3xl sm:text-4xl font-bold text-white">Monthly Budget</h1>
-							<p class="text-purple-100 text-base sm:text-lg opacity-90 mt-1">
+							<h1 class="text-3xl font-bold text-white sm:text-4xl">Monthly Budget</h1>
+							<p class="mt-1 text-base text-purple-100 opacity-90 sm:text-lg">
 								Budget for every penny you earn.
 							</p>
 						</div>
 					</div>
 				</div>
-				
-				<div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-					<div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
-						<label for="month-select" class="block text-sm font-medium text-white/90 mb-2">Month</label>
+
+				<div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+					<div class="rounded-xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
+						<label for="month-select" class="mb-2 block text-sm font-medium text-white/90"
+							>Month</label
+						>
 						<select
 							id="month-select"
 							bind:value={currentMonth}
 							onchange={handleMonthChange}
-							class="block rounded-lg border-gray-300 px-3 py-2 text-sm min-w-[160px] bg-white"
+							class="block min-w-[160px] rounded-lg border-gray-300 bg-white px-3 py-2 text-sm"
 						>
 							{#each monthOptions() as option}
 								<option value={option.value}>{option.label}</option>
 							{/each}
 						</select>
 					</div>
-					
+
 					<div class="flex space-x-3">
 						<button
 							onclick={handleCopyFromPrevious}
-							class="group bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-5 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
+							class="group transform rounded-xl border border-white/20 bg-white/10 px-5 py-3 font-semibold text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:bg-white/20 hover:shadow-xl"
 						>
 							<span class="inline-flex items-center">
-								<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+								<svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+									/>
 								</svg>
 								Copy Previous
 							</span>
 						</button>
 						<button
 							onclick={() => openAllocateModal()}
-							class="group bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
+							class="group transform rounded-xl border border-white/20 bg-white/10 px-6 py-3 font-semibold text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:bg-white/20 hover:shadow-xl"
 						>
 							<span class="inline-flex items-center">
-								<svg class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+								<svg
+									class="mr-2 h-5 w-5 transition-transform duration-200 group-hover:rotate-90"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 4v16m8-8H4"
+									/>
 								</svg>
 								Allocate Money
 							</span>
@@ -353,265 +384,310 @@
 
 	<!-- Content Section -->
 	<div class="relative">
-		<div class="px-4 sm:px-6 lg:px-8 py-8 pb-12 space-y-6">
-
-	{#if loading}
-		<div class="text-center py-12">
-			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-			<p class="mt-2 text-gray-600">Loading budget...</p>
-		</div>
-	{:else}
-		<!-- Success/Error Messages -->
-		{#if success}
-			<div class="rounded-md bg-green-50 p-4">
-				<div class="text-sm text-green-700">{success}</div>
-			</div>
-		{/if}
-
-		{#if error}
-			<div class="rounded-md bg-red-50 p-4">
-				<div class="text-sm text-red-700">{error}</div>
-			</div>
-		{/if}
-
-		<!-- Budget Summary -->
-		<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-			<Card class="text-center">
-				<div class="text-2xl font-bold text-blue-600">{formatCurrency(summary.total_income_budgeted)}</div>
-				<p class="text-sm text-gray-600 mt-1">Income Budgeted</p>
-			</Card>
-			
-			<Card class="text-center">
-				<div class="text-2xl font-bold text-orange-600">{formatCurrency(summary.total_expenses_budgeted)}</div>
-				<p class="text-sm text-gray-600 mt-1">Expenses Budgeted</p>
-			</Card>
-			
-			<Card class="text-center">
-				<div class="text-2xl font-bold {summary.unallocated_income >= 0 ? 'text-green-600' : 'text-red-600'}">
-					{formatCurrency(summary.unallocated_income)}
+		<div class="space-y-6 px-4 py-8 pb-12 sm:px-6 lg:px-8">
+			{#if loading}
+				<div class="py-12 text-center">
+					<div class="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+					<p class="mt-2 text-gray-600">Loading budget...</p>
 				</div>
-				<p class="text-sm text-gray-600 mt-1">
-					{summary.unallocated_income >= 0 ? 'Unallocated' : 'Over-allocated'}
-				</p>
-			</Card>
-			
-			<Card class="text-center">
-				<div class="text-2xl font-bold text-gray-900">{summary.overspent_categories}</div>
-				<p class="text-sm text-gray-600 mt-1">Overspent Categories</p>
-			</Card>
-		</div>
-
-		<!-- YNAB Rule 1 Alert -->
-		{#if summary.unallocated_income !== 0}
-			<div class="rounded-md {summary.unallocated_income > 0 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'} border p-4">
-				<div class="flex items-center">
-					<span class="text-2xl mr-3">{summary.unallocated_income > 0 ? '💡' : '⚠️'}</span>
-					<div>
-						<h3 class="font-medium {summary.unallocated_income > 0 ? 'text-yellow-800' : 'text-red-800'}">
-							{summary.unallocated_income > 0 ? 'Unallocated Money Available' : 'Over-allocated Budget!'}
-						</h3>
-						<p class="text-sm {summary.unallocated_income > 0 ? 'text-yellow-700' : 'text-red-700'}">
-							{summary.unallocated_income > 0 
-								? `You have ${formatCurrency(summary.unallocated_income)} waiting to be assigned. Give every rupee a job!`
-								: `You've allocated ${formatCurrency(Math.abs(summary.unallocated_income))} more than your income. Adjust your budget.`
-							}
-						</p>
-						{#if summary.unallocated_income > 0}
-							<div class="mt-2">
-								<Button size="sm" on:click={() => openAllocateModal()}>
-									Allocate Now
-								</Button>
-							</div>
-						{/if}
+			{:else}
+				<!-- Success/Error Messages -->
+				{#if success}
+					<div class="rounded-md bg-green-50 p-4">
+						<div class="text-sm text-green-700">{success}</div>
 					</div>
-				</div>
-			</div>
-		{/if}
+				{/if}
 
-		<!-- Income Section -->
-		{#if incomeCategories().length > 0}
-			<Card class="mb-6">
-				<div class="flex items-center justify-between mb-6">
-					<div class="flex items-center space-x-3">
-						<span class="text-2xl">💰</span>
-						<div>
-							<h3 class="text-lg font-semibold text-gray-900">Income</h3>
-							<p class="text-sm text-gray-600">
-								Expected monthly income sources
-							</p>
+				{#if error}
+					<div class="rounded-md bg-red-50 p-4">
+						<div class="text-sm text-red-700">{error}</div>
+					</div>
+				{/if}
+
+				<!-- Budget Summary -->
+				<div class="grid grid-cols-1 gap-6 md:grid-cols-4">
+					<Card class="text-center">
+						<div class="text-2xl font-bold text-blue-600">
+							{formatCurrency(summary.total_income_budgeted)}
+						</div>
+						<p class="mt-1 text-sm text-gray-600">Income Budgeted</p>
+					</Card>
+
+					<Card class="text-center">
+						<div class="text-2xl font-bold text-orange-600">
+							{formatCurrency(summary.total_expenses_budgeted)}
+						</div>
+						<p class="mt-1 text-sm text-gray-600">Expenses Budgeted</p>
+					</Card>
+
+					<Card class="text-center">
+						<div
+							class="text-2xl font-bold {summary.unallocated_income >= 0
+								? 'text-green-600'
+								: 'text-red-600'}"
+						>
+							{formatCurrency(summary.unallocated_income)}
+						</div>
+						<p class="mt-1 text-sm text-gray-600">
+							{summary.unallocated_income >= 0 ? 'Unallocated' : 'Over-allocated'}
+						</p>
+					</Card>
+
+					<Card class="text-center">
+						<div class="text-2xl font-bold text-gray-900">{summary.overspent_categories}</div>
+						<p class="mt-1 text-sm text-gray-600">Overspent Categories</p>
+					</Card>
+				</div>
+
+				<!-- YNAB Rule 1 Alert -->
+				{#if summary.unallocated_income !== 0}
+					<div
+						class="rounded-md {summary.unallocated_income > 0
+							? 'border-yellow-200 bg-yellow-50'
+							: 'border-red-200 bg-red-50'} border p-4"
+					>
+						<div class="flex items-center">
+							<span class="mr-3 text-2xl">{summary.unallocated_income > 0 ? '💡' : '⚠️'}</span>
+							<div>
+								<h3
+									class="font-medium {summary.unallocated_income > 0
+										? 'text-yellow-800'
+										: 'text-red-800'}"
+								>
+									{summary.unallocated_income > 0
+										? 'Unallocated Money Available'
+										: 'Over-allocated Budget!'}
+								</h3>
+								<p
+									class="text-sm {summary.unallocated_income > 0
+										? 'text-yellow-700'
+										: 'text-red-700'}"
+								>
+									{summary.unallocated_income > 0
+										? `You have ${formatCurrency(summary.unallocated_income)} waiting to be assigned. Give every rupee a job!`
+										: `You've allocated ${formatCurrency(Math.abs(summary.unallocated_income))} more than your income. Adjust your budget.`}
+								</p>
+								{#if summary.unallocated_income > 0}
+									<div class="mt-2">
+										<Button size="sm" on:click={() => openAllocateModal()}>Allocate Now</Button>
+									</div>
+								{/if}
+							</div>
 						</div>
 					</div>
-				</div>
+				{/if}
 
-				<div class="space-y-4">
-					{#each incomeCategories() as category (category.id)}
-						{@const budget = getBudgetForCategory(category.id)}
-						<div class="border border-gray-200 rounded-lg p-4">
-							<div class="flex items-center justify-between">
-								<div class="flex-1">
-									<div class="flex items-center justify-between mb-2">
-										<h4 class="font-medium text-gray-900">{category.name}</h4>
-										<div class="flex items-center space-x-2">
-											<button
-												onclick={() => openAllocateModal(category)}
-												class="text-sm text-blue-600 hover:text-blue-800"
-											>
-												{budget ? 'Edit' : 'Set Expected'}
-											</button>
-											{#if budget && budget.allocated_amount > 0}
-												<button
-													onclick={() => openDeleteModal(budget)}
-													class="text-sm text-red-600 hover:text-red-800"
-												>
-													Remove
-												</button>
+				<!-- Income Section -->
+				{#if incomeCategories().length > 0}
+					<Card class="mb-6">
+						<div class="mb-6 flex items-center justify-between">
+							<div class="flex items-center space-x-3">
+								<span class="text-2xl">💰</span>
+								<div>
+									<h3 class="text-lg font-semibold text-gray-900">Income</h3>
+									<p class="text-sm text-gray-600">Expected monthly income sources</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="space-y-4">
+							{#each incomeCategories() as category (category.id)}
+								{@const budget = getBudgetForCategory(category.id)}
+								<div class="rounded-lg border border-gray-200 p-4">
+									<div class="flex items-center justify-between">
+										<div class="flex-1">
+											<div class="mb-2 flex items-center justify-between">
+												<h4 class="font-medium text-gray-900">{category.name}</h4>
+												<div class="flex items-center space-x-2">
+													<button
+														onclick={() => openAllocateModal(category)}
+														class="text-sm text-blue-600 hover:text-blue-800"
+													>
+														{budget ? 'Edit' : 'Set Expected'}
+													</button>
+													{#if budget && budget.allocated_amount > 0}
+														<button
+															onclick={() => openDeleteModal(budget)}
+															class="text-sm text-red-600 hover:text-red-800"
+														>
+															Remove
+														</button>
+													{/if}
+												</div>
+											</div>
+
+											{#if budget}
+												<div class="text-sm">
+													<div class="text-gray-600">Expected Income</div>
+													<div class="font-semibold text-green-600">
+														{formatCurrency(budget.allocated_amount)}
+													</div>
+												</div>
+											{:else}
+												<div class="text-sm text-gray-500">
+													No expected income set for this source
+												</div>
 											{/if}
 										</div>
 									</div>
-									
-									{#if budget}
-										<div class="text-sm">
-											<div class="text-gray-600">Expected Income</div>
-											<div class="font-semibold text-green-600">{formatCurrency(budget.allocated_amount)}</div>
-										</div>
-									{:else}
-										<div class="text-sm text-gray-500">
-											No expected income set for this source
-										</div>
-									{/if}
 								</div>
-							</div>
+							{/each}
 						</div>
-					{/each}
-				</div>
-			</Card>
-		{/if}
+					</Card>
+				{/if}
 
-		<!-- Budget Categories -->
-		{#if budgets.length === 0}
-			<Card class="text-center py-12">
-				<div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-					<span class="text-3xl">📊</span>
-				</div>
-				<h3 class="text-lg font-medium text-gray-900 mb-2">No budget allocated yet</h3>
-				<p class="text-gray-600 mb-6">
-					Start allocating your income to categories to follow our proven budgeting methodology.
-				</p>
-				<Button on:click={() => openAllocateModal()}>Start Budgeting</Button>
-			</Card>
-		{:else}
-			{#each Object.entries(expenseCategories) as [type, typeCategories]}
-				<Card class="mb-6">
-					<div class="flex items-center justify-between mb-6">
-						<div class="flex items-center space-x-3">
-							<span class="text-2xl">{categoryTypeIcons[type as CategoryType]}</span>
-							<div>
-								<h3 class="text-lg font-semibold text-gray-900">{categoryTypeLabels[type as CategoryType]}</h3>
-								<p class="text-sm text-gray-600">
-									{typeCategories.length} categories
-								</p>
-							</div>
+				<!-- Budget Categories -->
+				{#if budgets.length === 0}
+					<Card class="py-12 text-center">
+						<div
+							class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100"
+						>
+							<span class="text-3xl">📊</span>
 						</div>
-					</div>
-
-					<div class="space-y-4">
-						{#each typeCategories as category (category.id)}
-							{@const budget = getBudgetForCategory(category.id)}
-							<div class="border border-gray-200 rounded-lg p-4">
-								<div class="flex items-center justify-between">
-									<div class="flex-1">
-										<div class="flex items-center justify-between mb-2">
-											<h4 class="font-medium text-gray-900">{category.name}</h4>
-											<div class="flex items-center space-x-2">
-												<button
-													onclick={() => openAllocateModal(category)}
-													class="text-sm text-blue-600 hover:text-blue-800"
-												>
-													{budget ? 'Edit' : 'Allocate'}
-												</button>
-												{#if budget && budget.allocated_amount > 0}
-													<button
-														onclick={() => openDeleteModal(budget)}
-														class="text-sm text-red-600 hover:text-red-800"
-													>
-														Remove
-													</button>
-												{/if}
-											</div>
-										</div>
-										
-										{#if budget}
-											<div class="grid grid-cols-3 gap-4 text-sm">
-												<div>
-													<div class="text-gray-600">Budgeted</div>
-													<div class="font-semibold">{formatCurrency(budget.allocated_amount)}</div>
-												</div>
-												<div>
-													<div class="text-gray-600">Spent</div>
-													<div class="font-semibold text-red-600">{formatCurrency(budget.spent_amount)}</div>
-												</div>
-												<div>
-													<div class="text-gray-600">Available</div>
-													<div class="font-semibold {getBudgetStatusColor(budget)}">
-														{formatCurrency(budget.available_amount)}
-													</div>
-												</div>
-											</div>
-											
-											<!-- Progress Bar -->
-											<div class="mt-3">
-												<div class="flex items-center justify-between text-xs text-gray-600 mb-1">
-													<span>{getBudgetStatusText(budget)}</span>
-													<span>
-														{budget.allocated_amount > 0 ? 
-															Math.round((budget.spent_amount / budget.allocated_amount) * 100) : 0}%
-													</span>
-												</div>
-												<div class="w-full bg-gray-200 rounded-full h-2">
-													<div 
-														class="h-2 rounded-full {budget.available_amount < 0 ? 'bg-red-500' : 'bg-green-500'}"
-														style="width: {Math.min(100, budget.allocated_amount > 0 ? (budget.spent_amount / budget.allocated_amount) * 100 : 0)}%"
-													></div>
-												</div>
-											</div>
-										{:else}
-											<div class="text-sm text-gray-500">
-												No budget allocated for this category
-											</div>
-										{/if}
+						<h3 class="mb-2 text-lg font-medium text-gray-900">No budget allocated yet</h3>
+						<p class="mb-6 text-gray-600">
+							Start allocating your income to categories to follow our proven budgeting methodology.
+						</p>
+						<Button on:click={() => openAllocateModal()}>Start Budgeting</Button>
+					</Card>
+				{:else}
+					{#each Object.entries(expenseCategories) as [type, typeCategories]}
+						<Card class="mb-6">
+							<div class="mb-6 flex items-center justify-between">
+								<div class="flex items-center space-x-3">
+									<span class="text-2xl">{categoryTypeIcons[type as CategoryType]}</span>
+									<div>
+										<h3 class="text-lg font-semibold text-gray-900">
+											{categoryTypeLabels[type as CategoryType]}
+										</h3>
+										<p class="text-sm text-gray-600">
+											{typeCategories.length} categories
+										</p>
 									</div>
 								</div>
 							</div>
-						{/each}
-					</div>
-				</Card>
-			{/each}
 
-			<!-- Quick Actions -->
-			{#if availableBudgets().length > 0}
-				<Card title="Quick Actions" class="mb-6">
-					<div class="flex items-center justify-between">
-						<p class="text-sm text-gray-600">
-							Move money between categories or make quick allocations
-						</p>
-						<Button variant="outline" on:click={openMoveMoneyModal}>
-							Move Money
-						</Button>
-					</div>
-				</Card>
+							<div class="space-y-4">
+								{#each typeCategories as category (category.id)}
+									{@const budget = getBudgetForCategory(category.id)}
+									<div class="rounded-lg border border-gray-200 p-4">
+										<div class="flex items-center justify-between">
+											<div class="flex-1">
+												<div class="mb-2 flex items-center justify-between">
+													<h4 class="font-medium text-gray-900">{category.name}</h4>
+													<div class="flex items-center space-x-2">
+														<button
+															onclick={() => openAllocateModal(category)}
+															class="text-sm text-blue-600 hover:text-blue-800"
+														>
+															{budget ? 'Edit' : 'Allocate'}
+														</button>
+														{#if budget && budget.allocated_amount > 0}
+															<button
+																onclick={() => openDeleteModal(budget)}
+																class="text-sm text-red-600 hover:text-red-800"
+															>
+																Remove
+															</button>
+														{/if}
+													</div>
+												</div>
+
+												{#if budget}
+													<div class="grid grid-cols-3 gap-4 text-sm">
+														<div>
+															<div class="text-gray-600">Budgeted</div>
+															<div class="font-semibold">
+																{formatCurrency(budget.allocated_amount)}
+															</div>
+														</div>
+														<div>
+															<div class="text-gray-600">Spent</div>
+															<div class="font-semibold text-red-600">
+																{formatCurrency(budget.spent_amount)}
+															</div>
+														</div>
+														<div>
+															<div class="text-gray-600">Available</div>
+															<div class="font-semibold {getBudgetStatusColor(budget)}">
+																{formatCurrency(budget.available_amount)}
+															</div>
+														</div>
+													</div>
+
+													<!-- Progress Bar -->
+													<div class="mt-3">
+														<div
+															class="mb-1 flex items-center justify-between text-xs text-gray-600"
+														>
+															<span>{getBudgetStatusText(budget)}</span>
+															<span>
+																{budget.allocated_amount > 0
+																	? Math.round(
+																			(budget.spent_amount / budget.allocated_amount) * 100
+																		)
+																	: 0}%
+															</span>
+														</div>
+														<div class="h-2 w-full rounded-full bg-gray-200">
+															<div
+																class="h-2 rounded-full {budget.available_amount < 0
+																	? 'bg-red-500'
+																	: 'bg-green-500'}"
+																style="width: {Math.min(
+																	100,
+																	budget.allocated_amount > 0
+																		? (budget.spent_amount / budget.allocated_amount) * 100
+																		: 0
+																)}%"
+															></div>
+														</div>
+													</div>
+												{:else}
+													<div class="text-sm text-gray-500">
+														No budget allocated for this category
+													</div>
+												{/if}
+											</div>
+										</div>
+									</div>
+								{/each}
+							</div>
+						</Card>
+					{/each}
+
+					<!-- Quick Actions -->
+					{#if availableBudgets().length > 0}
+						<Card title="Quick Actions" class="mb-6">
+							<div class="flex items-center justify-between">
+								<p class="text-sm text-gray-600">
+									Move money between categories or make quick allocations
+								</p>
+								<Button variant="outline" on:click={openMoveMoneyModal}>Move Money</Button>
+							</div>
+						</Card>
+					{/if}
+				{/if}
 			{/if}
-		{/if}
-	{/if}
 		</div>
 	</div>
 </div>
 
 <!-- Allocate Money Modal -->
-<Modal bind:open={allocateModalOpen} title={selectedCategory ? `Allocate to ${selectedCategory.name}` : 'Allocate Money'}>
-	<form onsubmit={(e) => { e.preventDefault(); handleAllocate(); }} class="space-y-6">
+<Modal
+	bind:open={allocateModalOpen}
+	title={selectedCategory ? `Allocate to ${selectedCategory.name}` : 'Allocate Money'}
+>
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleAllocate();
+		}}
+		class="space-y-6"
+	>
 		{#if formErrors.length > 0}
 			<div class="rounded-md bg-red-50 p-4">
-				<ul class="text-sm text-red-700 space-y-1">
+				<ul class="space-y-1 text-sm text-red-700">
 					{#each formErrors as error}
 						<li>• {error}</li>
 					{/each}
@@ -621,7 +697,9 @@
 
 		{#if !selectedCategory}
 			<div>
-				<label for="allocate-category" class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+				<label for="allocate-category" class="mb-1 block text-sm font-medium text-gray-700"
+					>Category *</label
+				>
 				<select
 					id="allocate-category"
 					bind:value={allocateFormData.category_id}
@@ -630,7 +708,9 @@
 				>
 					<option value="">Select a category</option>
 					{#each categories as category}
-						<option value={category.id}>{category.name} ({categoryTypeLabels[category.type]})</option>
+						<option value={category.id}
+							>{category.name} ({categoryTypeLabels[category.type]})</option
+						>
 					{/each}
 				</select>
 			</div>
@@ -645,12 +725,13 @@
 			required
 		/>
 
-		<div class="bg-blue-50 p-4 rounded-lg">
+		<div class="rounded-lg bg-blue-50 p-4">
 			<p class="text-sm text-blue-800">
-				<strong>Available to allocate:</strong> {formatCurrency(summary.unallocated_income)}
+				<strong>Available to allocate:</strong>
+				{formatCurrency(summary.unallocated_income)}
 			</p>
 			{#if summary.unallocated_income <= 0}
-				<p class="text-sm text-blue-700 mt-1">
+				<p class="mt-1 text-sm text-blue-700">
 					You'll need to move money from other categories to allocate more here.
 				</p>
 			{/if}
@@ -658,9 +739,7 @@
 	</form>
 
 	<div slot="footer">
-		<Button variant="outline" on:click={() => allocateModalOpen = false}>
-			Cancel
-		</Button>
+		<Button variant="outline" on:click={() => (allocateModalOpen = false)}>Cancel</Button>
 		<Button on:click={handleAllocate} loading={saving} disabled={saving}>
 			{saving ? 'Allocating...' : 'Allocate Money'}
 		</Button>
@@ -669,10 +748,16 @@
 
 <!-- Move Money Modal -->
 <Modal bind:open={moveMoneyModalOpen} title="Move Money Between Categories">
-	<form onsubmit={(e) => { e.preventDefault(); handleMoveMoney(); }} class="space-y-6">
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleMoveMoney();
+		}}
+		class="space-y-6"
+	>
 		{#if formErrors.length > 0}
 			<div class="rounded-md bg-red-50 p-4">
-				<ul class="text-sm text-red-700 space-y-1">
+				<ul class="space-y-1 text-sm text-red-700">
 					{#each formErrors as error}
 						<li>• {error}</li>
 					{/each}
@@ -681,7 +766,9 @@
 		{/if}
 
 		<div>
-			<label for="move-from-category" class="block text-sm font-medium text-gray-700 mb-1">From Category *</label>
+			<label for="move-from-category" class="mb-1 block text-sm font-medium text-gray-700"
+				>From Category *</label
+			>
 			<select
 				id="move-from-category"
 				bind:value={moveFromCategory}
@@ -690,7 +777,7 @@
 			>
 				<option value="">Select source category</option>
 				{#each availableBudgets() as budget}
-					{@const category = categories.find(c => c.id === budget.category_id)}
+					{@const category = categories.find((c) => c.id === budget.category_id)}
 					{#if category}
 						<option value={budget.category_id}>
 							{category.name} (Available: {formatCurrency(budget.available_amount)})
@@ -701,7 +788,9 @@
 		</div>
 
 		<div>
-			<label for="move-to-category" class="block text-sm font-medium text-gray-700 mb-1">To Category *</label>
+			<label for="move-to-category" class="mb-1 block text-sm font-medium text-gray-700"
+				>To Category *</label
+			>
 			<select
 				id="move-to-category"
 				bind:value={moveToCategory}
@@ -709,7 +798,7 @@
 				required
 			>
 				<option value="">Select destination category</option>
-				{#each categories.filter(c => c.type !== 'income') as category}
+				{#each categories.filter((c) => c.type !== 'income') as category}
 					<option value={category.id}>{category.name}</option>
 				{/each}
 			</select>
@@ -724,18 +813,16 @@
 			required
 		/>
 
-		<div class="bg-yellow-50 p-4 rounded-lg">
+		<div class="rounded-lg bg-yellow-50 p-4">
 			<p class="text-sm text-yellow-800">
-				Moving money helps you stay within your total budget while adjusting 
-				allocations between categories as needed.
+				Moving money helps you stay within your total budget while adjusting allocations between
+				categories as needed.
 			</p>
 		</div>
 	</form>
 
 	<div slot="footer">
-		<Button variant="outline" on:click={() => moveMoneyModalOpen = false}>
-			Cancel
-		</Button>
+		<Button variant="outline" on:click={() => (moveMoneyModalOpen = false)}>Cancel</Button>
 		<Button on:click={handleMoveMoney} loading={saving} disabled={saving}>
 			{saving ? 'Moving...' : 'Move Money'}
 		</Button>
@@ -746,10 +833,13 @@
 <Modal bind:open={deleteModalOpen} title="Remove Budget Allocation">
 	<div class="space-y-4">
 		<p class="text-gray-600">
-			Are you sure you want to remove the budget allocation for <strong>{categories.find(c => c.id === budgetToDelete?.category_id)?.name || 'this category'}</strong>?
+			Are you sure you want to remove the budget allocation for <strong
+				>{categories.find((c) => c.id === budgetToDelete?.category_id)?.name ||
+					'this category'}</strong
+			>?
 		</p>
 
-		<div class="bg-yellow-50 p-4 rounded-lg">
+		<div class="rounded-lg bg-yellow-50 p-4">
 			<p class="text-sm text-yellow-800">
 				This will set the allocated amount to ₹0. You can always set a new budget allocation later.
 			</p>
@@ -757,11 +847,7 @@
 	</div>
 
 	<div slot="footer">
-		<Button variant="outline" on:click={() => deleteModalOpen = false}>
-			Cancel
-		</Button>
-		<Button variant="danger" on:click={handleDeleteBudget}>
-			Remove Allocation
-		</Button>
+		<Button variant="outline" on:click={() => (deleteModalOpen = false)}>Cancel</Button>
+		<Button variant="danger" on:click={handleDeleteBudget}>Remove Allocation</Button>
 	</div>
 </Modal>

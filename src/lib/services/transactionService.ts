@@ -37,7 +37,7 @@ async function updateAccountBalance(accountId: string, amountChange: number): Pr
 			.single();
 
 		if (fetchError) throw new Error(`Failed to fetch account: ${fetchError.message}`);
-		
+
 		const { error: updateError } = await supabase
 			.from('accounts')
 			.update({ balance: account.balance + amountChange })
@@ -48,31 +48,35 @@ async function updateAccountBalance(accountId: string, amountChange: number): Pr
 }
 
 // Base query with relations
-const baseQuery = () => supabase
-	.from('transactions')
-	.select(`
+const baseQuery = () =>
+	supabase.from('transactions').select(`
 		*,
 		account:accounts(name, type),
 		category:categories(name, type)
 	`);
 
-export async function getTransactions(options: {
-	limit?: number;
-	offset?: number;
-	account_id?: string;
-	category_id?: string;
-	date_from?: string;
-	date_to?: string;
-	search?: string;
-	is_cleared?: boolean;
-} = {}): Promise<{ transactions: Transaction[]; total_count: number }> {
+export async function getTransactions(
+	options: {
+		limit?: number;
+		offset?: number;
+		account_id?: string;
+		category_id?: string;
+		date_from?: string;
+		date_to?: string;
+		search?: string;
+		is_cleared?: boolean;
+	} = {}
+): Promise<{ transactions: Transaction[]; total_count: number }> {
 	let query = supabase
 		.from('transactions')
-		.select(`
+		.select(
+			`
 			*,
 			account:accounts(name, type),
 			category:categories(name, type)
-		`, { count: 'exact' })
+		`,
+			{ count: 'exact' }
+		)
 		.order('transaction_date', { ascending: false })
 		.order('created_at', { ascending: false });
 
@@ -82,9 +86,11 @@ export async function getTransactions(options: {
 	if (options.is_cleared !== undefined) query = query.eq('is_cleared', options.is_cleared);
 	if (options.date_from) query = query.gte('transaction_date', options.date_from);
 	if (options.date_to) query = query.lte('transaction_date', options.date_to);
-	if (options.search) query = query.or(`description.ilike.%${options.search}%,memo.ilike.%${options.search}%`);
+	if (options.search)
+		query = query.or(`description.ilike.%${options.search}%,memo.ilike.%${options.search}%`);
 	if (options.limit) query = query.limit(options.limit);
-	if (options.offset) query = query.range(options.offset, options.offset + (options.limit || 50) - 1);
+	if (options.offset)
+		query = query.range(options.offset, options.offset + (options.limit || 50) - 1);
 
 	const { data, error, count } = await query;
 	if (error) throw new Error(`Failed to fetch transactions: ${error.message}`);
@@ -98,41 +104,50 @@ export async function getTransactionById(id: string): Promise<Transaction> {
 	return data;
 }
 
-export async function createTransaction(transactionData: TransactionFormData): Promise<Transaction> {
+export async function createTransaction(
+	transactionData: TransactionFormData
+): Promise<Transaction> {
 	const { userId, familyId } = await getUserContext();
 	const amount = parseFloat(transactionData.amount);
-	
+
 	const { data: transaction, error } = await supabase
 		.from('transactions')
-		.insert([{
-			family_id: familyId,
-			user_id: userId,
-			account_id: transactionData.account_id,
-			category_id: transactionData.category_id || null,
-			amount,
-			transaction_date: transactionData.transaction_date,
-			description: transactionData.description,
-			memo: transactionData.memo || null,
-			is_cleared: transactionData.is_cleared || false
-		}])
-		.select(`
+		.insert([
+			{
+				family_id: familyId,
+				user_id: userId,
+				account_id: transactionData.account_id,
+				category_id: transactionData.category_id || null,
+				amount,
+				transaction_date: transactionData.transaction_date,
+				description: transactionData.description,
+				memo: transactionData.memo || null,
+				is_cleared: transactionData.is_cleared || false
+			}
+		])
+		.select(
+			`
 			*,
 			account:accounts(name, type),
 			category:categories(name, type)
-		`)
+		`
+		)
 		.single();
 
 	if (error) throw new Error(`Failed to create transaction: ${error.message}`);
-	
+
 	await updateAccountBalance(transactionData.account_id, amount);
 	return transaction;
 }
 
-export async function updateTransaction(id: string, transactionData: TransactionFormData): Promise<Transaction> {
+export async function updateTransaction(
+	id: string,
+	transactionData: TransactionFormData
+): Promise<Transaction> {
 	const originalTransaction = await getTransactionById(id);
 	const { userId, familyId } = await getUserContext();
 	const newAmount = parseFloat(transactionData.amount);
-	
+
 	const { data, error } = await supabase
 		.from('transactions')
 		.update({
@@ -147,11 +162,13 @@ export async function updateTransaction(id: string, transactionData: Transaction
 			is_cleared: transactionData.is_cleared || false
 		})
 		.eq('id', id)
-		.select(`
+		.select(
+			`
 			*,
 			account:accounts(name, type),
 			category:categories(name, type)
-		`)
+		`
+		)
 		.single();
 
 	if (error) throw new Error(`Failed to update transaction: ${error.message}`);
@@ -172,7 +189,7 @@ export async function updateTransaction(id: string, transactionData: Transaction
 
 export async function deleteTransaction(id: string): Promise<void> {
 	const transaction = await getTransactionById(id);
-	
+
 	const { error } = await supabase.from('transactions').delete().eq('id', id);
 	if (error) throw new Error(`Failed to delete transaction: ${error.message}`);
 
@@ -181,16 +198,18 @@ export async function deleteTransaction(id: string): Promise<void> {
 
 export async function toggleTransactionCleared(id: string): Promise<Transaction> {
 	const transaction = await getTransactionById(id);
-	
+
 	const { data, error } = await supabase
 		.from('transactions')
 		.update({ is_cleared: !transaction.is_cleared })
 		.eq('id', id)
-		.select(`
+		.select(
+			`
 			*,
 			account:accounts(name, type),
 			category:categories(name, type)
-		`)
+		`
+		)
 		.single();
 
 	if (error) throw new Error(`Failed to toggle transaction status: ${error.message}`);
@@ -207,18 +226,21 @@ export function validateTransactionData(data: TransactionFormData): string[] {
 	if (amount === 0) errors.push('Amount cannot be zero');
 	if (!data.transaction_date) errors.push('Transaction date is required');
 	if (!data.description?.trim()) errors.push('Description is required');
-	if (data.description?.trim().length > 200) errors.push('Description must be less than 200 characters');
+	if (data.description?.trim().length > 200)
+		errors.push('Description must be less than 200 characters');
 	if (data.memo && data.memo.length > 500) errors.push('Memo must be less than 500 characters');
 
 	return errors;
 }
 
-export async function getTransactionSummary(options: {
-	account_id?: string;
-	category_id?: string;
-	date_from?: string;
-	date_to?: string;
-} = {}): Promise<{
+export async function getTransactionSummary(
+	options: {
+		account_id?: string;
+		category_id?: string;
+		date_from?: string;
+		date_to?: string;
+	} = {}
+): Promise<{
 	total_income: number;
 	total_expenses: number;
 	net_amount: number;
@@ -236,26 +258,29 @@ export async function getTransactionSummary(options: {
 	if (error) throw new Error(`Failed to fetch summary: ${error.message}`);
 
 	const transactions = data || [];
-	
+
 	return {
-		total_income: transactions.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0),
-		total_expenses: Math.abs(transactions.filter(t => t.amount < 0).reduce((sum, t) => sum + t.amount, 0)),
+		total_income: transactions.filter((t) => t.amount > 0).reduce((sum, t) => sum + t.amount, 0),
+		total_expenses: Math.abs(
+			transactions.filter((t) => t.amount < 0).reduce((sum, t) => sum + t.amount, 0)
+		),
 		net_amount: transactions.reduce((sum, t) => sum + t.amount, 0),
 		transaction_count: transactions.length,
-		uncleared_count: transactions.filter(t => !t.is_cleared).length
+		uncleared_count: transactions.filter((t) => !t.is_cleared).length
 	};
 }
 
 export async function getRecentTransactions(limit: number = 10): Promise<Transaction[]> {
-	const { data, error } = await baseQuery()
-		.order('created_at', { ascending: false })
-		.limit(limit);
+	const { data, error } = await baseQuery().order('created_at', { ascending: false }).limit(limit);
 
 	if (error) throw new Error(`Failed to fetch recent transactions: ${error.message}`);
 	return data || [];
 }
 
-export async function searchTransactions(query: string, limit: number = 20): Promise<Transaction[]> {
+export async function searchTransactions(
+	query: string,
+	limit: number = 20
+): Promise<Transaction[]> {
 	const { data, error } = await baseQuery()
 		.or(`description.ilike.%${query}%,memo.ilike.%${query}%`)
 		.order('transaction_date', { ascending: false })
@@ -266,23 +291,22 @@ export async function searchTransactions(query: string, limit: number = 20): Pro
 }
 
 export async function bulkUpdateTransactions(
-	transactionIds: string[], 
+	transactionIds: string[],
 	updates: Partial<Pick<Transaction, 'category_id' | 'is_cleared'>>
 ): Promise<void> {
-	const { error } = await supabase
-		.from('transactions')
-		.update(updates)
-		.in('id', transactionIds);
+	const { error } = await supabase.from('transactions').update(updates).in('id', transactionIds);
 
 	if (error) throw new Error(`Failed to bulk update: ${error.message}`);
 }
 
-export async function exportTransactions(options: {
-	date_from?: string;
-	date_to?: string;
-	account_id?: string;
-	category_id?: string;
-} = {}): Promise<Transaction[]> {
+export async function exportTransactions(
+	options: {
+		date_from?: string;
+		date_to?: string;
+		account_id?: string;
+		category_id?: string;
+	} = {}
+): Promise<Transaction[]> {
 	const { transactions } = await getTransactions({ ...options, limit: undefined });
 	return transactions;
 }

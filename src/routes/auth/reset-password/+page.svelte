@@ -15,7 +15,7 @@
 		// Check if we have the reset token in the URL
 		const hashParams = new URLSearchParams(window.location.hash.substring(1));
 		const accessToken = hashParams.get('access_token');
-		
+
 		if (!accessToken) {
 			error = 'Invalid reset link. Please request a new password reset.';
 		}
@@ -43,7 +43,7 @@
 		try {
 			await updatePassword(newPassword);
 			success = true;
-			
+
 			// Redirect to login after 3 seconds
 			setTimeout(() => {
 				goto('/login');
@@ -62,15 +62,13 @@
 	}
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-	<div class="max-w-md w-full space-y-8 p-8">
+<div
+	class="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100"
+>
+	<div class="w-full max-w-md space-y-8 p-8">
 		<div class="text-center">
-			<h2 class="text-3xl font-extrabold text-gray-900">
-				Set new password
-			</h2>
-			<p class="mt-2 text-sm text-gray-600">
-				Enter your new password below.
-			</p>
+			<h2 class="text-3xl font-extrabold text-gray-900">Set new password</h2>
+			<p class="mt-2 text-sm text-gray-600">Enter your new password below.</p>
 		</div>
 
 		{#if success}
@@ -136,9 +134,7 @@
 
 		<div class="text-center">
 			<p class="text-sm text-gray-600">
-				<a href="/login" class="font-medium text-blue-600 hover:text-blue-500">
-					Back to login
-				</a>
+				<a href="/login" class="font-medium text-blue-600 hover:text-blue-500"> Back to login </a>
 			</p>
 		</div>
 	</div>

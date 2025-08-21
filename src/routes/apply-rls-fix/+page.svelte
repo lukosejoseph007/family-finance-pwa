@@ -156,8 +156,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 				}
 
 				// Split and execute SQL commands individually
-				const commands = sqlScript.split(';').filter(cmd => cmd.trim());
-				
+				const commands = sqlScript.split(';').filter((cmd) => cmd.trim());
+
 				for (let i = 0; i < commands.length; i++) {
 					const command = commands[i].trim();
 					if (command) {
@@ -169,7 +169,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 						}
 					}
 				}
-				
+
 				results = 'RLS policies applied successfully (with some warnings)';
 			} else {
 				results = 'RLS policies applied successfully: ' + JSON.stringify(data);
@@ -186,7 +186,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 			} else {
 				results += '\n\nTest successful: Found ' + testCategories.length + ' categories';
 			}
-
 		} catch (err: any) {
 			error = 'Failed to apply RLS fix: ' + err.message;
 		} finally {
@@ -212,7 +211,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 			if (categories && categories.length > 0) {
 				const testCat = categories[0];
-				
+
 				// Test UPDATE
 				const { error: updateError } = await supabase
 					.from('categories')
@@ -236,7 +235,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 			if (accounts && accounts.length > 0) {
 				const testAcc = accounts[0];
-				
+
 				// Test UPDATE
 				const { error: updateError } = await supabase
 					.from('accounts')
@@ -248,11 +247,11 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 				}
 			}
 
-			results = 'CRUD operations test PASSED!\n' +
+			results =
+				'CRUD operations test PASSED!\n' +
 				`Categories found: ${categories.length}\n` +
 				`Accounts found: ${accounts.length}\n` +
 				'All UPDATE operations successful';
-
 		} catch (err: any) {
 			error = 'CRUD test failed: ' + err.message;
 		} finally {
@@ -265,7 +264,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 	<title>Apply RLS Fix - Family Finance</title>
 </svelte:head>
 
-<div class="max-w-4xl mx-auto p-6 space-y-6">
+<div class="mx-auto max-w-4xl space-y-6 p-6">
 	<div>
 		<h1 class="text-3xl font-bold text-gray-900">Apply RLS Policy Fix</h1>
 		<p class="mt-2 text-gray-600">
@@ -274,9 +273,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 		</p>
 	</div>
 
-	<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+	<div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
 		<div class="flex items-center">
-			<span class="text-2xl mr-3">⚠️</span>
+			<span class="mr-3 text-2xl">⚠️</span>
 			<div>
 				<h3 class="font-medium text-yellow-800">Database Modification</h3>
 				<p class="text-sm text-yellow-700">
@@ -287,19 +286,14 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 	</div>
 
 	<div class="space-y-4">
-		<Button
-			on:click={applyRLSFix}
-			loading={loading}
-			disabled={loading}
-			class="w-full"
-		>
+		<Button on:click={applyRLSFix} {loading} disabled={loading} class="w-full">
 			{loading ? 'Applying RLS Fix...' : 'Apply RLS Policy Fix'}
 		</Button>
 
 		<Button
 			variant="outline"
 			on:click={testCRUDOperations}
-			loading={loading}
+			{loading}
 			disabled={loading}
 			class="w-full"
 		>
@@ -308,22 +302,22 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 	</div>
 
 	{#if results}
-		<div class="bg-green-50 border border-green-200 rounded-lg p-4">
-			<h3 class="font-medium text-green-800 mb-2">Results</h3>
-			<pre class="text-sm text-green-700 whitespace-pre-wrap">{results}</pre>
+		<div class="rounded-lg border border-green-200 bg-green-50 p-4">
+			<h3 class="mb-2 font-medium text-green-800">Results</h3>
+			<pre class="text-sm whitespace-pre-wrap text-green-700">{results}</pre>
 		</div>
 	{/if}
 
 	{#if error}
-		<div class="bg-red-50 border border-red-200 rounded-lg p-4">
-			<h3 class="font-medium text-red-800 mb-2">Error</h3>
-			<pre class="text-sm text-red-700 whitespace-pre-wrap">{error}</pre>
+		<div class="rounded-lg border border-red-200 bg-red-50 p-4">
+			<h3 class="mb-2 font-medium text-red-800">Error</h3>
+			<pre class="text-sm whitespace-pre-wrap text-red-700">{error}</pre>
 		</div>
 	{/if}
 
-	<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-		<h3 class="font-medium text-gray-800 mb-2">What This Fix Does</h3>
-		<ul class="text-sm text-gray-700 space-y-1">
+	<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+		<h3 class="mb-2 font-medium text-gray-800">What This Fix Does</h3>
+		<ul class="space-y-1 text-sm text-gray-700">
 			<li>• Removes problematic existing RLS policies</li>
 			<li>• Creates unified "full_access" policies for accounts and categories</li>
 			<li>• Adds helper functions for safe family-based access</li>

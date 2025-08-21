@@ -5,10 +5,12 @@ import type { Budget, BudgetFormData } from '$lib/types';
 export async function getBudgetForMonth(monthYear: string): Promise<Budget[]> {
 	const { data, error } = await supabase
 		.from('budgets')
-		.select(`
+		.select(
+			`
 			*,
 			category:categories(id, name, type, description)
-		`)
+		`
+		)
 		.eq('month_year', monthYear)
 		.order('created_at', { ascending: true });
 
@@ -21,7 +23,7 @@ export async function getBudgetForMonth(monthYear: string): Promise<Budget[]> {
 
 export async function createOrUpdateBudget(budgetData: BudgetFormData): Promise<Budget> {
 	const allocatedAmount = parseFloat(budgetData.allocated_amount);
-	
+
 	// Check if budget already exists for this category and month
 	const { data: existingBudget, error: checkError } = await supabase
 		.from('budgets')
@@ -30,7 +32,8 @@ export async function createOrUpdateBudget(budgetData: BudgetFormData): Promise<
 		.eq('month_year', budgetData.month_year)
 		.single();
 
-	if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows found
+	if (checkError && checkError.code !== 'PGRST116') {
+		// PGRST116 = no rows found
 		throw new Error(`Failed to check existing budget: ${checkError.message}`);
 	}
 
@@ -49,10 +52,12 @@ export async function createOrUpdateBudget(budgetData: BudgetFormData): Promise<
 				updated_at: new Date().toISOString()
 			})
 			.eq('id', existingBudget.id)
-			.select(`
+			.select(
+				`
 				*,
 				category:categories(id, name, type, description)
-			`)
+			`
+			)
 			.single();
 
 		if (error) {
@@ -63,17 +68,21 @@ export async function createOrUpdateBudget(budgetData: BudgetFormData): Promise<
 		// Create new budget
 		const { data, error } = await supabase
 			.from('budgets')
-			.insert([{
-				category_id: budgetData.category_id,
-				month_year: budgetData.month_year,
-				allocated_amount: allocatedAmount,
-				spent_amount: 0,
-				available_amount: allocatedAmount
-			}])
-			.select(`
+			.insert([
+				{
+					category_id: budgetData.category_id,
+					month_year: budgetData.month_year,
+					allocated_amount: allocatedAmount,
+					spent_amount: 0,
+					available_amount: allocatedAmount
+				}
+			])
+			.select(
+				`
 				*,
 				category:categories(id, name, type, description)
-			`)
+			`
+			)
 			.single();
 
 		if (error) {
@@ -85,7 +94,11 @@ export async function createOrUpdateBudget(budgetData: BudgetFormData): Promise<
 	return result;
 }
 
-export async function updateBudgetSpent(categoryId: string, monthYear: string, spentChange: number): Promise<void> {
+export async function updateBudgetSpent(
+	categoryId: string,
+	monthYear: string,
+	spentChange: number
+): Promise<void> {
 	// Get current budget
 	const { data: budget, error: fetchError } = await supabase
 		.from('budgets')
@@ -98,15 +111,15 @@ export async function updateBudgetSpent(categoryId: string, monthYear: string, s
 		// If no budget exists, create one with 0 allocated amount
 		if (fetchError.code === 'PGRST116') {
 			const newSpentAmount = Math.max(0, spentChange);
-			await supabase
-				.from('budgets')
-				.insert([{
+			await supabase.from('budgets').insert([
+				{
 					category_id: categoryId,
 					month_year: monthYear,
 					allocated_amount: 0,
 					spent_amount: newSpentAmount,
 					available_amount: -newSpentAmount
-				}]);
+				}
+			]);
 			return;
 		}
 		throw new Error(`Failed to fetch budget for update: ${fetchError.message}`);
@@ -142,12 +155,14 @@ export async function getBudgetSummary(monthYear: string): Promise<{
 	// Get budget data with category types
 	const { data: budgets, error: budgetError } = await supabase
 		.from('budgets')
-		.select(`
+		.select(
+			`
 			allocated_amount,
 			spent_amount,
 			available_amount,
 			category:categories(type)
-		`)
+		`
+		)
 		.eq('month_year', monthYear);
 
 	if (budgetError) {
@@ -157,10 +172,12 @@ export async function getBudgetSummary(monthYear: string): Promise<{
 	// Get actual income for the month from transactions
 	const { data: incomeTransactions, error: incomeError } = await supabase
 		.from('transactions')
-		.select(`
+		.select(
+			`
 			amount,
 			category:categories(type)
-		`)
+		`
+		)
 		.gte('transaction_date', `${monthYear}-01`)
 		.lt('transaction_date', getNextMonthDate(monthYear));
 
@@ -173,24 +190,28 @@ export async function getBudgetSummary(monthYear: string): Promise<{
 
 	// Calculate actual income from transactions
 	const actualIncome = transactions
-		.filter(t => t.category && 'type' in t.category && t.category.type === 'income')
+		.filter((t) => t.category && 'type' in t.category && t.category.type === 'income')
 		.reduce((sum, t) => sum + t.amount, 0);
 
 	// Calculate budget totals
-	const incomeBudgets = budgetList.filter(b => b.category && 'type' in b.category && b.category.type === 'income');
-	const expenseBudgets = budgetList.filter(b => b.category && 'type' in b.category && b.category.type !== 'income');
+	const incomeBudgets = budgetList.filter(
+		(b) => b.category && 'type' in b.category && b.category.type === 'income'
+	);
+	const expenseBudgets = budgetList.filter(
+		(b) => b.category && 'type' in b.category && b.category.type !== 'income'
+	);
 
 	const total_income_budgeted = incomeBudgets.reduce((sum, b) => sum + b.allocated_amount, 0);
 	const total_expenses_budgeted = expenseBudgets.reduce((sum, b) => sum + b.allocated_amount, 0);
 	const total_spent = budgetList.reduce((sum, b) => sum + b.spent_amount, 0);
 	const total_available = budgetList.reduce((sum, b) => sum + b.available_amount, 0);
-	
+
 	// Use actual income vs budgeted expenses for unallocated calculation
 	const incomeToAllocate = Math.max(actualIncome, total_income_budgeted);
 	const unallocated_income = incomeToAllocate - total_expenses_budgeted;
-	
+
 	const category_count = budgetList.length;
-	const overspent_categories = budgetList.filter(b => b.available_amount < 0).length;
+	const overspent_categories = budgetList.filter((b) => b.available_amount < 0).length;
 
 	return {
 		total_income_budgeted,
@@ -224,17 +245,17 @@ export async function initializeBudgetForMonth(monthYear: string): Promise<void>
 		throw new Error(`Failed to check existing budgets: ${budgetError.message}`);
 	}
 
-	const existingCategoryIds = new Set(existingBudgets?.map(b => b.category_id) || []);
+	const existingCategoryIds = new Set(existingBudgets?.map((b) => b.category_id) || []);
 	const categoriesToCreate = (categories || [])
-		.filter(cat => !existingCategoryIds.has(cat.id))
-		.filter(cat => cat.type !== 'income'); // Don't auto-create income budgets
+		.filter((cat) => !existingCategoryIds.has(cat.id))
+		.filter((cat) => cat.type !== 'income'); // Don't auto-create income budgets
 
 	if (categoriesToCreate.length === 0) {
 		return; // All budgets already exist
 	}
 
 	// Create budget entries for missing categories
-	const budgetsToInsert = categoriesToCreate.map(category => ({
+	const budgetsToInsert = categoriesToCreate.map((category) => ({
 		category_id: category.id,
 		month_year: monthYear,
 		allocated_amount: category.budget_amount || 0,
@@ -242,9 +263,7 @@ export async function initializeBudgetForMonth(monthYear: string): Promise<void>
 		available_amount: category.budget_amount || 0
 	}));
 
-	const { error: insertError } = await supabase
-		.from('budgets')
-		.insert(budgetsToInsert);
+	const { error: insertError } = await supabase.from('budgets').insert(budgetsToInsert);
 
 	if (insertError) {
 		throw new Error(`Failed to initialize budget: ${insertError.message}`);
@@ -252,9 +271,9 @@ export async function initializeBudgetForMonth(monthYear: string): Promise<void>
 }
 
 export async function moveMoney(
-	fromCategoryId: string, 
-	toCategoryId: string, 
-	amount: number, 
+	fromCategoryId: string,
+	toCategoryId: string,
+	amount: number,
 	monthYear: string
 ): Promise<void> {
 	// Get both budgets
@@ -268,8 +287,8 @@ export async function moveMoney(
 		throw new Error(`Failed to fetch budgets for money move: ${error.message}`);
 	}
 
-	const fromBudget = budgets?.find(b => b.category_id === fromCategoryId);
-	const toBudget = budgets?.find(b => b.category_id === toCategoryId);
+	const fromBudget = budgets?.find((b) => b.category_id === fromCategoryId);
+	const toBudget = budgets?.find((b) => b.category_id === toCategoryId);
 
 	if (!fromBudget || !toBudget) {
 		throw new Error('One or both budget categories not found');
@@ -311,7 +330,7 @@ export async function moveMoney(
 
 export async function copyBudgetFromPreviousMonth(monthYear: string): Promise<void> {
 	const previousMonth = getPreviousMonthDate(monthYear);
-	
+
 	// Get previous month's budget
 	const { data: previousBudgets, error: fetchError } = await supabase
 		.from('budgets')
@@ -336,15 +355,15 @@ export async function copyBudgetFromPreviousMonth(monthYear: string): Promise<vo
 		throw new Error(`Failed to check existing budgets: ${checkError.message}`);
 	}
 
-	const existingCategoryIds = new Set(existingBudgets?.map(b => b.category_id) || []);
-	const budgetsToCreate = previousBudgets.filter(b => !existingCategoryIds.has(b.category_id));
+	const existingCategoryIds = new Set(existingBudgets?.map((b) => b.category_id) || []);
+	const budgetsToCreate = previousBudgets.filter((b) => !existingCategoryIds.has(b.category_id));
 
 	if (budgetsToCreate.length === 0) {
 		return; // All budgets already exist
 	}
 
 	// Create new budget entries
-	const budgetsToInsert = budgetsToCreate.map(budget => ({
+	const budgetsToInsert = budgetsToCreate.map((budget) => ({
 		category_id: budget.category_id,
 		month_year: monthYear,
 		allocated_amount: budget.allocated_amount,
@@ -352,9 +371,7 @@ export async function copyBudgetFromPreviousMonth(monthYear: string): Promise<vo
 		available_amount: budget.allocated_amount
 	}));
 
-	const { error: insertError } = await supabase
-		.from('budgets')
-		.insert(budgetsToInsert);
+	const { error: insertError } = await supabase.from('budgets').insert(budgetsToInsert);
 
 	if (insertError) {
 		throw new Error(`Failed to copy budget from previous month: ${insertError.message}`);
@@ -388,7 +405,10 @@ export function validateBudgetData(data: BudgetFormData): string[] {
 		errors.push('Month is required');
 	}
 
-	if (!data.allocated_amount || (typeof data.allocated_amount === 'string' && data.allocated_amount.trim().length === 0)) {
+	if (
+		!data.allocated_amount ||
+		(typeof data.allocated_amount === 'string' && data.allocated_amount.trim().length === 0)
+	) {
 		errors.push('Allocated amount is required');
 	}
 
@@ -415,8 +435,18 @@ export function getCurrentMonth(): string {
 export function formatMonthDisplay(monthYear: string): string {
 	const [year, month] = monthYear.split('-');
 	const monthNames = [
-		'January', 'February', 'March', 'April', 'May', 'June',
-		'July', 'August', 'September', 'October', 'November', 'December'
+		'January',
+		'February',
+		'March',
+		'April',
+		'May',
+		'June',
+		'July',
+		'August',
+		'September',
+		'October',
+		'November',
+		'December'
 	];
 	return `${monthNames[parseInt(month) - 1]} ${year}`;
 }

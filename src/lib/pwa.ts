@@ -7,7 +7,7 @@ interface NavigatorWithStandalone extends Navigator {
 
 export function isPWA(): boolean {
 	if (typeof window === 'undefined') return false;
-	
+
 	return (
 		window.matchMedia('(display-mode: standalone)').matches ||
 		(navigator as NavigatorWithStandalone).standalone === true ||
@@ -20,11 +20,15 @@ export function setupPWAFixes(): void {
 	if (!isPWA()) return;
 
 	// Prevent iOS Safari UI from appearing
-	document.addEventListener('touchstart', (e) => {
-		if (e.touches.length > 1) {
-			e.preventDefault();
-		}
-	}, { passive: false });
+	document.addEventListener(
+		'touchstart',
+		(e) => {
+			if (e.touches.length > 1) {
+				e.preventDefault();
+			}
+		},
+		{ passive: false }
+	);
 
 	// Prevent context menu in PWA
 	document.addEventListener('contextmenu', (e) => {
@@ -50,18 +54,19 @@ export function setupPWAFixes(): void {
 	style.setAttribute('data-pwa', 'true');
 	style.textContent = `
 		@media all and (display-mode: standalone) {
-			html, body {
+			html {
 				height: 100vh;
 				width: 100vw;
 				overflow-x: hidden;
 				position: relative;
-				overscroll-behavior: none;
 			}
 
 			body {
+				height: 100%;
 				-webkit-user-select: none;
 				-webkit-touch-callout: none;
 				-webkit-tap-highlight-color: transparent;
+				overscroll-behavior-y: contain;
 			}
 
 			.app-container {
@@ -86,12 +91,12 @@ export function cleanPWAUrl(): void {
 
 	const url = new URL(window.location.href);
 	let hasChanges = false;
-	
+
 	if (url.searchParams.has('code')) {
 		url.searchParams.delete('code');
 		hasChanges = true;
 	}
-	
+
 	if (url.searchParams.has('state')) {
 		url.searchParams.delete('state');
 		hasChanges = true;

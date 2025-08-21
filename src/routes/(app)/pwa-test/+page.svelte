@@ -55,34 +55,38 @@
 	}
 </script>
 
-<div class="container mx-auto p-6 space-y-6">
+<div class="container mx-auto space-y-6 p-6">
 	<h1 class="text-3xl font-bold text-gray-900">PWA Test Page</h1>
-	
+
 	<div class="grid gap-6 md:grid-cols-2">
 		<!-- Service Worker Status -->
 		<Card>
 			<div class="p-6">
-				<h2 class="text-xl font-semibold mb-4">Service Worker Status</h2>
+				<h2 class="mb-4 text-xl font-semibold">Service Worker Status</h2>
 				<div class="space-y-3">
-					<div class="flex justify-between items-center">
+					<div class="flex items-center justify-between">
 						<span>Status:</span>
-						<span class="font-mono px-2 py-1 bg-gray-100 rounded text-sm">
+						<span class="rounded bg-gray-100 px-2 py-1 font-mono text-sm">
 							{serviceWorkerStatus}
 						</span>
 					</div>
-					<div class="flex justify-between items-center">
+					<div class="flex items-center justify-between">
 						<span>Online:</span>
-						<span class="font-mono px-2 py-1 rounded text-sm" 
-							  class:bg-green-100={$offlineStore.isOnline}
-							  class:bg-red-100={!$offlineStore.isOnline}>
+						<span
+							class="rounded px-2 py-1 font-mono text-sm"
+							class:bg-green-100={$offlineStore.isOnline}
+							class:bg-red-100={!$offlineStore.isOnline}
+						>
 							{$offlineStore.isOnline ? 'Yes' : 'No'}
 						</span>
 					</div>
-					<div class="flex justify-between items-center">
+					<div class="flex items-center justify-between">
 						<span>SW Registered:</span>
-						<span class="font-mono px-2 py-1 rounded text-sm"
-							  class:bg-green-100={serviceWorkerStatus === 'Active'}
-							  class:bg-red-100={serviceWorkerStatus !== 'Active'}>
+						<span
+							class="rounded px-2 py-1 font-mono text-sm"
+							class:bg-green-100={serviceWorkerStatus === 'Active'}
+							class:bg-red-100={serviceWorkerStatus !== 'Active'}
+						>
 							{serviceWorkerStatus === 'Active' ? 'Yes' : 'No'}
 						</span>
 					</div>
@@ -93,13 +97,15 @@
 		<!-- Update Management -->
 		<Card>
 			<div class="p-6">
-				<h2 class="text-xl font-semibold mb-4">App Updates</h2>
+				<h2 class="mb-4 text-xl font-semibold">App Updates</h2>
 				<div class="space-y-3">
-					<div class="flex justify-between items-center">
+					<div class="flex items-center justify-between">
 						<span>Update Available:</span>
-						<span class="font-mono px-2 py-1 rounded text-sm"
-							  class:bg-yellow-100={updateAvailable}
-							  class:bg-gray-100={!updateAvailable}>
+						<span
+							class="rounded px-2 py-1 font-mono text-sm"
+							class:bg-yellow-100={updateAvailable}
+							class:bg-gray-100={!updateAvailable}
+						>
 							{updateAvailable ? 'Yes' : 'No'}
 						</span>
 					</div>
@@ -108,9 +114,7 @@
 							Check for Updates
 						</Button>
 						{#if updateAvailable}
-							<Button on:click={forceUpdate} variant="primary" class="w-full">
-								Update Now
-							</Button>
+							<Button on:click={forceUpdate} variant="primary" class="w-full">Update Now</Button>
 						{/if}
 					</div>
 				</div>
@@ -120,18 +124,16 @@
 		<!-- Offline Capabilities -->
 		<Card>
 			<div class="p-6">
-				<h2 class="text-xl font-semibold mb-4">Offline Features</h2>
+				<h2 class="mb-4 text-xl font-semibold">Offline Features</h2>
 				<div class="space-y-3">
-					<div class="flex justify-between items-center">
+					<div class="flex items-center justify-between">
 						<span>Sync Status:</span>
-						<span class="font-mono px-2 py-1 bg-gray-100 rounded text-sm">
+						<span class="rounded bg-gray-100 px-2 py-1 font-mono text-sm">
 							{syncStatus}
 						</span>
 					</div>
 					<div class="space-y-2">
-						<Button on:click={testOfflineSync} variant="outline" class="w-full">
-							Test Sync
-						</Button>
+						<Button on:click={testOfflineSync} variant="outline" class="w-full">Test Sync</Button>
 						<Button on:click={simulateOffline} variant="outline" class="w-full">
 							Simulate Offline (3s)
 						</Button>
@@ -143,16 +145,14 @@
 		<!-- PWA Installation -->
 		<Card>
 			<div class="p-6">
-				<h2 class="text-xl font-semibold mb-4">PWA Installation</h2>
+				<h2 class="mb-4 text-xl font-semibold">PWA Installation</h2>
 				<div class="space-y-3">
 					<p class="text-sm text-gray-600">
 						This app can be installed on your device for a native app-like experience.
 					</p>
 					<div class="space-y-2">
-						<Button variant="primary" class="w-full">
-							Install App
-						</Button>
-						<p class="text-xs text-gray-500 text-center">
+						<Button variant="primary" class="w-full">Install App</Button>
+						<p class="text-center text-xs text-gray-500">
 							Installation prompt will appear automatically when available
 						</p>
 					</div>
@@ -164,17 +164,17 @@
 	<!-- Cache Information -->
 	<Card>
 		<div class="p-6">
-			<h2 class="text-xl font-semibold mb-4">Cache Information</h2>
+			<h2 class="mb-4 text-xl font-semibold">Cache Information</h2>
 			<div class="grid gap-4 md:grid-cols-3">
-				<div class="text-center p-4 bg-gray-50 rounded">
+				<div class="rounded bg-gray-50 p-4 text-center">
 					<div class="text-2xl font-bold text-blue-600">Pages</div>
 					<div class="text-sm text-gray-600">Cached for offline use</div>
 				</div>
-				<div class="text-center p-4 bg-gray-50 rounded">
+				<div class="rounded bg-gray-50 p-4 text-center">
 					<div class="text-2xl font-bold text-green-600">Assets</div>
 					<div class="text-sm text-gray-600">Images, CSS, JS cached</div>
 				</div>
-				<div class="text-center p-4 bg-gray-50 rounded">
+				<div class="rounded bg-gray-50 p-4 text-center">
 					<div class="text-2xl font-bold text-purple-600">Data</div>
 					<div class="text-sm text-gray-600">API responses cached</div>
 				</div>
@@ -185,7 +185,7 @@
 	<!-- Instructions -->
 	<Card>
 		<div class="p-6">
-			<h2 class="text-xl font-semibold mb-4">Testing Instructions</h2>
+			<h2 class="mb-4 text-xl font-semibold">Testing Instructions</h2>
 			<div class="prose text-sm">
 				<ol class="space-y-2">
 					<li>Check that the Service Worker status shows "Active"</li>

@@ -29,7 +29,7 @@ export class PWAService {
 	// Check if app is running as PWA
 	isPWA(): boolean {
 		if (typeof window === 'undefined') return false;
-		
+
 		return (
 			window.matchMedia('(display-mode: standalone)').matches ||
 			(window.navigator as NavigatorWithStandalone).standalone === true ||
@@ -67,7 +67,7 @@ export class PWAService {
 
 		// Prevent iOS from showing browser UI
 		document.addEventListener('touchstart', this.preventZoom, { passive: false });
-		
+
 		// Handle back button in PWA
 		window.addEventListener('popstate', (event) => {
 			if (this.isPWA()) {
@@ -135,7 +135,8 @@ export class PWAService {
 		// Handle PWA install prompt
 		window.addEventListener('beforeinstallprompt', (e) => {
 			e.preventDefault();
-			(window as unknown as WindowWithDeferredPrompt).deferredPrompt = e as BeforeInstallPromptEvent;
+			(window as unknown as WindowWithDeferredPrompt).deferredPrompt =
+				e as BeforeInstallPromptEvent;
 		});
 
 		// Fix iOS navigation issues
@@ -207,17 +208,17 @@ export class PWAService {
 
 		const url = new URL(window.location.href);
 		let hasChanges = false;
-		
+
 		if (url.searchParams.has('code')) {
 			url.searchParams.delete('code');
 			hasChanges = true;
 		}
-		
+
 		if (url.searchParams.has('state')) {
 			url.searchParams.delete('state');
 			hasChanges = true;
 		}
-		
+
 		if (url.searchParams.has('pwa')) {
 			url.searchParams.delete('pwa');
 			hasChanges = true;

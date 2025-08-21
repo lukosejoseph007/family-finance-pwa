@@ -50,10 +50,10 @@
 	<title>Component Library Demo - Family Finance</title>
 </svelte:head>
 
-<div class="max-w-7xl mx-auto p-6 space-y-12">
+<div class="mx-auto max-w-7xl space-y-12 p-6">
 	<!-- Header -->
 	<div class="text-center">
-		<h1 class="text-4xl font-bold text-gray-900 mb-4">Component Library Demo</h1>
+		<h1 class="mb-4 text-4xl font-bold text-gray-900">Component Library Demo</h1>
 		<p class="text-lg text-gray-600">
 			Comprehensive showcase of all UI and finance-specific components
 		</p>
@@ -61,9 +61,9 @@
 
 	<!-- Basic UI Components -->
 	<section>
-		<h2 class="text-2xl font-bold text-gray-900 mb-6">Basic UI Components</h2>
-		
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+		<h2 class="mb-6 text-2xl font-bold text-gray-900">Basic UI Components</h2>
+
+		<div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
 			<!-- Buttons -->
 			<Card title="Buttons">
 				<div class="space-y-4">
@@ -131,7 +131,7 @@
 			<!-- Modal -->
 			<Card title="Modal">
 				<div class="space-y-4">
-					<Button on:click={() => modalOpen = true}>Open Modal</Button>
+					<Button on:click={() => (modalOpen = true)}>Open Modal</Button>
 					<p class="text-sm text-gray-600">
 						Click the button above to see the modal component in action.
 					</p>
@@ -142,32 +142,20 @@
 
 	<!-- Form Components -->
 	<section>
-		<h2 class="text-2xl font-bold text-gray-900 mb-6">Form Components</h2>
-		
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+		<h2 class="mb-6 text-2xl font-bold text-gray-900">Form Components</h2>
+
+		<div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
 			<!-- Input -->
 			<Card title="Text Input">
 				<div class="space-y-4">
-					<Input
-						label="Standard Input"
-						bind:value={inputValue}
-						placeholder="Enter some text..."
-					/>
-					<Input
-						label="Required Input"
-						required={true}
-						placeholder="This field is required"
-					/>
+					<Input label="Standard Input" bind:value={inputValue} placeholder="Enter some text..." />
+					<Input label="Required Input" required={true} placeholder="This field is required" />
 					<Input
 						label="Input with Error"
 						error="This field has an error"
 						placeholder="Error state"
 					/>
-					<Input
-						label="Disabled Input"
-						disabled={true}
-						placeholder="Disabled input"
-					/>
+					<Input label="Disabled Input" disabled={true} placeholder="Disabled input" />
 				</div>
 			</Card>
 
@@ -196,27 +184,11 @@
 
 			<!-- Currency Input -->
 			<Card title="Currency Input" class="lg:col-span-2">
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<CurrencyInput
-						label="Amount"
-						bind:value={currencyValue}
-						placeholder="Enter amount..."
-					/>
-					<CurrencyInput
-						label="Required Amount"
-						required={true}
-						placeholder="Required field"
-					/>
-					<CurrencyInput
-						label="Amount with Error"
-						error="Amount must be positive"
-						value={-100}
-					/>
-					<CurrencyInput
-						label="Disabled Amount"
-						disabled={true}
-						value={5000}
-					/>
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<CurrencyInput label="Amount" bind:value={currencyValue} placeholder="Enter amount..." />
+					<CurrencyInput label="Required Amount" required={true} placeholder="Required field" />
+					<CurrencyInput label="Amount with Error" error="Amount must be positive" value={-100} />
+					<CurrencyInput label="Disabled Amount" disabled={true} value={5000} />
 				</div>
 			</Card>
 		</div>
@@ -224,49 +196,29 @@
 
 	<!-- Finance Components -->
 	<section>
-		<h2 class="text-2xl font-bold text-gray-900 mb-6">Finance Components</h2>
-		
+		<h2 class="mb-6 text-2xl font-bold text-gray-900">Finance Components</h2>
+
 		<div class="space-y-8">
 			<!-- Budget Progress Bars -->
 			<Card title="Budget Progress Bars">
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					<BudgetProgressBar
-						categoryName="Food & Dining"
-						budgeted={12000}
-						spent={8500}
-					/>
-					<BudgetProgressBar
-						categoryName="Transportation"
-						budgeted={8000}
-						spent={9200}
-					/>
-					<BudgetProgressBar
-						categoryName="Entertainment"
-						budgeted={4000}
-						spent={600}
-					/>
-					<BudgetProgressBar
-						categoryName="Utilities"
-						budgeted={6000}
-						spent={5800}
-					/>
+				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+					<BudgetProgressBar categoryName="Food & Dining" budgeted={12000} spent={8500} />
+					<BudgetProgressBar categoryName="Transportation" budgeted={8000} spent={9200} />
+					<BudgetProgressBar categoryName="Entertainment" budgeted={4000} spent={600} />
+					<BudgetProgressBar categoryName="Utilities" budgeted={6000} spent={5800} />
 				</div>
 			</Card>
 
 			<!-- Chart Demo -->
 			<Card title="Financial Charts">
-				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					<div>
-						<h4 class="font-medium text-gray-900 mb-4">Expense Breakdown</h4>
-						<FinanceChart
-							type="doughnut"
-							data={chartData}
-							height="300px"
-						/>
+						<h4 class="mb-4 font-medium text-gray-900">Expense Breakdown</h4>
+						<FinanceChart type="doughnut" data={chartData} height="300px" />
 					</div>
 					<div class="space-y-4">
 						<h4 class="font-medium text-gray-900">Chart Features</h4>
-						<ul class="text-sm text-gray-600 space-y-2">
+						<ul class="space-y-2 text-sm text-gray-600">
 							<li>• Interactive tooltips with global currency formatting</li>
 							<li>• Responsive design for all screen sizes</li>
 							<li>• Real-time data updates</li>
@@ -282,19 +234,19 @@
 
 	<!-- Data Display -->
 	<section>
-		<h2 class="text-2xl font-bold text-gray-900 mb-6">Data Display</h2>
-		
+		<h2 class="mb-6 text-2xl font-bold text-gray-900">Data Display</h2>
+
 		<Card title="Data Table">
 			<Table headers={tableHeaders} sortable={true}>
 				{#each budgetData as row, index}
 					<tr class="hover:bg-gray-50">
-						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+						<td class="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">
 							{row.category}
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+						<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
 							₹{row.budget.toLocaleString('en-IN')}
 						</td>
-						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+						<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
 							₹{row.spent.toLocaleString('en-IN')}
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap">
@@ -314,19 +266,21 @@
 
 	<!-- Component Usage Guide -->
 	<section>
-		<h2 class="text-2xl font-bold text-gray-900 mb-6">Usage Guide</h2>
-		
+		<h2 class="mb-6 text-2xl font-bold text-gray-900">Usage Guide</h2>
+
 		<Card title="How to Use Components">
 			<div class="prose max-w-none">
-				<p class="text-gray-600 mb-4">
+				<p class="mb-4 text-gray-600">
 					All components are available through a single import from the component library:
 				</p>
-				<pre class="bg-gray-100 p-4 rounded-lg text-sm overflow-x-auto"><code>import &#123; Button, Input, Card, Modal, Select, Table, Badge, Spinner, BudgetProgressBar, CurrencyInput, FinanceChart &#125; from '$lib/components';</code></pre>
-				
-				<div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+				<pre class="overflow-x-auto rounded-lg bg-gray-100 p-4 text-sm"><code
+						>import &#123; Button, Input, Card, Modal, Select, Table, Badge, Spinner, BudgetProgressBar, CurrencyInput, FinanceChart &#125; from '$lib/components';</code
+					></pre>
+
+				<div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
 					<div>
-						<h4 class="font-medium text-gray-900 mb-2">UI Components</h4>
-						<ul class="text-sm text-gray-600 space-y-1">
+						<h4 class="mb-2 font-medium text-gray-900">UI Components</h4>
+						<ul class="space-y-1 text-sm text-gray-600">
 							<li>• <strong>Button</strong> - Various styles and states</li>
 							<li>• <strong>Input</strong> - Text input with validation</li>
 							<li>• <strong>Select</strong> - Dropdown with options</li>
@@ -338,8 +292,8 @@
 						</ul>
 					</div>
 					<div>
-						<h4 class="font-medium text-gray-900 mb-2">Finance Components</h4>
-						<ul class="text-sm text-gray-600 space-y-1">
+						<h4 class="mb-2 font-medium text-gray-900">Finance Components</h4>
+						<ul class="space-y-1 text-sm text-gray-600">
 							<li>• <strong>CurrencyInput</strong> - Rupee amount input</li>
 							<li>• <strong>BudgetProgressBar</strong> - Budget tracking</li>
 							<li>• <strong>FinanceChart</strong> - Financial visualizations</li>
@@ -353,7 +307,7 @@
 	</section>
 
 	<!-- Navigation -->
-	<div class="text-center pt-8">
+	<div class="pt-8 text-center">
 		<a href="/dashboard" class="inline-flex items-center">
 			<Button>← Back to Dashboard</Button>
 		</a>
@@ -363,25 +317,23 @@
 <!-- Modal Demo -->
 <Modal bind:open={modalOpen} title="Demo Modal">
 	<div class="space-y-4">
-		<p class="text-gray-600">
-			This is a demonstration of the Modal component. It supports:
-		</p>
-		<ul class="text-sm text-gray-600 space-y-1 list-disc list-inside">
+		<p class="text-gray-600">This is a demonstration of the Modal component. It supports:</p>
+		<ul class="list-inside list-disc space-y-1 text-sm text-gray-600">
 			<li>Custom titles</li>
 			<li>Slot-based content</li>
 			<li>Footer actions</li>
 			<li>Backdrop dismissal</li>
 			<li>Keyboard navigation (ESC to close)</li>
 		</ul>
-		
+
 		<div class="flex items-center space-x-2">
 			<Spinner size="sm" />
 			<span class="text-sm text-gray-600">Components work inside modals too!</span>
 		</div>
 	</div>
-	
+
 	<div slot="footer">
-		<Button variant="outline" on:click={() => modalOpen = false}>Cancel</Button>
-		<Button on:click={() => modalOpen = false}>Got it!</Button>
+		<Button variant="outline" on:click={() => (modalOpen = false)}>Cancel</Button>
+		<Button on:click={() => (modalOpen = false)}>Got it!</Button>
 	</div>
 </Modal>

@@ -21,35 +21,47 @@
 
 	function getProgressColor(status: string) {
 		switch (status) {
-			case 'overspent': return 'bg-red-500';
-			case 'warning': return 'bg-orange-500';
-			case 'caution': return 'bg-yellow-500';
-			default: return 'bg-green-500';
+			case 'overspent':
+				return 'bg-red-500';
+			case 'warning':
+				return 'bg-orange-500';
+			case 'caution':
+				return 'bg-yellow-500';
+			default:
+				return 'bg-green-500';
 		}
 	}
 
 	function getBackgroundColor(status: string) {
 		switch (status) {
-			case 'overspent': return 'bg-red-50 border-red-200';
-			case 'warning': return 'bg-orange-50 border-orange-200';
-			case 'caution': return 'bg-yellow-50 border-yellow-200';
-			default: return 'bg-green-50 border-green-200';
+			case 'overspent':
+				return 'bg-red-50 border-red-200';
+			case 'warning':
+				return 'bg-orange-50 border-orange-200';
+			case 'caution':
+				return 'bg-yellow-50 border-yellow-200';
+			default:
+				return 'bg-green-50 border-green-200';
 		}
 	}
 
 	function getTextColor(status: string) {
 		switch (status) {
-			case 'overspent': return 'text-red-700';
-			case 'warning': return 'text-orange-700';
-			case 'caution': return 'text-yellow-700';
-			default: return 'text-green-700';
+			case 'overspent':
+				return 'text-red-700';
+			case 'warning':
+				return 'text-orange-700';
+			case 'caution':
+				return 'text-yellow-700';
+			default:
+				return 'text-green-700';
 		}
 	}
 </script>
 
 <div class="rounded-lg border p-4 {getBackgroundColor(status)} {compact ? 'p-2' : ''}">
 	{#if showLabels && !compact}
-		<div class="flex items-center justify-between mb-2">
+		<div class="mb-2 flex items-center justify-between">
 			<h4 class="font-medium text-gray-900">{categoryName}</h4>
 			{#if showPercentage}
 				<span class="text-sm font-medium {getTextColor(status)}">
@@ -73,16 +85,16 @@
 
 		<!-- Progress Bar -->
 		<div class="relative">
-			<div class="w-full bg-gray-200 rounded-full h-2 {compact ? 'h-1' : ''}">
-				<div 
+			<div class="h-2 w-full rounded-full bg-gray-200 {compact ? 'h-1' : ''}">
+				<div
 					class="h-full rounded-full transition-all duration-300 {getProgressColor(status)}"
 					style="width: {Math.min(percentage, 100)}%"
 				></div>
-				
+
 				<!-- Overspent indicator -->
 				{#if percentage > 100}
-					<div 
-						class="absolute top-0 right-0 h-full bg-red-600 rounded-r-full opacity-75"
+					<div
+						class="absolute top-0 right-0 h-full rounded-r-full bg-red-600 opacity-75"
 						style="width: {Math.min(percentage - 100, 20)}%"
 					></div>
 				{/if}
@@ -90,20 +102,20 @@
 		</div>
 
 		{#if showLabels && !compact}
-			<div class="flex justify-between items-center text-xs">
+			<div class="flex items-center justify-between text-xs">
 				<span class={getTextColor(status)}>
-					{available >= 0 ? 'Remaining' : 'Overspent'}: 
+					{available >= 0 ? 'Remaining' : 'Overspent'}:
 					{formatCurrency(Math.abs(available))}
 				</span>
-				
+
 				{#if status === 'overspent'}
-					<span class="text-red-600 font-medium">Over Budget!</span>
+					<span class="font-medium text-red-600">Over Budget!</span>
 				{:else if status === 'warning'}
-					<span class="text-orange-600 font-medium">Almost Spent</span>
+					<span class="font-medium text-orange-600">Almost Spent</span>
 				{:else if status === 'caution'}
-					<span class="text-yellow-600 font-medium">Watch Spending</span>
+					<span class="font-medium text-yellow-600">Watch Spending</span>
 				{:else}
-					<span class="text-green-600 font-medium">On Track</span>
+					<span class="font-medium text-green-600">On Track</span>
 				{/if}
 			</div>
 		{/if}

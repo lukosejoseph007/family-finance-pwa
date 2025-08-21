@@ -4,7 +4,7 @@ import type { Account, NewAccount, UpdateAccount, AccountFormData } from '$lib/t
 // Create a new account
 export async function createAccount(data: AccountFormData): Promise<Account> {
 	const { data: authUser, error: authError } = await supabase.auth.getUser();
-	
+
 	if (authError || !authUser.user) {
 		throw new Error('User not authenticated');
 	}
@@ -45,7 +45,7 @@ export async function createAccount(data: AccountFormData): Promise<Account> {
 // Get all accounts for user's family (including archived)
 export async function getAccounts(): Promise<Account[]> {
 	const { data: authUser, error: authError } = await supabase.auth.getUser();
-	
+
 	if (authError || !authUser.user) {
 		throw new Error('User not authenticated');
 	}
@@ -79,7 +79,7 @@ export async function getAccounts(): Promise<Account[]> {
 // Get only active accounts for user's family
 export async function getActiveAccounts(): Promise<Account[]> {
 	const { data: authUser, error: authError } = await supabase.auth.getUser();
-	
+
 	if (authError || !authUser.user) {
 		throw new Error('User not authenticated');
 	}
@@ -169,10 +169,7 @@ export async function deleteAccount(id: string): Promise<void> {
 	}
 
 	// Permanently delete the account
-	const { error } = await supabase
-		.from('accounts')
-		.delete()
-		.eq('id', id);
+	const { error } = await supabase.from('accounts').delete().eq('id', id);
 
 	if (error) {
 		console.error('Error deleting account:', error);
@@ -222,11 +219,11 @@ export async function getAccountSummary(): Promise<{
 	account_count: number;
 }> {
 	const accounts = await getActiveAccounts(); // Only use active accounts for summary
-	
+
 	let totalAssets = 0;
 	let totalLiabilities = 0;
 
-	accounts.forEach(account => {
+	accounts.forEach((account) => {
 		if (['checking', 'savings', 'cash', 'investment'].includes(account.type)) {
 			totalAssets += account.balance;
 		} else if (['credit_card', 'loan'].includes(account.type)) {
@@ -245,15 +242,18 @@ export async function getAccountSummary(): Promise<{
 // Get accounts grouped by type
 export async function getAccountsByType(): Promise<Record<string, Account[]>> {
 	const accounts = await getAccounts();
-	
-	return accounts.reduce((groups, account) => {
-		const type = account.type;
-		if (!groups[type]) {
-			groups[type] = [];
-		}
-		groups[type].push(account);
-		return groups;
-	}, {} as Record<string, Account[]>);
+
+	return accounts.reduce(
+		(groups, account) => {
+			const type = account.type;
+			if (!groups[type]) {
+				groups[type] = [];
+			}
+			groups[type].push(account);
+			return groups;
+		},
+		{} as Record<string, Account[]>
+	);
 }
 
 // Account type display helpers

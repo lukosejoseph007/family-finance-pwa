@@ -4,36 +4,36 @@ import * as supabaseSSR from '@supabase/ssr';
 
 // Mock the window object
 global.window = {
-    location: {
-        origin: 'http://localhost:5173'
-    }
+	location: {
+		origin: 'http://localhost:5173'
+	}
 } as any;
 
 describe('supabaseClient', () => {
-    const mockSignUp = vi.fn();
-    const mockSignIn = vi.fn();
-    const mockSignOut = vi.fn();
+	const mockSignUp = vi.fn();
+	const mockSignIn = vi.fn();
+	const mockSignOut = vi.fn();
 
-    beforeEach(() => {
-        vi.clearAllMocks();
-        vi.spyOn(supabaseSSR, 'createBrowserClient').mockReturnValue({
-            auth: {
-                signUp: mockSignUp,
-                signInWithPassword: mockSignIn,
-                signOut: mockSignOut
-            },
-            from: vi.fn(() => ({
-                select: vi.fn(() => ({})),
-                insert: vi.fn(() => ({})),
-                update: vi.fn(() => ({})),
-                delete: vi.fn(() => ({}))
-            }))
-        } as any);
-    });
+	beforeEach(() => {
+		vi.clearAllMocks();
+		vi.spyOn(supabaseSSR, 'createBrowserClient').mockReturnValue({
+			auth: {
+				signUp: mockSignUp,
+				signInWithPassword: mockSignIn,
+				signOut: mockSignOut
+			},
+			from: vi.fn(() => ({
+				select: vi.fn(() => ({})),
+				insert: vi.fn(() => ({})),
+				update: vi.fn(() => ({})),
+				delete: vi.fn(() => ({}))
+			}))
+		} as any);
+	});
 
 	describe('signUp', () => {
 		it('should call signUp with correct parameters', async () => {
-            mockSignUp.mockResolvedValue({ data: {}, error: null });
+			mockSignUp.mockResolvedValue({ data: {}, error: null });
 			await signUp('test@example.com', 'password');
 
 			expect(mockSignUp).toHaveBeenCalledWith({
@@ -52,7 +52,7 @@ describe('supabaseClient', () => {
 
 	describe('signIn', () => {
 		it('should call signInWithPassword with correct parameters', async () => {
-            mockSignIn.mockResolvedValue({ data: {}, error: null });
+			mockSignIn.mockResolvedValue({ data: {}, error: null });
 			await signIn('test@example.com', 'password');
 
 			expect(mockSignIn).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password' });
@@ -67,7 +67,7 @@ describe('supabaseClient', () => {
 
 	describe('signOut', () => {
 		it('should call signOut', async () => {
-            mockSignOut.mockResolvedValue({ error: null });
+			mockSignOut.mockResolvedValue({ error: null });
 			await signOut();
 
 			expect(mockSignOut).toHaveBeenCalled();

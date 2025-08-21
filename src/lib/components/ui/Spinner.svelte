@@ -24,12 +24,13 @@
 		yellow: 'border-yellow-500',
 		indigo: 'border-indigo-500'
 	};
-
 </script>
 
-<div class="{centered ? 'flex justify-center items-center' : ''} {className}">
+<div class="{centered ? 'flex items-center justify-center' : ''} {className}">
 	<div
-		class="animate-spin rounded-full border-2 border-t-transparent backdrop-blur-sm {sizes[size]} {colors[color]} drop-shadow-sm"
+		class="animate-spin rounded-full border-2 border-t-transparent backdrop-blur-sm {sizes[
+			size
+		]} {colors[color]} drop-shadow-sm"
 		role="status"
 		aria-label="Loading"
 	>

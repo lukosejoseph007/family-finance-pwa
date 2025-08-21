@@ -63,16 +63,20 @@ export async function getMonthlyReport(monthYear: string): Promise<MonthlyReport
 }
 
 // Get category spending analysis for current month
-export async function getCategorySpendingReport(monthYear: string = getCurrentMonth()): Promise<CategorySpendingReport[]> {
+export async function getCategorySpendingReport(
+	monthYear: string = getCurrentMonth()
+): Promise<CategorySpendingReport[]> {
 	const { data, error } = await supabase
 		.from('budgets')
-		.select(`
+		.select(
+			`
 			category_id,
 			allocated_amount,
 			spent_amount,
 			available_amount,
 			category:categories(name, type)
-		`)
+		`
+		)
 		.eq('month_year', monthYear);
 
 	if (error) {
@@ -91,20 +95,25 @@ export async function getCategorySpendingReport(monthYear: string = getCurrentMo
 	}
 
 	const transactionCountMap = new Map<string, number>();
-	(transactionCounts || []).forEach(t => {
+	(transactionCounts || []).forEach((t) => {
 		if (t.category_id) {
 			transactionCountMap.set(t.category_id, (transactionCountMap.get(t.category_id) || 0) + 1);
 		}
 	});
 
-	return (data || []).map(budget => ({
+	return (data || []).map((budget) => ({
 		category_id: budget.category_id,
-		category_name: (budget.category && 'name' in budget.category ? budget.category.name : 'Unknown') as string,
-		category_type: (budget.category && 'type' in budget.category ? budget.category.type : 'unknown') as string,
+		category_name: (budget.category && 'name' in budget.category
+			? budget.category.name
+			: 'Unknown') as string,
+		category_type: (budget.category && 'type' in budget.category
+			? budget.category.type
+			: 'unknown') as string,
 		budgeted_amount: budget.allocated_amount,
 		spent_amount: budget.spent_amount,
 		remaining_amount: budget.available_amount,
-		percentage_used: budget.allocated_amount > 0 ? (budget.spent_amount / budget.allocated_amount) * 100 : 0,
+		percentage_used:
+			budget.allocated_amount > 0 ? (budget.spent_amount / budget.allocated_amount) * 100 : 0,
 		transaction_count: transactionCountMap.get(budget.category_id) || 0
 	}));
 }
@@ -133,7 +142,7 @@ export async function getNetWorthTrend(): Promise<NetWorthTrend[]> {
 
 		// For simplicity, we'll use current account balances
 		// In a real system, you'd store historical balance snapshots
-		(accounts || []).forEach(account => {
+		(accounts || []).forEach((account) => {
 			if (['checking', 'savings', 'cash', 'investment'].includes(account.type)) {
 				assets += account.balance;
 			} else if (['credit_card', 'loan'].includes(account.type)) {
@@ -164,10 +173,12 @@ export async function getSpendingTrends(): Promise<SpendingTrend[]> {
 		// Get spending by category type for this month
 		const { data, error } = await supabase
 			.from('transactions')
-			.select(`
+			.select(
+				`
 				amount,
 				category:categories(type)
-			`)
+			`
+			)
 			.gte('transaction_date', `${monthYear}-01`)
 			.lt('transaction_date', getNextMonthDate(monthYear))
 			.lt('amount', 0); // Only expenses (negative amounts)
@@ -175,7 +186,7 @@ export async function getSpendingTrends(): Promise<SpendingTrend[]> {
 		if (error) continue;
 
 		const spendingByType = new Map<string, number>();
-		(data || []).forEach(transaction => {
+		(data || []).forEach((transaction) => {
 			const categoryType = (transaction.category as any)?.type || 'uncategorized';
 			const amount = Math.abs(transaction.amount);
 			spendingByType.set(categoryType, (spendingByType.get(categoryType) || 0) + amount);
@@ -202,13 +213,13 @@ export async function getBudgetPerformance(monthYear: string = getCurrentMonth()
 	performance_score: number;
 }> {
 	const categoryReport = await getCategorySpendingReport(monthYear);
-	
+
 	let onTrack = 0;
 	let overBudget = 0;
 	let underBudget = 0;
 	let totalVariance = 0;
 
-	categoryReport.forEach(category => {
+	categoryReport.forEach((category) => {
 		const variance = category.spent_amount - category.budgeted_amount;
 		totalVariance += Math.abs(variance);
 
@@ -222,7 +233,8 @@ export async function getBudgetPerformance(monthYear: string = getCurrentMonth()
 	});
 
 	const totalCategories = categoryReport.length;
-	const performanceScore = totalCategories > 0 ? ((onTrack + underBudget) / totalCategories) * 100 : 100;
+	const performanceScore =
+		totalCategories > 0 ? ((onTrack + underBudget) / totalCategories) * 100 : 100;
 
 	return {
 		on_track_categories: onTrack,
@@ -234,13 +246,15 @@ export async function getBudgetPerformance(monthYear: string = getCurrentMonth()
 }
 
 // Get account balance distribution
-export async function getAccountBalanceDistribution(): Promise<{
-	account_id: string;
-	account_name: string;
-	account_type: string;
-	balance: number;
-	percentage: number;
-}[]> {
+export async function getAccountBalanceDistribution(): Promise<
+	{
+		account_id: string;
+		account_name: string;
+		account_type: string;
+		balance: number;
+		percentage: number;
+	}[]
+> {
 	const accountSummary = await getAccountSummary();
 	const totalAssets = accountSummary.total_assets;
 
@@ -254,7 +268,7 @@ export async function getAccountBalanceDistribution(): Promise<{
 		throw new Error(`Failed to fetch account distribution: ${error.message}`);
 	}
 
-	return (accounts || []).map(account => ({
+	return (accounts || []).map((account) => ({
 		account_id: account.id,
 		account_name: account.name,
 		account_type: account.type,
@@ -264,13 +278,15 @@ export async function getAccountBalanceDistribution(): Promise<{
 }
 
 // Get recent financial milestones
-export async function getFinancialMilestones(): Promise<{
-	type: 'budget_achieved' | 'savings_goal' | 'debt_reduction' | 'net_worth_increase';
-	title: string;
-	description: string;
-	amount?: number;
-	date: string;
-}[]> {
+export async function getFinancialMilestones(): Promise<
+	{
+		type: 'budget_achieved' | 'savings_goal' | 'debt_reduction' | 'net_worth_increase';
+		title: string;
+		description: string;
+		amount?: number;
+		date: string;
+	}[]
+> {
 	const milestones = [];
 	const currentMonth = getCurrentMonth();
 	const lastMonth = getPreviousMonth(currentMonth);
@@ -350,11 +366,13 @@ export async function exportFinancialData(options: {
 	if (options.include_transactions) {
 		const { data: transactions } = await supabase
 			.from('transactions')
-			.select(`
+			.select(
+				`
 				*,
 				account:accounts(name, type),
 				category:categories(name, type)
-			`)
+			`
+			)
 			.gte('transaction_date', options.start_date)
 			.lte('transaction_date', options.end_date)
 			.order('transaction_date', { ascending: false });
@@ -365,13 +383,15 @@ export async function exportFinancialData(options: {
 	if (options.include_budgets) {
 		const startMonth = options.start_date.substring(0, 7);
 		const endMonth = options.end_date.substring(0, 7);
-		
+
 		const { data: budgets } = await supabase
 			.from('budgets')
-			.select(`
+			.select(
+				`
 				*,
 				category:categories(name, type)
-			`)
+			`
+			)
 			.gte('month_year', startMonth)
 			.lte('month_year', endMonth);
 
@@ -379,9 +399,7 @@ export async function exportFinancialData(options: {
 	}
 
 	if (options.include_accounts) {
-		const { data: accounts } = await supabase
-			.from('accounts')
-			.select('*');
+		const { data: accounts } = await supabase.from('accounts').select('*');
 
 		exportData.accounts = accounts;
 	}

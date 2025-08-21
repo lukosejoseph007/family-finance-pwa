@@ -27,7 +27,8 @@ export default defineConfig({
 				display: 'standalone',
 				theme_color: '#2563eb',
 				background_color: '#ffffff',
-				description: 'A comprehensive family finance management PWA using our proven budgeting methodology, designed specifically for families.',
+				description:
+					'A comprehensive family finance management PWA using our proven budgeting methodology, designed specifically for families.',
 				categories: ['finance', 'productivity', 'business'],
 				icons: [
 					{
@@ -67,9 +68,7 @@ export default defineConfig({
 				]
 			},
 			workbox: {
-				globPatterns: [
-					'**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'
-				],
+				globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'],
 				navigateFallback: '/offline.html',
 				runtimeCaching: [
 					{

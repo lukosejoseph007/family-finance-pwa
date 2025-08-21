@@ -28,22 +28,33 @@
 	let inviteCode = $state('');
 	let displayName = $state('');
 
+	const storageKey = 'onboarding_step';
+
 	// Check for pending invite code from signup
 	onMount(() => {
 		const pendingInviteCode = sessionStorage.getItem('pendingInviteCode');
 		const pendingDisplayName = sessionStorage.getItem('pendingDisplayName');
-		
+
 		if (pendingInviteCode) {
 			console.log('🔗 Found pending invite code from signup:', pendingInviteCode);
 			inviteCode = pendingInviteCode;
 			displayName = pendingDisplayName || '';
 			joinMode = true;
 			currentStep = 2; // Skip to step 2 for joining
-			
+
 			// Clear from session storage
 			sessionStorage.removeItem('pendingInviteCode');
 			sessionStorage.removeItem('pendingDisplayName');
+		} else {
+			const savedStep = sessionStorage.getItem(storageKey);
+			if (savedStep) {
+				currentStep = parseInt(savedStep, 10);
+			}
 		}
+	});
+
+	$effect(() => {
+		sessionStorage.setItem(storageKey, currentStep.toString());
 	});
 
 	async function createNewFamily() {
@@ -51,25 +62,25 @@
 			error = 'Please enter a family name';
 			return;
 		}
-	
+
 		loading = true;
 		error = '';
-	
+
 		try {
 			// Create the family (this now also adds the user as admin)
 			const family = await createFamily(familyData);
 			console.log('✅ Family created successfully:', family);
-			
+
 			// Invalidate all cached data
 			console.log('♻️ Invalidating cache...');
 			await invalidateAll();
-			
+
 			// Simple verification - check if user exists in users table with family_id
 			console.log('🔍 Verifying user family membership...');
 			const { data: authUser } = await supabase.auth.getUser();
 			if (authUser?.user) {
 				console.log('🔍 Auth user found:', authUser.user.id);
-				
+
 				const { data: user, error: userError } = await supabase
 					.from('users')
 					.select('family_id')
@@ -81,9 +92,11 @@
 				if (userError || !user?.family_id) {
 					console.error('❌ User verification failed:', userError);
 					console.log('🔍 User data received:', user);
-					
+
 					// Since family was created successfully, try direct redirect without verification
-					console.log('⚠️ Verification failed but family was created. Attempting direct redirect...');
+					console.log(
+						'⚠️ Verification failed but family was created. Attempting direct redirect...'
+					);
 					window.location.href = '/dashboard';
 					return;
 				}
@@ -96,7 +109,6 @@
 				error = 'Authentication error. Please try logging out and back in.';
 				loading = false;
 			}
-			
 		} catch (err: any) {
 			console.error('Error creating family:', err);
 			error = err.message || 'Failed to create family';
@@ -109,22 +121,22 @@
 			error = 'Please enter both invite code and display name';
 			return;
 		}
-	
+
 		loading = true;
 		error = '';
-	
+
 		try {
 			console.log('👥 Joining family with code:', inviteCode);
 			const result = await joinFamily({
 				inviteCode: inviteCode.trim(),
 				displayName: displayName.trim()
 			});
-			
+
 			console.log('✅ Successfully joined family:', result.family.name);
-			
+
 			// Invalidate all cached data
 			await invalidateAll();
-			
+
 			// Simple verification - check if user exists in users table with family_id
 			console.log('🔍 Verifying user family membership...');
 			const { data: authUser } = await supabase.auth.getUser();
@@ -150,7 +162,6 @@
 				error = 'Authentication error. Please try logging out and back in.';
 				loading = false;
 			}
-			
 		} catch (err: any) {
 			console.error('❌ Error joining family:', err);
 			error = err.message || 'Failed to join family';
@@ -174,7 +185,7 @@
 		console.log('🔗 Switching to join family mode');
 		joinMode = !joinMode;
 		error = '';
-		
+
 		// If switching to join mode, advance to step 2 to show the join form
 		if (joinMode) {
 			currentStep = 2;
@@ -190,80 +201,83 @@
 	<title>Family Setup - Family Finance</title>
 </svelte:head>
 
-<div class="max-w-2xl mx-auto">
+<div class="mx-auto max-w-2xl">
 	<!-- Progress Indicator -->
-	<div class="my-8 mx-4">
-	<div class="flex items-center w-full justify-between">
-		{#each [1, 2, 3] as step}
-		<div class="flex-1 flex flex-col items-center">
-			<!-- Step Circle -->
-			<div
-			class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors
-				{currentStep >= step 
-				? 'bg-blue-600 border-blue-600 text-white' 
-				: 'border-gray-300 text-gray-500'}"
-			>
-			{step}
-			</div>
+	<div class="mx-4 my-8">
+		<div class="flex w-full items-center justify-between">
+			{#each [1, 2, 3] as step}
+				<div class="flex flex-1 flex-col items-center">
+					<!-- Step Circle -->
+					<div
+						class="flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors
+				{currentStep >= step ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-300 text-gray-500'}"
+					>
+						{step}
+					</div>
 
-			<!-- Label -->
-			<span class="mt-2 text-sm text-center text-gray-600">
-			{step === 1 ? 'Welcome Aboard' : step === 2 ? 'Family Setup' : 'Get Started'}
-			</span>
-		</div>
+					<!-- Label -->
+					<span class="mt-2 text-center text-sm text-gray-600">
+						{step === 1 ? 'Welcome Aboard' : step === 2 ? 'Family Setup' : 'Get Started'}
+					</span>
+				</div>
 
-		<!-- Connector Line -->
-		{#if step < 3}
-			<div
-			class="flex-1 h-0.5 mx-2 transition-colors
+				<!-- Connector Line -->
+				{#if step < 3}
+					<div
+						class="mx-2 h-0.5 flex-1 transition-colors
 				{currentStep > step ? 'bg-blue-600' : 'bg-gray-300'}"
-			></div>
-		{/if}
-		{/each}
+					></div>
+				{/if}
+			{/each}
+		</div>
 	</div>
-	</div>
-
-
 
 	<!-- Step Content -->
 	{#if currentStep === 1}
-		<Card class="text-center p-8">
+		<Card class="p-8 text-center">
 			<div class="mb-6">
-				<div class="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+				<div
+					class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100"
+				>
 					<span class="text-3xl">👨‍👩‍👧‍👦</span>
 				</div>
-				<h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome to Family Finance!</h1>
+				<h1 class="mb-2 text-3xl font-bold text-gray-900">Welcome to Family Finance!</h1>
 				<p class="text-lg text-gray-600">
-					Let's set up your family's financial management system using the proven budgeting methodology.
+					Let's set up your family's financial management system using the proven budgeting
+					methodology.
 				</p>
 			</div>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-				<div class="text-left p-4 border border-gray-200 rounded-lg">
-					<h3 class="font-semibold text-gray-900 mb-2">🎯 Give Every Rupee a Job</h3>
-					<p class="text-sm text-gray-600">Allocate every rupee to a specific category before you spend it.</p>
+			<div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+				<div class="rounded-lg border border-gray-200 p-4 text-left">
+					<h3 class="mb-2 font-semibold text-gray-900">🎯 Give Every Rupee a Job</h3>
+					<p class="text-sm text-gray-600">
+						Allocate every rupee to a specific category before you spend it.
+					</p>
 				</div>
-				<div class="text-left p-4 border border-gray-200 rounded-lg">
-					<h3 class="font-semibold text-gray-900 mb-2">💪 Embrace True Expenses</h3>
-					<p class="text-sm text-gray-600">Save for irregular expenses like car maintenance and annual fees.</p>
+				<div class="rounded-lg border border-gray-200 p-4 text-left">
+					<h3 class="mb-2 font-semibold text-gray-900">💪 Embrace True Expenses</h3>
+					<p class="text-sm text-gray-600">
+						Save for irregular expenses like car maintenance and annual fees.
+					</p>
 				</div>
-				<div class="text-left p-4 border border-gray-200 rounded-lg">
-					<h3 class="font-semibold text-gray-900 mb-2">🔄 Roll with the Punches</h3>
+				<div class="rounded-lg border border-gray-200 p-4 text-left">
+					<h3 class="mb-2 font-semibold text-gray-900">🔄 Roll with the Punches</h3>
 					<p class="text-sm text-gray-600">When you overspend, move money from another category.</p>
 				</div>
-				<div class="text-left p-4 border border-gray-200 rounded-lg">
-					<h3 class="font-semibold text-gray-900 mb-2">📈 Age Your Money</h3>
+				<div class="rounded-lg border border-gray-200 p-4 text-left">
+					<h3 class="mb-2 font-semibold text-gray-900">📈 Age Your Money</h3>
 					<p class="text-sm text-gray-600">Increase the time between earning and spending money.</p>
 				</div>
 			</div>
 
 			<div class="space-y-4">
 				<Button size="lg" on:click={nextStep}>Let's Get Started</Button>
-				
+
 				<div class="text-center">
 					<button
 						type="button"
-						class="text-sm text-blue-600 hover:text-blue-500 underline"
+						class="text-sm text-blue-600 underline hover:text-blue-500"
 						onclick={toggleMode}
 					>
 						Have an invite code? Join an existing family instead
@@ -271,14 +285,13 @@
 				</div>
 			</div>
 		</Card>
-
 	{:else if currentStep === 2}
 		{#if joinMode}
 			<!-- Join Family Flow -->
 			<Card title="Join Existing Family" class="p-8">
 				<div class="space-y-6">
-					<div class="text-center mb-6">
-						<h2 class="text-2xl font-bold text-gray-900 mb-2">Join a Family</h2>
+					<div class="mb-6 text-center">
+						<h2 class="mb-2 text-2xl font-bold text-gray-900">Join a Family</h2>
 						<p class="text-gray-600">
 							Enter the invite code you received to join an existing family's budget.
 						</p>
@@ -295,7 +308,7 @@
 						bind:value={inviteCode}
 						placeholder="Enter the invite code"
 						required
-						class="text-lg font-mono"
+						class="font-mono text-lg"
 					/>
 
 					<Input
@@ -306,9 +319,9 @@
 						class="text-lg"
 					/>
 
-					<div class="bg-blue-50 p-4 rounded-lg">
-						<h3 class="font-medium text-blue-900 mb-2">What happens next:</h3>
-						<div class="text-sm text-blue-800 space-y-1">
+					<div class="rounded-lg bg-blue-50 p-4">
+						<h3 class="mb-2 font-medium text-blue-900">What happens next:</h3>
+						<div class="space-y-1 text-sm text-blue-800">
 							<p>• You'll join the existing family as a member</p>
 							<p>• You can view and add transactions</p>
 							<p>• Budget editing depends on your assigned role</p>
@@ -317,10 +330,16 @@
 					</div>
 
 					<div class="flex justify-between pt-4">
-						<Button variant="outline" on:click={() => { joinMode = false; currentStep = 1; }}>
+						<Button
+							variant="outline"
+							on:click={() => {
+								joinMode = false;
+								currentStep = 1;
+							}}
+						>
 							Back to Create Family
 						</Button>
-						<Button 
+						<Button
 							{loading}
 							disabled={loading || !inviteCode.trim() || !displayName.trim()}
 							on:click={joinExistingFamily}
@@ -334,10 +353,10 @@
 			<!-- Create Family Flow -->
 			<Card title="Set Up Your Family" class="p-8">
 				<div class="space-y-6">
-					<div class="text-center mb-6">
-						<h2 class="text-2xl font-bold text-gray-900 mb-2">Create Your Family</h2>
+					<div class="mb-6 text-center">
+						<h2 class="mb-2 text-2xl font-bold text-gray-900">Create Your Family</h2>
 						<p class="text-gray-600">
-							Enter your family or household name. This will help organize your financial data and 
+							Enter your family or household name. This will help organize your financial data and
 							allow you to invite other family members later.
 						</p>
 					</div>
@@ -356,15 +375,15 @@
 						class="text-lg"
 					/>
 
-					<div class="bg-blue-50 p-4 rounded-lg">
-						<h3 class="font-medium text-blue-900 mb-2">Default Settings</h3>
-						<div class="text-sm text-blue-800 space-y-1">
+					<div class="rounded-lg bg-blue-50 p-4">
+						<h3 class="mb-2 font-medium text-blue-900">Default Settings</h3>
+						<div class="space-y-1 text-sm text-blue-800">
 							<p>• Currency: Indian Rupee (₹)</p>
 							<p>• Date Format: DD/MM/YYYY</p>
 							<p>• Week Start: Monday</p>
 							<p>• Timezone: Asia/Kolkata</p>
 						</div>
-						<p class="text-xs text-blue-700 mt-2">You can change these settings later.</p>
+						<p class="mt-2 text-xs text-blue-700">You can change these settings later.</p>
 					</div>
 
 					<div class="flex justify-between pt-4">
@@ -374,25 +393,24 @@
 				</div>
 			</Card>
 		{/if}
-
 	{:else if currentStep === 3}
 		<Card title="Ready to Start!" class="p-8">
-			<div class="text-center space-y-6">
-				<div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+			<div class="space-y-6 text-center">
+				<div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
 					<span class="text-3xl">🎉</span>
 				</div>
 
 				<div>
-					<h2 class="text-2xl font-bold text-gray-900 mb-2">You're All Set!</h2>
+					<h2 class="mb-2 text-2xl font-bold text-gray-900">You're All Set!</h2>
 					<p class="text-gray-600">
-						Your family "<strong>{familyData.name}</strong>" is ready to be created.
-						You'll be set as the family administrator and can invite other members later.
+						Your family "<strong>{familyData.name}</strong>" is ready to be created. You'll be set
+						as the family administrator and can invite other members later.
 					</p>
 				</div>
 
-				<div class="bg-gray-50 p-4 rounded-lg text-left">
-					<h3 class="font-medium text-gray-900 mb-2">What happens next:</h3>
-					<ul class="text-sm text-gray-600 space-y-1">
+				<div class="rounded-lg bg-gray-50 p-4 text-left">
+					<h3 class="mb-2 font-medium text-gray-900">What happens next:</h3>
+					<ul class="space-y-1 text-sm text-gray-600">
 						<li>• Your family will be created with suitable settings</li>
 						<li>• You'll be taken to your dashboard to start budgeting</li>
 						<li>• You can add bank accounts and start tracking expenses</li>
@@ -402,12 +420,7 @@
 
 				<div class="flex justify-between pt-4">
 					<Button variant="outline" on:click={prevStep}>Back</Button>
-					<Button
-						size="lg"
-						{loading}
-						disabled={loading}
-						on:click={createNewFamily}
-					>
+					<Button size="lg" {loading} disabled={loading} on:click={createNewFamily}>
 						{loading ? 'Creating Family...' : 'Create My Family'}
 					</Button>
 				</div>

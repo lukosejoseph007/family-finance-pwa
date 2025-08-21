@@ -44,7 +44,6 @@ export class PWAService {
 			navigator.serviceWorker.addEventListener('controllerchange', () => {
 				window.location.reload();
 			});
-
 		} catch (error) {
 			console.error('Service Worker registration failed:', error);
 		}
@@ -105,7 +104,7 @@ export class PWAService {
 
 	public async getNetworkStatus(): Promise<boolean> {
 		if (!browser) return true;
-		
+
 		try {
 			const response = await fetch('/favicon.ico', {
 				method: 'HEAD',
@@ -122,15 +121,15 @@ export class PWAService {
 		// This would integrate with your actual data sync logic
 		console.log('Syncing pending data...');
 		offlineStore.setPendingSync(true);
-		
+
 		try {
 			// Simulate sync delay
-			await new Promise(resolve => setTimeout(resolve, 2000));
-			
+			await new Promise((resolve) => setTimeout(resolve, 2000));
+
 			// Update last sync time
 			offlineStore.updateLastSync();
 			offlineStore.setPendingSync(false);
-			
+
 			console.log('Data sync completed');
 		} catch (error) {
 			console.error('Data sync failed:', error);
@@ -152,7 +151,8 @@ export class PWAService {
 
 // Global instance
 if (browser) {
-	(globalThis as typeof globalThis & { pwaService: PWAService }).pwaService = PWAService.getInstance();
+	(globalThis as typeof globalThis & { pwaService: PWAService }).pwaService =
+		PWAService.getInstance();
 }
 
 export const pwaService = PWAService.getInstance();

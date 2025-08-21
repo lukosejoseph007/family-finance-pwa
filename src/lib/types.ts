@@ -1,7 +1,12 @@
 // Database enum types
 export type UserRole = 'admin' | 'member' | 'viewer';
 export type AccountType = 'checking' | 'savings' | 'credit_card' | 'cash' | 'investment' | 'loan';
-export type CategoryType = 'immediate_obligations' | 'true_expenses' | 'quality_of_life' | 'just_for_fun' | 'income';
+export type CategoryType =
+	| 'immediate_obligations'
+	| 'true_expenses'
+	| 'quality_of_life'
+	| 'just_for_fun'
+	| 'income';
 export type GoalType = 'emergency_fund' | 'sinking_fund' | 'debt_payoff' | 'savings_goal';
 export type FrequencyType = 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'annually';
 
@@ -172,7 +177,7 @@ export interface AppError {
 	timestamp: string;
 }
 
-export type ErrorCode = 
+export type ErrorCode =
 	| 'VALIDATION_ERROR'
 	| 'PERMISSION_DENIED'
 	| 'RESOURCE_NOT_FOUND'
@@ -221,7 +226,9 @@ export type NewTransaction = Omit<Transaction, 'id' | 'created_at'>;
 export type UpdateTransaction = Partial<Omit<Transaction, 'id' | 'family_id' | 'created_at'>>;
 
 export type NewBudget = Omit<Budget, 'id' | 'available_amount' | 'updated_at'>;
-export type UpdateBudget = Partial<Omit<Budget, 'id' | 'family_id' | 'available_amount' | 'updated_at'>>;
+export type UpdateBudget = Partial<
+	Omit<Budget, 'id' | 'family_id' | 'available_amount' | 'updated_at'>
+>;
 
 export type NewGoal = Omit<Goal, 'id' | 'created_at'>;
 export type UpdateGoal = Partial<Omit<Goal, 'id' | 'family_id' | 'created_at'>>;
@@ -268,19 +275,19 @@ export interface BudgetPerformance {
 }
 
 export interface AuthUser {
-    id: string;
-    email?: string;
-    user_metadata?: {
-        display_name?: string;
-        full_name?: string;
-        avatar_url?: string;
-    };
-    identities?: Array<{
-        provider: string;
-        identity_data?: {
-            name?: string;
-            email?: string;
-            picture?: string;
-        };
-    }>;
+	id: string;
+	email?: string;
+	user_metadata?: {
+		display_name?: string;
+		full_name?: string;
+		avatar_url?: string;
+	};
+	identities?: Array<{
+		provider: string;
+		identity_data?: {
+			name?: string;
+			email?: string;
+			picture?: string;
+		};
+	}>;
 }

@@ -73,7 +73,7 @@ export const categoryTypeColors: Record<CategoryType, string> = {
 // Category management functions - Get all categories (including archived)
 export async function getCategories(): Promise<Category[]> {
 	const { data: authUser, error: authError } = await supabase.auth.getUser();
-	
+
 	if (authError || !authUser.user) {
 		throw new Error('User not authenticated');
 	}
@@ -107,7 +107,7 @@ export async function getCategories(): Promise<Category[]> {
 // Get only active categories
 export async function getActiveCategories(): Promise<Category[]> {
 	const { data: authUser, error: authError } = await supabase.auth.getUser();
-	
+
 	if (authError || !authUser.user) {
 		throw new Error('User not authenticated');
 	}
@@ -141,7 +141,7 @@ export async function getActiveCategories(): Promise<Category[]> {
 
 export async function createCategory(categoryData: CategoryFormData): Promise<Category> {
 	const { data: authUser, error: authError } = await supabase.auth.getUser();
-	
+
 	if (authError || !authUser.user) {
 		throw new Error('User not authenticated');
 	}
@@ -159,14 +159,16 @@ export async function createCategory(categoryData: CategoryFormData): Promise<Ca
 
 	const { data, error } = await supabase
 		.from('categories')
-		.insert([{
-			family_id: user.family_id,
-			name: categoryData.name,
-			type: categoryData.type,
-			description: categoryData.description,
-			budget_amount: parseFloat(categoryData.budget_amount || '0'),
-			is_active: true
-		}])
+		.insert([
+			{
+				family_id: user.family_id,
+				name: categoryData.name,
+				type: categoryData.type,
+				description: categoryData.description,
+				budget_amount: parseFloat(categoryData.budget_amount || '0'),
+				is_active: true
+			}
+		])
 		.select()
 		.single();
 
@@ -177,7 +179,10 @@ export async function createCategory(categoryData: CategoryFormData): Promise<Ca
 	return data;
 }
 
-export async function updateCategory(id: string, categoryData: CategoryFormData): Promise<Category> {
+export async function updateCategory(
+	id: string,
+	categoryData: CategoryFormData
+): Promise<Category> {
 	const { data, error } = await supabase
 		.from('categories')
 		.update({
@@ -198,10 +203,7 @@ export async function updateCategory(id: string, categoryData: CategoryFormData)
 }
 
 export async function archiveCategory(id: string): Promise<void> {
-	const { error } = await supabase
-		.from('categories')
-		.update({ is_active: false })
-		.eq('id', id);
+	const { error } = await supabase.from('categories').update({ is_active: false }).eq('id', id);
 
 	if (error) {
 		throw new Error(`Failed to archive category: ${error.message}`);
@@ -222,14 +224,13 @@ export async function deleteCategory(id: string): Promise<void> {
 		.eq('category_id', id);
 
 	if ((transactionCount && transactionCount > 0) || (budgetCount && budgetCount > 0)) {
-		throw new Error('Cannot delete category with existing transactions or budgets. Archive it instead.');
+		throw new Error(
+			'Cannot delete category with existing transactions or budgets. Archive it instead.'
+		);
 	}
 
 	// Permanently delete the category
-	const { error } = await supabase
-		.from('categories')
-		.delete()
-		.eq('id', id);
+	const { error } = await supabase.from('categories').delete().eq('id', id);
 
 	if (error) {
 		throw new Error(`Failed to delete category: ${error.message}`);
@@ -237,10 +238,7 @@ export async function deleteCategory(id: string): Promise<void> {
 }
 
 export async function reactivateCategory(id: string): Promise<void> {
-	const { error } = await supabase
-		.from('categories')
-		.update({ is_active: true })
-		.eq('id', id);
+	const { error } = await supabase.from('categories').update({ is_active: true }).eq('id', id);
 
 	if (error) {
 		throw new Error(`Failed to reactivate category: ${error.message}`);
@@ -274,7 +272,7 @@ export async function getCategorySummary(): Promise<{
 		income: { count: 0, budget: 0 }
 	};
 
-	categories.forEach(cat => {
+	categories.forEach((cat) => {
 		const categoryType = cat.type as CategoryType;
 		if (by_type[categoryType]) {
 			by_type[categoryType].count++;
@@ -321,9 +319,7 @@ export async function initializeDefaultCategories(): Promise<void> {
 		}
 	}
 
-	const { error } = await supabase
-		.from('categories')
-		.insert(categoriesToInsert);
+	const { error } = await supabase.from('categories').insert(categoriesToInsert);
 
 	if (error) {
 		throw new Error(`Failed to initialize default categories: ${error.message}`);

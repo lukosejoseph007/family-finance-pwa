@@ -14,10 +14,15 @@ export const POST: RequestHandler = async ({ request }) => {
 		console.log('🚀 Email API called');
 		console.log('🔑 API Key available:', !!env.PRIVATE_RESEND_API_KEY);
 		console.log('🔑 API Key value:', env.PRIVATE_RESEND_API_KEY?.substring(0, 10) + '...');
-		
+
 		const { familyName, inviteCode, recipientEmail, senderName, appUrl } = await request.json();
 
-		console.log('📧 Sending invitation email:', { familyName, inviteCode, recipientEmail, senderName });
+		console.log('📧 Sending invitation email:', {
+			familyName,
+			inviteCode,
+			recipientEmail,
+			senderName
+		});
 
 		// Check if Resend is configured
 		if (!resend) {
@@ -31,7 +36,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			console.log('1. Sign up at https://resend.com');
 			console.log('2. Get your API key');
 			console.log('3. Set PRIVATE_RESEND_API_KEY in your .env file');
-			
+
 			return json({
 				success: true,
 				messageId: 'dev-mode-placeholder',
@@ -146,8 +151,8 @@ This invitation was sent by ${senderName}. If you didn't expect this invitation,
 			html: htmlContent,
 			text: textContent,
 			headers: {
-				'X-Entity-Ref-ID': `invite-${inviteCode}-${Date.now()}`,
-			},
+				'X-Entity-Ref-ID': `invite-${inviteCode}-${Date.now()}`
+			}
 		});
 
 		if (error) {
@@ -157,12 +162,14 @@ This invitation was sent by ${senderName}. If you didn't expect this invitation,
 
 		console.log('✅ Email sent successfully:', data);
 		return json({ success: true, messageId: data?.id });
-
 	} catch (error) {
 		console.error('❌ Email API error:', error);
-		return json({ 
-			success: false, 
-			error: error instanceof Error ? error.message : 'Failed to send email' 
-		}, { status: 500 });
+		return json(
+			{
+				success: false,
+				error: error instanceof Error ? error.message : 'Failed to send email'
+			},
+			{ status: 500 }
+		);
 	}
 };

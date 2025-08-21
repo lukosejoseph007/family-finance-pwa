@@ -20,7 +20,7 @@
 	onMount(() => {
 		// Setup PWA fixes for iOS
 		setupPWAFixes();
-		
+
 		// Clean up URL parameters after a delay
 		setTimeout(() => {
 			cleanPWAUrl();
@@ -29,10 +29,15 @@
 		// Debug logging for PWA
 		console.log('📱 PWA Mode:', isPWA());
 		console.log('🔗 Current URL:', window.location.href);
-		console.log('🎯 Display Mode:', window.matchMedia('(display-mode: standalone)').matches ? 'standalone' : 'browser');
+		console.log(
+			'🎯 Display Mode:',
+			window.matchMedia('(display-mode: standalone)').matches ? 'standalone' : 'browser'
+		);
 
 		// Set up Supabase auth state change handler
-		const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+		const {
+			data: { subscription }
+		} = supabase.auth.onAuthStateChange((event, session) => {
 			console.log('🔄 Auth state change:', event, session?.user?.email);
 			if (session?.expires_at !== data.session?.expires_at) {
 				invalidate('supabase:auth');
@@ -54,13 +59,16 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 	<title>Family Finance Tracker</title>
-	
+
 	<!-- PWA Meta Tags -->
 	<meta name="mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 	<meta name="theme-color" content="#000000" />
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+	<meta
+		name="viewport"
+		content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+	/>
 </svelte:head>
 
 <!-- Main App Container with PWA support -->

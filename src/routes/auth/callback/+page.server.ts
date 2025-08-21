@@ -4,10 +4,9 @@ import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/publi
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url, cookies, locals }) => {
-	const supabase = locals.supabase ?? createServerClient(
-		PUBLIC_SUPABASE_URL,
-		PUBLIC_SUPABASE_ANON_KEY,
-		{
+	const supabase =
+		locals.supabase ??
+		createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
 			cookies: {
 				get: (key) => cookies.get(key),
 				set: (key, value, options) => {
@@ -17,8 +16,7 @@ export const load: PageServerLoad = async ({ url, cookies, locals }) => {
 					cookies.delete(key, { ...options, path: '/' });
 				}
 			}
-		}
-	);
+		});
 
 	const code = url.searchParams.get('code');
 	if (code) {
@@ -36,11 +34,9 @@ export const load: PageServerLoad = async ({ url, cookies, locals }) => {
 					await supabase.auth.updateUser({
 						data: {
 							display_name:
-								data.user.user_metadata?.full_name ||
-								data.user.user_metadata?.display_name,
+								data.user.user_metadata?.full_name || data.user.user_metadata?.display_name,
 							full_name:
-								data.user.user_metadata?.full_name ||
-								data.user.user_metadata?.display_name,
+								data.user.user_metadata?.full_name || data.user.user_metadata?.display_name,
 							avatar_url: data.user.user_metadata?.avatar_url
 						}
 					});

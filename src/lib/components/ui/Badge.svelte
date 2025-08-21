@@ -42,11 +42,11 @@
 		{className}"
 >
 	<slot />
-	
+
 	{#if removable}
 		<button
 			type="button"
-			class="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-current hover:bg-current hover:bg-opacity-30 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current"
+			class="hover:bg-opacity-30 ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-current transition-all duration-150 hover:bg-current focus:ring-2 focus:ring-current focus:ring-offset-2 focus:outline-none"
 			on:click={handleRemove}
 			aria-label="Remove"
 		>

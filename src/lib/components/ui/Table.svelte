@@ -14,7 +14,7 @@
 
 	function handleSort(column: string) {
 		if (!sortable) return;
-		
+
 		if (sortColumn === column) {
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 		} else {
@@ -24,15 +24,17 @@
 	}
 </script>
 
-<div class="overflow-x-auto backdrop-blur-xl bg-white/70 rounded-2xl border border-white/30 shadow-lg {className}">
+<div
+	class="overflow-x-auto rounded-2xl border border-white/30 bg-white/70 shadow-lg backdrop-blur-xl {className}"
+>
 	<table class="min-w-full divide-y divide-white/20 {bordered ? 'border border-white/30' : ''}">
 		{#if headers.length > 0}
 			<thead class="bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm">
 				<tr>
 					{#each headers as header, index}
 						<th
-							class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider
-								{sortable ? 'cursor-pointer hover:bg-white/20 transition-colors duration-200' : ''}
+							class="px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase
+								{sortable ? 'cursor-pointer transition-colors duration-200 hover:bg-white/20' : ''}
 								{compact ? 'px-3 py-2' : ''}"
 							on:click={() => handleSort(header)}
 						>
@@ -53,8 +55,14 @@
 				</tr>
 			</thead>
 		{/if}
-		
-		<tbody class="bg-white/30 backdrop-blur-sm divide-y divide-white/20 {striped ? '[&>tr:nth-child(even)]:bg-white/40' : ''} {hoverable ? '[&>tr:hover]:bg-white/50 [&>tr]:transition-colors [&>tr]:duration-200' : ''}">
+
+		<tbody
+			class="divide-y divide-white/20 bg-white/30 backdrop-blur-sm {striped
+				? '[&>tr:nth-child(even)]:bg-white/40'
+				: ''} {hoverable
+				? '[&>tr]:transition-colors [&>tr]:duration-200 [&>tr:hover]:bg-white/50'
+				: ''}"
+		>
 			<slot {sortColumn} {sortDirection} />
 		</tbody>
 	</table>

@@ -33,15 +33,15 @@
 	</header>
 
 	<!-- Hero Section -->
-	<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+	<main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
 		<div class="text-center">
 			<h2 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
 				Take Control of Your
 				<span class="text-blue-600">Family Finances</span>
 			</h2>
 			<p class="mx-auto mt-6 max-w-2xl text-xl text-gray-600">
-				Track expenses, set budgets, and achieve financial goals together.
-				Built with the proven Budgeting methodology for families.
+				Track expenses, set budgets, and achieve financial goals together. Built with the proven
+				Budgeting methodology for families.
 			</p>
 			<div class="mt-10 flex items-center justify-center gap-x-6">
 				<Button size="lg">
@@ -61,9 +61,7 @@
 						<span class="text-2xl">💰</span>
 					</div>
 					<h3 class="mt-4 text-lg font-semibold text-gray-900">The Budgeting Methodology</h3>
-					<p class="mt-2 text-gray-600">
-						Be proud that every penny of yours is budgeted for.
-					</p>
+					<p class="mt-2 text-gray-600">Be proud that every penny of yours is budgeted for.</p>
 				</div>
 				<div class="text-center">
 					<div class="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-green-100">

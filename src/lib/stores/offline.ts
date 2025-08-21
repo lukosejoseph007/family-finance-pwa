@@ -18,16 +18,18 @@ function createOfflineStore() {
 
 	return {
 		subscribe,
-		setOnline: (online: boolean) => update(store => ({ ...store, isOnline: online })),
-		setServiceWorker: (hasServiceWorker: boolean) => update(store => ({ ...store, hasServiceWorker })),
-		setPendingSync: (pending: boolean) => update(store => ({ ...store, pendingSync: pending })),
-		updateLastSync: () => update(store => ({ ...store, lastSync: new Date() })),
-		reset: () => set({
-			isOnline: browser ? navigator.onLine : true,
-			hasServiceWorker: false,
-			pendingSync: false,
-			lastSync: null
-		})
+		setOnline: (online: boolean) => update((store) => ({ ...store, isOnline: online })),
+		setServiceWorker: (hasServiceWorker: boolean) =>
+			update((store) => ({ ...store, hasServiceWorker })),
+		setPendingSync: (pending: boolean) => update((store) => ({ ...store, pendingSync: pending })),
+		updateLastSync: () => update((store) => ({ ...store, lastSync: new Date() })),
+		reset: () =>
+			set({
+				isOnline: browser ? navigator.onLine : true,
+				hasServiceWorker: false,
+				pendingSync: false,
+				lastSync: null
+			})
 	};
 }
 
@@ -37,7 +39,7 @@ export const offlineStore = createOfflineStore();
 if (browser) {
 	window.addEventListener('online', () => offlineStore.setOnline(true));
 	window.addEventListener('offline', () => offlineStore.setOnline(false));
-	
+
 	// Check for service worker
 	if ('serviceWorker' in navigator) {
 		navigator.serviceWorker.ready.then(() => {

@@ -7,9 +7,9 @@
 	import type { AuthUser } from '$lib/types';
 
 	let { data, sidebarOpen = $bindable(false) } = $props<{
-	data: { session?: { user?: AuthUser } };
-	sidebarOpen?: boolean;
-}>();
+		data: { session?: { user?: AuthUser } };
+		sidebarOpen?: boolean;
+	}>();
 
 	// Navigation items
 	const navigation = [
@@ -40,26 +40,6 @@
 	}
 </script>
 
-<style>
-	.app-title {
-		font-size: 0.875rem !important;
-	}
-	
-	.app-tagline {
-		font-size: 0.75rem !important;
-	}
-	
-	@media (min-width: 1024px) {
-		.app-title {
-			font-size: 1.25rem !important;
-		}
-		
-		.app-tagline {
-			font-size: 1rem !important;
-		}
-	}
-</style>
-
 <!-- Mobile sidebar backdrop with glassmorphism -->
 {#if sidebarOpen}
 	<div
@@ -72,49 +52,61 @@
 {/if}
 
 <!-- Sidebar with Glassmorphism -->
-<div class="fixed inset-y-0 left-0 z-50 w-72 lg:w-80 xl:w-84 bg-white/70 backdrop-blur-2xl border-r border-white/30 shadow-2xl shadow-black/10 transform transition-all duration-300 ease-in-out
+<div
+	class="fixed inset-y-0 left-0 z-50 w-72 transform border-r border-white/30 bg-white/70 shadow-2xl shadow-black/10 backdrop-blur-2xl transition-all duration-300 ease-in-out lg:w-80 xl:w-84
 	{sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-	lg:translate-x-0 lg:static lg:inset-0 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-	
+	pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] lg:static lg:inset-0 lg:translate-x-0"
+>
 	<!-- Sidebar header with glassmorphism -->
-	<div class="flex items-center justify-between h-24 lg:h-30 px-6 lg:px-8 bg-gradient-to-r from-blue-500/80 to-indigo-600/80 backdrop-blur-xl border-b border-white/20">
+	<div
+		class="flex h-24 items-center justify-between border-b border-white/20 bg-gradient-to-r from-blue-500/80 to-indigo-600/80 px-6 backdrop-blur-xl lg:h-30 lg:px-8"
+	>
 		<div class="flex items-center space-x-3 lg:space-x-4">
-			<div class="flex items-center justify-center w-10 h-10 lg:w-12 lg:h-12 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg">
-				<span class="text-blue-600 text-lg lg:text-xl font-bold">₹</span>
+			<div
+				class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 shadow-lg backdrop-blur-sm lg:h-12 lg:w-12"
+			>
+				<span class="text-lg font-bold text-blue-600 lg:text-xl">₹</span>
 			</div>
 			<div>
-				<h1 class="app-title font-bold text-white leading-tight">Family Finance</h1>
-				<p class="app-tagline text-blue-100/90 mt-0.5">Budgeting & Expense Tracker</p>
+				<h1 class="app-title leading-tight font-bold text-white">Family Finance</h1>
+				<p class="app-tagline mt-0.5 text-blue-100/90">Budgeting & Expense Tracker</p>
 			</div>
 		</div>
-		
+
 		<!-- Close button for mobile with glassmorphism -->
 		<button
-			class="lg:hidden text-white/90 hover:text-white p-2 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200"
+			class="rounded-xl bg-white/10 p-2 text-white/90 backdrop-blur-sm transition-all duration-200 hover:bg-white/20 hover:text-white lg:hidden"
 			onclick={closeSidebar}
 			aria-label="Close sidebar"
 		>
-			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+			<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M6 18L18 6M6 6l12 12"
+				/>
 			</svg>
 		</button>
 	</div>
 
 	<!-- User info with glassmorphism -->
-	<div class="px-6 lg:px-8 py-4 lg:py-6 bg-white/30 backdrop-blur-sm border-b border-white/20">
+	<div class="border-b border-white/20 bg-white/30 px-6 py-4 backdrop-blur-sm lg:px-8 lg:py-6">
 		<div class="flex items-center space-x-3 lg:space-x-4">
 			<div class="flex-shrink-0">
-				<div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-400/80 to-indigo-500/80 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg">
-					<span class="text-white text-sm lg:text-base font-medium">
+				<div
+					class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-400/80 to-indigo-500/80 shadow-lg backdrop-blur-sm lg:h-12 lg:w-12"
+				>
+					<span class="text-sm font-medium text-white lg:text-base">
 						{getUserInitials(data.session?.user)}
 					</span>
 				</div>
 			</div>
-			<div class="flex-1 min-w-0">
-				<p class="text-sm lg:text-base font-medium text-gray-800 truncate">
+			<div class="min-w-0 flex-1">
+				<p class="truncate text-sm font-medium text-gray-800 lg:text-base">
 					{getUserDisplayName(data.session?.user)}
 				</p>
-				<p class="text-xs lg:text-sm text-gray-600 truncate">
+				<p class="truncate text-xs text-gray-600 lg:text-sm">
 					{data.session?.user?.email}
 				</p>
 			</div>
@@ -122,24 +114,26 @@
 	</div>
 
 	<!-- Navigation with glassmorphism -->
-	<nav class="flex-1 px-4 lg:px-6 py-6 lg:py-8 space-y-2 lg:space-y-3 overflow-y-auto">
+	<nav class="flex-1 space-y-2 overflow-y-auto px-4 py-6 lg:space-y-3 lg:px-6 lg:py-8">
 		{#each navigation as item}
 			<a
 				href={item.href}
-				class="group flex items-center px-4 lg:px-6 py-1 lg:py-4 text-sm lg:text-base font-medium rounded-xl transition-all duration-200
+				class="group flex items-center rounded-xl px-4 py-1 text-sm font-medium transition-all duration-200 lg:px-6 lg:py-4 lg:text-base
 					{currentPath === item.href
-						? 'bg-white/60 backdrop-blur-sm text-blue-700 shadow-lg shadow-blue-500/10 border border-white/40'
-						: 'text-gray-600 hover:text-blue-700 hover:bg-white/40 hover:backdrop-blur-sm hover:shadow-md hover:shadow-black/5'}"
+					? 'border border-white/40 bg-white/60 text-blue-700 shadow-lg shadow-blue-500/10 backdrop-blur-sm'
+					: 'text-gray-600 hover:bg-white/40 hover:text-blue-700 hover:shadow-md hover:shadow-black/5 hover:backdrop-blur-sm'}"
 				onclick={closeSidebar}
 			>
-				<span class="mr-3 lg:mr-4 text-lg lg:text-xl group-hover:scale-110 transition-transform duration-200">
+				<span
+					class="mr-3 text-lg transition-transform duration-200 group-hover:scale-110 lg:mr-4 lg:text-xl"
+				>
 					{item.icon}
 				</span>
 				<span class="flex-1">{item.name}</span>
-				
+
 				{#if currentPath === item.href}
 					<span class="ml-auto">
-						<div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+						<div class="h-2 w-2 rounded-full bg-blue-500"></div>
 					</span>
 				{/if}
 			</a>
@@ -147,18 +141,48 @@
 	</nav>
 
 	<!-- Sidebar footer with glassmorphism -->
-	<div class="flex-shrink-0 p-4 lg:p-6 border-t border-white/20 bg-white/30 backdrop-blur-sm">
+	<div class="flex-shrink-0 border-t border-white/20 bg-white/30 p-4 backdrop-blur-sm lg:p-6">
 		<div class="space-y-3 lg:space-y-4">
 			<!-- Sign out button with glassmorphism -->
 			<button
 				onclick={handleSignOut}
-				class="w-full flex items-center justify-center px-4 lg:px-6 py-2.5 lg:py-3 text-xs lg:text-sm font-medium text-gray-600 hover:text-red-600 bg-white/40 hover:bg-white/60 backdrop-blur-sm border border-white/40 hover:border-red-200 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+				class="flex w-full items-center justify-center rounded-xl border border-white/40 bg-white/40 px-4 py-2.5 text-xs font-medium text-gray-600 shadow-sm backdrop-blur-sm transition-all duration-200 hover:border-red-200 hover:bg-white/60 hover:text-red-600 hover:shadow-md lg:px-6 lg:py-3 lg:text-sm"
 			>
-				<svg class="w-4 h-4 lg:w-5 lg:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+				<svg
+					class="mr-2 h-4 w-4 lg:h-5 lg:w-5"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+					/>
 				</svg>
 				Sign Out
 			</button>
 		</div>
 	</div>
 </div>
+
+<style>
+	.app-title {
+		font-size: 0.875rem !important;
+	}
+
+	.app-tagline {
+		font-size: 0.75rem !important;
+	}
+
+	@media (min-width: 1024px) {
+		.app-title {
+			font-size: 1.25rem !important;
+		}
+
+		.app-tagline {
+			font-size: 1rem !important;
+		}
+	}
+</style>

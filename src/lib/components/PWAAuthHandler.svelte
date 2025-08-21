@@ -21,7 +21,7 @@
 		if (isPWA()) {
 			// For PWA, use SvelteKit's goto to maintain app context
 			const cleanUrl = url.split('?')[0];
-			goto(cleanUrl, { 
+			goto(cleanUrl, {
 				replaceState: replace
 			});
 		} else {
@@ -36,9 +36,11 @@
 
 	onMount(() => {
 		// Set up auth state listener for PWA
-		const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+		const {
+			data: { subscription }
+		} = supabase.auth.onAuthStateChange((event, session) => {
 			console.log('🔄 Auth state change:', event, session?.user?.email, 'PWA:', isPWA());
-			
+
 			if (isPWA()) {
 				if (event === 'SIGNED_IN' && session) {
 					// Handle successful authentication in PWA

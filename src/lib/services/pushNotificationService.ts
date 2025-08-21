@@ -32,7 +32,8 @@ export class PushNotificationService {
 	constructor() {
 		// In production, this should come from environment variables
 		// For now, using a placeholder - you'll need to generate real VAPID keys
-		this.vapidPublicKey = 'BGxFjsuJmUzxJl0LewWFzwJPgUqGWY-G_HKWG93y8CKW8xF3Q4SjK6F8K6F8K6F8K6F8K6F8K6F8K6F8K6F8K6F8';
+		this.vapidPublicKey =
+			'BGxFjsuJmUzxJl0LewWFzwJPgUqGWY-G_HKWG93y8CKW8xF3Q4SjK6F8K6F8K6F8K6F8K6F8K6F8K6F8K6F8K6F8';
 	}
 
 	/**
@@ -85,10 +86,10 @@ export class PushNotificationService {
 		}
 
 		const registration = await navigator.serviceWorker.ready;
-		
+
 		// Check if already subscribed
 		let subscription = await registration.pushManager.getSubscription();
-		
+
 		if (!subscription) {
 			// Subscribe to push notifications
 			subscription = await registration.pushManager.subscribe({
@@ -156,7 +157,7 @@ export class PushNotificationService {
 		}
 
 		const registration = await navigator.serviceWorker.ready;
-		
+
 		await registration.showNotification(payload.title, {
 			body: payload.body,
 			icon: payload.icon || '/icon-192.png',
@@ -183,7 +184,10 @@ export class PushNotificationService {
 	/**
 	 * Send financial alert notification
 	 */
-	public async sendFinancialAlert(type: 'budget-exceeded' | 'goal-achieved' | 'low-balance', data: FinancialAlertData): Promise<void> {
+	public async sendFinancialAlert(
+		type: 'budget-exceeded' | 'goal-achieved' | 'low-balance',
+		data: FinancialAlertData
+	): Promise<void> {
 		const notifications = {
 			'budget-exceeded': {
 				title: 'Budget Alert ⚠️',
@@ -276,10 +280,8 @@ export class PushNotificationService {
 	 * Convert VAPID public key to Uint8Array
 	 */
 	private urlBase64ToUint8Array(base64String: string): Uint8Array {
-		const padding = '='.repeat((4 - base64String.length % 4) % 4);
-		const base64 = (base64String + padding)
-			.replace(/-/g, '+')
-			.replace(/_/g, '/');
+		const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+		const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
 
 		const rawData = window.atob(base64);
 		const outputArray = new Uint8Array(new ArrayBuffer(rawData.length));
@@ -296,16 +298,19 @@ export class PushNotificationService {
 	public async scheduleRecurringNotifications(): Promise<void> {
 		// This would typically be handled by your backend
 		// For demo purposes, showing how to set up local scheduling
-		
+
 		// Schedule weekly budget review
-		setTimeout(async () => {
-			await this.showLocalNotification({
-				title: 'Weekly Budget Review 📊',
-				body: 'Time to review your weekly spending and update your budget!',
-				tag: 'weekly-review',
-				data: { type: 'scheduled', frequency: 'weekly' }
-			});
-		}, 7 * 24 * 60 * 60 * 1000); // 7 days
+		setTimeout(
+			async () => {
+				await this.showLocalNotification({
+					title: 'Weekly Budget Review 📊',
+					body: 'Time to review your weekly spending and update your budget!',
+					tag: 'weekly-review',
+					data: { type: 'scheduled', frequency: 'weekly' }
+				});
+			},
+			7 * 24 * 60 * 60 * 1000
+		); // 7 days
 	}
 }
 
