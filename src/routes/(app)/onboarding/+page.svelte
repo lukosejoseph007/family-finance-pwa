@@ -234,24 +234,15 @@
 						'⚠️ Verification failed but family was created. Attempting direct redirect...'
 					);
 					
-					if (pwaMode) {
-						// In PWA mode, use replaceState navigation
-						window.location.href = '/dashboard';
-					} else {
-						goto('/dashboard', { replaceState: true });
-					}
+					// Use SvelteKit navigation for both PWA and browser mode to prevent refresh loops
+					goto('/dashboard', { replaceState: true });
 					return;
 				}
 
 				console.log('✅ User verified as family member, redirecting to dashboard...');
 				
-				if (pwaMode) {
-					// Force a full page reload to bypass any server-side redirects in PWA
-					window.location.href = '/dashboard';
-				} else {
-					// Use SvelteKit navigation in browser mode
-					goto('/dashboard', { replaceState: true });
-				}
+				// Use SvelteKit navigation for both PWA and browser mode to prevent refresh loops
+				goto('/dashboard', { replaceState: true });
 			} else {
 				console.error('❌ User not authenticated');
 				error = 'Authentication error. Please try logging out and back in.';
@@ -310,13 +301,8 @@
 
 				console.log('✅ User verified as family member, redirecting to dashboard...');
 				
-				if (pwaMode) {
-					// Force a full page reload to bypass any server-side redirects in PWA
-					window.location.href = '/dashboard';
-				} else {
-					// Use SvelteKit navigation in browser mode
-					goto('/dashboard', { replaceState: true });
-				}
+				// Use SvelteKit navigation for both PWA and browser mode to prevent refresh loops
+				goto('/dashboard', { replaceState: true });
 			} else {
 				console.error('❌ User not authenticated');
 				error = 'Authentication error. Please try logging out and back in.';

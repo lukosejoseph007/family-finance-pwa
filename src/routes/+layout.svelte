@@ -3,7 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { user } from '$lib/store';
 	import { onMount } from 'svelte';
-	import { invalidate } from '$app/navigation';
+	import { invalidate, goto } from '$app/navigation';
 	import { supabase } from '$lib/supabaseClient';
 	import { isPWA, setupPWAFixes, cleanPWAUrl } from '$lib/pwa';
 
@@ -48,7 +48,12 @@
 				console.log('🚀 PWA SIGNED_IN event detected, redirecting...');
 				const params = new URLSearchParams(window.location.search);
 				const next = params.get('next') || '/dashboard'; // Redirect to dashboard after login
-				window.location.href = `${next}?auth_success=1&pwa=1`;
+				
+				// Only redirect if we're not already on the target page to prevent loops
+				if (window.location.pathname !== next && !window.location.pathname.startsWith(next)) {
+					// Use SvelteKit navigation instead of window.location.href to prevent refresh loops
+					goto(next, { replaceState: true });
+				}
 			}
 		});
 

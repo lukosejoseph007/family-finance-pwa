@@ -1,6 +1,10 @@
 import { browser } from '$app/environment';
 import { offlineStore } from '$lib/stores/offline';
 
+interface NavigatorWithStandalone extends Navigator {
+	standalone?: boolean;
+}
+
 export class PWAService {
 	private static instance: PWAService;
 	private registration: ServiceWorkerRegistration | null = null;
@@ -40,9 +44,19 @@ export class PWAService {
 				}
 			});
 
-			// Listen for controlling changes
+			// Listen for controlling changes - but don't auto-reload in PWA mode
 			navigator.serviceWorker.addEventListener('controllerchange', () => {
-				window.location.reload();
+				// Only reload if we're not in PWA mode to prevent infinite loops
+				const isPWAMode = window.matchMedia('(display-mode: standalone)').matches ||
+					(navigator as NavigatorWithStandalone).standalone === true ||
+					document.referrer.includes('android-app://');
+					
+				if (!isPWAMode) {
+					console.log('Service Worker controller changed, reloading...');
+					window.location.reload();
+				} else {
+					console.log('Service Worker controller changed in PWA mode - skipping reload to prevent loop');
+				}
 			});
 		} catch (error) {
 			console.error('Service Worker registration failed:', error);

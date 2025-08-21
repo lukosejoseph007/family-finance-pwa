@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Button, Input } from '$lib/components';
-	import { signUp, signInWithGoogle } from '$lib/supabaseClient';
+	import { signUp, signInWithGoogle, supabase } from '$lib/supabaseClient';
 	import { joinFamily, findFamilyByInviteCode } from '$lib/services/familyService';
 
 	let email = $state('');
@@ -134,19 +134,24 @@
 					throw new Error('Popup blocked. Please allow popups for this site.');
 				}
 
-				const checkPopup = setInterval(async () => {
-					if (!popup || popup.closed) {
-						clearInterval(checkPopup);
-						// The onAuthStateChange listener in supabaseClient should handle the redirect.
-						// We can check the session here to stop the spinner if the user closes the popup.
-						const {
-							data: { session }
-						} = await supabase.auth.getSession();
-						if (!session) {
-							googleLoading = false;
-						}
+				// Use auth state change listener instead of polling popup.closed
+				// This avoids COOP issues when checking popup status
+				const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+					if (event === 'SIGNED_IN' && session) {
+						subscription.unsubscribe();
+						googleLoading = false;
+						// Popup will be handled by PWAAuthHandler or main layout
 					}
-				}, 500);
+				});
+
+				// Fallback timeout to stop loading after 30 seconds
+				setTimeout(() => {
+					if (googleLoading) {
+						subscription.unsubscribe();
+						googleLoading = false;
+						error = 'Sign-in timed out. Please try again or check if popup was blocked.';
+					}
+				}, 30000);
 			}
 			// For redirect flow, Supabase handles it, so the page will navigate away.
 		} catch (err: any) {

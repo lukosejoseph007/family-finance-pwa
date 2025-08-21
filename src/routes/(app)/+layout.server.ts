@@ -21,7 +21,34 @@ export const load: LayoutServerLoad = async ({ locals: { safeGetSession, supabas
 			if (userError) {
 				console.error('❌ Error fetching user family:', userError);
 				console.log('🔍 User ID:', session.user.id);
-				// Redirect to onboarding if there's an error fetching user data
+				
+				// If user doesn't exist in users table, create them first
+				if (userError.code === 'PGRST116') { // No rows returned
+					console.log('🔧 User not found in users table, creating user record...');
+					try {
+						const { error: insertError } = await supabase
+							.from('users')
+							.insert({
+								id: session.user.id,
+								email: session.user.email!,
+								display_name: session.user.user_metadata?.display_name ||
+											  session.user.user_metadata?.full_name ||
+											  session.user.email?.split('@')[0],
+								created_at: new Date().toISOString(),
+								updated_at: new Date().toISOString()
+							});
+						
+						if (insertError) {
+							console.error('❌ Failed to create user record:', insertError);
+						} else {
+							console.log('✅ User record created successfully');
+						}
+					} catch (createError) {
+						console.error('❌ Error creating user record:', createError);
+					}
+				}
+				
+				// Redirect to onboarding regardless to let them set up properly
 				redirect(303, '/onboarding');
 			}
 

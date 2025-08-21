@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { Button, Input, Card, Modal } from '$lib/components';
 	import {
 		getUserFamily,
@@ -305,7 +306,7 @@
 			await leaveFamily();
 
 			// Redirect to onboarding after leaving
-			window.location.href = '/onboarding';
+			goto('/onboarding', { replaceState: true });
 		} catch (err: any) {
 			error = err.message || 'Failed to leave family';
 			leaveFamilyLoading = false;

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { offlineStore } from '$lib/stores/offline';
 	import { pwaService } from '$lib/services/pwaService';
+	import { isPWA } from '$lib/pwa';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 
@@ -34,7 +35,13 @@
 		try {
 			await pwaService.reloadApp();
 		} catch (error) {
-			window.location.reload();
+			// In PWA mode, avoid full page reload to prevent refresh loops
+			if (isPWA()) {
+				console.log('🔄 PWA mode: Update failed, skipping reload to prevent refresh loop');
+				console.error('Update error:', error);
+			} else {
+				window.location.reload();
+			}
 		}
 	}
 

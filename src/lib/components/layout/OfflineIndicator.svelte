@@ -2,6 +2,7 @@
 	import { offlineStore } from '$lib/stores/offline';
 	import { Badge, Button } from '$lib/components';
 	import { onMount } from 'svelte';
+	import { isPWA } from '$lib/pwa';
 
 	let showDetails = $state(false);
 	let showConnectedToast = $state(false);
@@ -12,7 +13,14 @@
 	}
 
 	function handleRetry() {
-		window.location.reload();
+		// In PWA mode, avoid full page reload to prevent refresh loops
+		if (isPWA()) {
+			console.log('🔄 PWA mode: Retrying connection without reload...');
+			// Just retry the network check without reload
+			window.dispatchEvent(new Event('online'));
+		} else {
+			window.location.reload();
+		}
 	}
 
 	// Track online/offline transitions and manage toast visibility

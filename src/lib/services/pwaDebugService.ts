@@ -1,6 +1,20 @@
 // src/lib/services/pwaDebugService.ts
 // Utility service for debugging and fixing PWA issues
 
+interface NavigatorWithStandalone extends Navigator {
+	standalone?: boolean;
+}
+
+interface PWADebugMethods {
+	diagnose: () => Promise<PWADiagnostics>;
+	fix: () => Promise<void>;
+	emergencyRecovery: () => Promise<void>;
+}
+
+interface WindowWithDebug extends Window {
+	pwaDebug?: PWADebugMethods;
+}
+
 interface PWADiagnostics {
 	isPWA: boolean;
 	serviceWorkerActive: boolean;
@@ -36,7 +50,7 @@ class PWADebugService {
 
 		return (
 			window.matchMedia('(display-mode: standalone)').matches ||
-			(navigator as any).standalone === true ||
+			(navigator as NavigatorWithStandalone).standalone === true ||
 			document.referrer.includes('android-app://')
 		);
 	}
@@ -247,7 +261,7 @@ class PWADebugService {
 				localStorage.clear();
 				sessionStorage.clear();
 				console.log('🗑️ Cleared storage');
-			} catch (e) {
+			} catch {
 				// Storage might not be available in PWA context
 			}
 
@@ -273,8 +287,8 @@ class PWADebugService {
 		const trackNavigation = () => {
 			navigationCount++;
 			if (navigationCount > navigationThreshold) {
-				console.warn('🚨 Excessive navigation detected, applying fixes...');
-				this.fixCommonIssues();
+				console.warn('🚨 Excessive navigation detected - MONITORING ONLY (fixes disabled to prevent loops)');
+				// this.fixCommonIssues(); // Disabled to prevent triggering more reloads
 				navigationCount = 0;
 			}
 		};
@@ -309,19 +323,20 @@ class PWADebugService {
 // Export singleton instance
 export const pwaDebugService = new PWADebugService();
 
-// Auto-start monitoring in PWA mode
-if (typeof window !== 'undefined') {
-	window.addEventListener('load', () => {
-		const isPWA = window.matchMedia('(display-mode: standalone)').matches;
-		if (isPWA) {
-			pwaDebugService.startMonitoring();
-		}
-	});
-}
+// Auto-start monitoring in PWA mode - DISABLED to prevent refresh loops
+// Uncomment only if needed for debugging
+// if (typeof window !== 'undefined') {
+// 	window.addEventListener('load', () => {
+// 		const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+// 		if (isPWA) {
+// 			pwaDebugService.startMonitoring();
+// 		}
+// 	});
+// }
 
 // Global debug functions (available in console)
 if (typeof window !== 'undefined') {
-	(window as any).pwaDebug = {
+	(window as WindowWithDebug).pwaDebug = {
 		diagnose: () => pwaDebugService.diagnose(),
 		fix: () => pwaDebugService.fixCommonIssues(),
 		emergencyRecovery: () => pwaDebugService.emergencyRecovery()
