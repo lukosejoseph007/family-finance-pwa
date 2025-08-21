@@ -17,7 +17,7 @@ export interface JoinFamilyData {
 	displayName: string;
 }
 
-// Create a new family using the stored function (RECOMMENDED)
+// Create a new family and add the user as admin
 export async function createFamily(data: CreateFamilyData): Promise<Family> {
 	const { data: authUser, error: authError } = await supabase.auth.getUser();
 
@@ -25,28 +25,55 @@ export async function createFamily(data: CreateFamilyData): Promise<Family> {
 		throw new Error('User not authenticated');
 	}
 
-	console.log('🏗️ Creating family using stored function:', data.name);
+	console.log('🏗️ Creating family:', data.name);
 	console.log('🆔 User ID:', authUser.user.id);
 	console.log('📧 User email:', authUser.user.email);
 
 	try {
-		// Use the stored function instead of direct insert
-		const { data: result, error } = await supabase.rpc('create_family_with_admin', {
-			family_name: data.name,
-			user_id: authUser.user.id,
-			user_email: authUser.user.email!,
-			user_display_name:
-				authUser.user.user_metadata?.display_name || authUser.user.email?.split('@')[0]
-		});
+		// Create the family first
+		const { data: family, error: familyError } = await supabase
+			.from('families')
+			.insert({
+				name: data.name,
+				settings: {
+					currency: 'INR',
+					date_format: 'DD/MM/YYYY',
+					start_of_week: 1,
+					timezone: 'Asia/Kolkata'
+				}
+			})
+			.select()
+			.single();
 
-		if (error) {
-			console.log('❌ Error creating family:', error);
-			throw new Error(`Failed to create family: ${error.message}`);
+		if (familyError) {
+			console.log('❌ Error creating family:', familyError);
+			throw new Error(`Failed to create family: ${familyError.message}`);
 		}
 
-		console.log('✅ Family created successfully:', result);
-		return result;
-	} catch (error: any) {
+		// Add the user as admin to the family
+		const { error: userError } = await supabase
+			.from('users')
+			.insert({
+				id: authUser.user.id,
+				family_id: family.id,
+				email: authUser.user.email!,
+				role: 'admin',
+				display_name:
+					authUser.user.user_metadata?.display_name || authUser.user.email?.split('@')[0]
+			})
+			.select()
+			.single();
+
+		if (userError) {
+			console.log('❌ Error adding user to family:', userError);
+			// Try to clean up by deleting the family we just created
+			await supabase.from('families').delete().eq('id', family.id);
+			throw new Error(`Failed to add user to family: ${userError.message}`);
+		}
+
+		console.log('✅ Family created successfully:', family);
+		return family;
+	} catch (error) {
 		console.log('❌ Family creation failed:', error);
 		throw error;
 	}
@@ -207,7 +234,7 @@ export async function joinFamily(data: JoinFamilyData): Promise<{ family: Family
 
 		console.log('✅ Successfully joined family:', family.name);
 		return { family, user: newUser };
-	} catch (error: any) {
+	} catch (error) {
 		console.error('❌ Error in joinFamily:', error);
 		throw error;
 	}
