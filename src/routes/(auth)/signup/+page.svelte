@@ -112,15 +112,29 @@
 				sessionStorage.setItem('pendingDisplayName', displayName || '');
 			}
 			
-			const result = await signInWithGoogle();
+			const data = await signInWithGoogle();
 			
-			// For popup flow, result contains user/session data
-			// For redirect flow, the OAuth redirect will handle navigation
-			if (result && typeof result === 'object' && (result as any).user) {
-				console.log('✅ Google OAuth completed successfully');
-				// Refresh the page to trigger auth state change
-				window.location.reload();
+			if (data && (data as any).url) {
+				// PWA/Popup flow
+				const popup = window.open((data as any).url, 'google-oauth', 'width=500,height=600,scrollbars=yes,resizable=yes');
+
+				if (!popup) {
+					throw new Error("Popup blocked. Please allow popups for this site.");
+				}
+
+				const checkPopup = setInterval(async () => {
+					if (!popup || popup.closed) {
+						clearInterval(checkPopup);
+						// The onAuthStateChange listener in supabaseClient should handle the redirect.
+						// We can check the session here to stop the spinner if the user closes the popup.
+						const { data: { session } } = await supabase.auth.getSession();
+						if (!session) {
+							googleLoading = false;
+						}
+					}
+				}, 500);
 			}
+			// For redirect flow, Supabase handles it, so the page will navigate away.
 		} catch (err: any) {
 			error = err.message || 'Failed to sign up with Google';
 			googleLoading = false;

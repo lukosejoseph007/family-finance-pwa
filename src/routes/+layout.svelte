@@ -37,6 +37,14 @@
 			if (session?.expires_at !== data.session?.expires_at) {
 				invalidate('supabase:auth');
 			}
+
+			// Handle PWA-specific redirect on sign-in
+			if (isPWA() && event === 'SIGNED_IN' && session) {
+				console.log('🚀 PWA SIGNED_IN event detected, redirecting...');
+				const params = new URLSearchParams(window.location.search);
+				const next = params.get('next') || '/dashboard'; // Redirect to dashboard after login
+				window.location.href = `${next}?auth_success=1&pwa=1`;
+			}
 		});
 
 		return () => subscription.unsubscribe();

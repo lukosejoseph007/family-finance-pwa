@@ -104,7 +104,7 @@ export const updatePassword = async (newPassword: string) => {
 export const signInWithProvider = async (provider: AuthProvider) => {
     const redirectTo = getRedirectTo();
     
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
             redirectTo,
@@ -117,7 +117,7 @@ export const signInWithProvider = async (provider: AuthProvider) => {
     });
 
     if (error) throw error;
-    return { success: true };
+    return data;
 };
 
 // Updated convenience wrappers
@@ -185,33 +185,7 @@ export const getLinkedProviders = async (): Promise<string[]> => {
     return user.identities?.map((i) => i.provider) || [];
 };
 
-// ------------------ PWA SPECIFIC HELPERS ------------------
 
-export const handlePWAOAuthRedirect = async (url: string): Promise<boolean> => {
-    if (!isPWA()) return false;
-    
-    try {
-        window.open(url, '_blank');
-        return true;
-    } catch (error) {
-        console.error('Failed to handle PWA OAuth redirect:', error);
-        return false;
-    }
-};
-
-export const setupPWAAuthListener = (): void => {
-    if (!isPWA()) return;
-
-    supabase.auth.onAuthStateChange((event, session) => {
-        console.log('🔄 Auth state changed in PWA:', event, session?.user?.email);
-        
-        if (event === 'SIGNED_IN' && session) {
-            const params = new URLSearchParams(window.location.search);
-            const next = params.get('next') || '/onboarding';
-            window.location.href = `${next}?auth_success=1&pwa=1`;
-        }
-    });
-};
 
 // ------------------ USER METADATA HELPERS ------------------
 
