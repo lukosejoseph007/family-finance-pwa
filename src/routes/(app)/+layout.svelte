@@ -5,6 +5,7 @@
 	import { Sidebar, OfflineIndicator } from '$lib/components';
 	import { pwaService } from '$lib/services/pwaService';
 	import { offlineStore } from '$lib/stores/offline';
+	import { setupPWAFixes, isPWA } from '$lib/pwa.js';
 
 	let { data, children } = $props();
 
@@ -25,15 +26,14 @@
 		{ icon: string; label: string; href?: string; action?: string; show: boolean }
 	> = {
 		'/dashboard': { icon: 'plus', label: 'Add Transaction', action: 'modal', show: true },
-		'/transactions': { icon: 'plus', label: 'Add Transaction', action: 'modal', show: false }, // Header has add button
-		'/accounts': { icon: 'plus', label: 'Add Account', action: 'modal', show: false }, // Header has add button
-		'/categories': { icon: 'plus', label: 'Add Category', action: 'modal', show: false }, // Header has add button
+		'/transactions': { icon: 'plus', label: 'Add Transaction', action: 'modal', show: false },
+		'/accounts': { icon: 'plus', label: 'Add Account', action: 'modal', show: false },
+		'/categories': { icon: 'plus', label: 'Add Category', action: 'modal', show: false },
 		'/budget': { icon: 'edit', label: 'Quick Edit', action: 'modal', show: true },
 		'/goals': { icon: 'plus', label: 'Add Goal', action: 'modal', show: true },
 		'/reports': { icon: 'download', label: 'Export Report', action: 'download', show: true }
 	};
 
-	// Get current FAB config based on route using Svelte 5 derived
 	let currentPath = $derived($page.url.pathname);
 	let fabConfig = $derived(fabConfigs[currentPath] || { icon: 'plus', label: 'Add', show: false });
 
@@ -42,10 +42,8 @@
 		if (!config) return;
 
 		if (config.href) {
-			// Navigate to specified URL
 			window.location.href = config.href;
 		} else if (config.action === 'modal') {
-			// Dispatch custom event for the page to handle
 			window.dispatchEvent(
 				new CustomEvent('fab-click', {
 					detail: { page: currentPath, action: config.action }
@@ -54,15 +52,13 @@
 		}
 	}
 
-	// Initialize PWA functionality
 	onMount(() => {
-		// Initialize service worker asynchronously
+		// === Initialize service worker ===
 		pwaService.init();
 
-		// Set up online/offline listeners
+		// === Setup online/offline listeners ===
 		function handleOnline() {
 			offlineStore.setOnline(true);
-			// Sync pending data when coming back online
 			pwaService.syncPendingData();
 		}
 
@@ -73,14 +69,36 @@
 		window.addEventListener('online', handleOnline);
 		window.addEventListener('offline', handleOffline);
 
-		// Check for updates periodically (every 30 minutes)
-		const updateInterval = setInterval(
-			() => {
-				pwaService.checkForUpdates();
-			},
-			30 * 60 * 1000
-		);
+		// === Check for updates every 30 minutes ===
+		const updateInterval = setInterval(() => {
+			pwaService.checkForUpdates();
+		}, 30 * 60 * 1000);
 
+		// === Apply general PWA fixes ===
+		setupPWAFixes();
+
+		// === Optional: PWA-specific diagnostics and error logging ===
+		if (isPWA()) {
+			console.log('📱 App running in PWA mode');
+
+			if ('serviceWorker' in navigator) {
+				navigator.serviceWorker.addEventListener('message', (event) => {
+					if (event.data?.type === 'CACHE_CLEARED') {
+						console.log('✅ Service Worker cache cleared');
+					}
+				});
+			}
+
+			window.addEventListener('error', (error) => {
+				console.error('🚨 PWA Error:', error);
+			});
+
+			window.addEventListener('unhandledrejection', (event) => {
+				console.error('🚨 PWA Unhandled Rejection:', event.reason);
+			});
+		}
+
+		// === Cleanup on component destroy ===
 		return () => {
 			window.removeEventListener('online', handleOnline);
 			window.removeEventListener('offline', handleOffline);
@@ -88,6 +106,7 @@
 		};
 	});
 </script>
+
 
 <div
 	class="flex min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50 pb-[env(safe-area-inset-bottom)]"
@@ -231,3 +250,57 @@
 	<!-- Offline Indicator (global) -->
 	<OfflineIndicator />
 </div>
+
+<style>
+	/* Global PWA fixes */
+	:global(body) {
+		/* Prevent pull-to-refresh in PWA */
+		overscroll-behavior-y: contain;
+	}
+
+	/* PWA-specific global styles */
+	@media all and (display-mode: standalone) {
+		:global(html) {
+			overscroll-behavior: contain;
+			-webkit-overflow-scrolling: touch;
+		}
+
+		:global(body) {
+			/* Prevent bounce scrolling */
+			overscroll-behavior: contain;
+			-webkit-touch-callout: none;
+			-webkit-user-select: none;
+			user-select: none;
+		}
+
+		/* Allow text selection where appropriate */
+		:global(input),
+		:global(textarea),
+		:global(.selectable) {
+			-webkit-user-select: text;
+			user-select: text;
+		}
+
+		/* Prevent zoom on input focus */
+		:global(input),
+		:global(select),
+		:global(textarea) {
+			font-size: 16px !important;
+			touch-action: manipulation;
+		}
+
+		/* Prevent double-tap zoom on buttons */
+		:global(button) {
+			touch-action: manipulation;
+		}
+
+		/* Fix viewport issues */
+		:global(.app-container) {
+			padding-top: env(safe-area-inset-top);
+			padding-bottom: env(safe-area-inset-bottom);
+			padding-left: env(safe-area-inset-left);
+			padding-right: env(safe-area-inset-right);
+		}
+	}
+</style>
+

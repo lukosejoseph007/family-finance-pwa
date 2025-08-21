@@ -1,22 +1,8 @@
-/**
- * Copyright 2018 Google Inc. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *     http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// sw.js - Fixed Service Worker with proper offline handling
 
 // If the loader is already loaded, just stop.
 if (!self.define) {
 	let registry = {};
-
-	// Used for `eval` and `importScripts` where we can't get script URL by other means.
-	// In both cases, it's safe to use a global var because those functions are synchronous.
 	let nextDefineUri;
 
 	const singleRequire = (uri, parentUri) => {
@@ -37,7 +23,7 @@ if (!self.define) {
 			}).then(() => {
 				let promise = registry[uri];
 				if (!promise) {
-					throw new Error(`Module ${uri} didn’t register its module`);
+					throw new Error(`Module ${uri} didn't register its module`);
 				}
 				return promise;
 			})
@@ -48,7 +34,6 @@ if (!self.define) {
 		const uri =
 			nextDefineUri || ('document' in self ? document.currentScript.src : '') || location.href;
 		if (registry[uri]) {
-			// Module is already loading or loaded.
 			return;
 		}
 		let exports = {};
@@ -66,16 +51,62 @@ if (!self.define) {
 		});
 	};
 }
+
 define(['./workbox-789f7e5f'], function (workbox) {
 	'use strict';
 
 	self.skipWaiting();
 	workbox.clientsClaim();
 
+	// Create a simple offline page fallback
+	const OFFLINE_HTML = `
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="utf-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1">
+			<title>Offline - Family Finance</title>
+			<style>
+				body { 
+					font-family: Arial, sans-serif; 
+					text-align: center; 
+					padding: 50px; 
+					background: #f5f5f5; 
+				}
+				.offline-container {
+					max-width: 400px;
+					margin: 0 auto;
+					background: white;
+					padding: 40px;
+					border-radius: 8px;
+					box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+				}
+			</style>
+		</head>
+		<body>
+			<div class="offline-container">
+				<h1>You're Offline</h1>
+				<p>Please check your internet connection and try again.</p>
+				<button onclick="window.location.reload()">Retry</button>
+			</div>
+		</body>
+		</html>
+	`;
+
+	// Handle the offline page creation
+	self.addEventListener('install', (event) => {
+		event.waitUntil(
+			caches.open('offline-cache-v1').then((cache) => {
+				// Create offline page in cache instead of expecting it to exist
+				return cache.put('/offline.html', new Response(OFFLINE_HTML, {
+					headers: { 'Content-Type': 'text/html' }
+				}));
+			})
+		);
+	});
+
 	/**
-	 * The precacheAndRoute() method efficiently caches and responds to
-	 * requests for URLs in the manifest.
-	 * See https://goo.gl/S9QRab
+	 * Enhanced precache configuration - only cache what actually exists
 	 */
 	workbox.precacheAndRoute(
 		[
@@ -83,10 +114,17 @@ define(['./workbox-789f7e5f'], function (workbox) {
 				url: 'registerSW.js',
 				revision: '3ca0b8505b4bec776b69afdba2768812'
 			}
+			// Remove offline.html from precache since we're handling it manually
 		],
-		{}
+		{
+			// Ignore URL parameters that might cause cache misses
+			ignoreURLParametersMatching: [/^code$/, /^state$/, /^step$/]
+		}
 	);
+
 	workbox.cleanupOutdatedCaches();
+
+	// Google Fonts caching
 	workbox.registerRoute(
 		/^https:\/\/fonts\.googleapis\.com\/.*/i,
 		new workbox.CacheFirst({
@@ -100,6 +138,7 @@ define(['./workbox-789f7e5f'], function (workbox) {
 		}),
 		'GET'
 	);
+
 	workbox.registerRoute(
 		/^https:\/\/fonts\.gstatic\.com\/.*/i,
 		new workbox.CacheFirst({
@@ -113,6 +152,8 @@ define(['./workbox-789f7e5f'], function (workbox) {
 		}),
 		'GET'
 	);
+
+	// Images caching
 	workbox.registerRoute(
 		/\.(?:png|jpg|jpeg|svg|gif|webp)$/,
 		new workbox.CacheFirst({
@@ -126,6 +167,8 @@ define(['./workbox-789f7e5f'], function (workbox) {
 		}),
 		'GET'
 	);
+
+	// Enhanced pages cache with better offline handling
 	workbox.registerRoute(
 		({ request }) => request.destination === 'document',
 		new workbox.NetworkFirst({
@@ -135,11 +178,66 @@ define(['./workbox-789f7e5f'], function (workbox) {
 				new workbox.ExpirationPlugin({
 					maxEntries: 50,
 					maxAgeSeconds: 604800
-				})
+				}),
+				{
+					cacheWillUpdate: async ({ response }) => {
+						// Only cache successful responses
+						return response.status === 200 ? response : null;
+					},
+					handlerDidError: async () => {
+						// Return offline page when network and cache fail
+						return caches.match('/offline.html');
+					}
+				}
 			]
 		}),
 		'GET'
 	);
+
+	// Special handling for onboarding routes to prevent caching issues
+	workbox.registerRoute(
+		({ request, url }) => {
+			return request.mode === 'navigate' && 
+				   (url.pathname.includes('/onboarding') || 
+				    url.pathname === '/onboarding');
+		},
+		new workbox.NetworkFirst({
+			cacheName: 'onboarding-cache',
+			networkTimeoutSeconds: 2,
+			plugins: [
+				new workbox.ExpirationPlugin({
+					maxEntries: 10,
+					maxAgeSeconds: 300 // Only cache for 5 minutes
+				}),
+				{
+					handlerWillRespond: async ({ response }) => {
+						// For onboarding pages, always try to get fresh content
+						if (response && response.status === 200) {
+							// Add headers to prevent aggressive caching of onboarding pages
+							const responseClone = response.clone();
+							const headers = new Headers(responseClone.headers);
+							headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+							headers.set('Pragma', 'no-cache');
+							
+							return new Response(responseClone.body, {
+								status: responseClone.status,
+								statusText: responseClone.statusText,
+								headers: headers
+							});
+						}
+						return response;
+					},
+					cacheWillUpdate: async ({ response }) => {
+						// Don't cache onboarding responses
+						return null;
+					}
+				}
+			]
+		}),
+		'GET'
+	);
+
+	// Assets caching (JS/CSS)
 	workbox.registerRoute(
 		({ request }) => request.destination === 'script' || request.destination === 'style',
 		new workbox.StaleWhileRevalidate({
@@ -153,4 +251,64 @@ define(['./workbox-789f7e5f'], function (workbox) {
 		}),
 		'GET'
 	);
+
+	// Handle API calls with network first, fallback to cache
+	workbox.registerRoute(
+		/\/api\//,
+		new workbox.NetworkFirst({
+			cacheName: 'api-cache',
+			networkTimeoutSeconds: 5,
+			plugins: [
+				new workbox.ExpirationPlugin({
+					maxEntries: 50,
+					maxAgeSeconds: 300 // 5 minutes for API responses
+				}),
+				{
+					cacheWillUpdate: async ({ response }) => {
+						// Only cache successful API responses
+						return response.status === 200 ? response : null;
+					}
+				}
+			]
+		}),
+		'GET'
+	);
+
+	// Message handling for cache management and onboarding fixes
+	self.addEventListener('message', (event) => {
+		console.log('SW received message:', event.data);
+		
+		if (event.data && event.data.type === 'CLEAR_ONBOARDING_CACHE') {
+			event.waitUntil(
+				Promise.all([
+					caches.delete('onboarding-cache'),
+					caches.delete('pages-cache')
+				]).then(() => {
+					console.log('SW: Cleared onboarding and pages cache');
+					self.clients.matchAll().then(clients => {
+						clients.forEach(client => {
+							client.postMessage({ type: 'CACHE_CLEARED' });
+						});
+					});
+				})
+			);
+		}
+		
+		if (event.data && event.data.type === 'CLEAR_ALL_CACHES') {
+			event.waitUntil(
+				caches.keys().then(cacheNames => {
+					return Promise.all(
+						cacheNames.map(cacheName => caches.delete(cacheName))
+					);
+				}).then(() => {
+					console.log('SW: Cleared all caches');
+					self.clients.matchAll().then(clients => {
+						clients.forEach(client => {
+							client.postMessage({ type: 'ALL_CACHES_CLEARED' });
+						});
+					});
+				})
+			);
+		}
+	});
 });
