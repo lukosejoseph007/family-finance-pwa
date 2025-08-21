@@ -5,7 +5,7 @@ import type { RequestHandler } from './$types';
 
 // Initialize Resend only if API key is available
 let resend: Resend | null = null;
-if (env.PRIVATE_RESEND_API_KEY && env.PRIVATE_RESEND_API_KEY !== 're_demo_key_placeholder') {
+if (env.PRIVATE_RESEND_API_KEY && env.PRIVATE_RESEND_API_KEY !== 're_LDYFf6rB_7Xui5iJAFNJTdiDmJ1eqpx3e') {
 	resend = new Resend(env.PRIVATE_RESEND_API_KEY);
 }
 

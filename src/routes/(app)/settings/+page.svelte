@@ -41,6 +41,9 @@
 	let familySubscription: RealtimeChannel | null = null;
 	let membersSubscription: RealtimeChannel | null = null;
 
+	// Get current user from session
+	const user = $derived(data.session?.user);
+
 	onMount(async () => {
 		await loadFamilyData();
 		setupRealtimeSubscriptions();
@@ -183,45 +186,86 @@
 	}
 
 	async function sendEmailInvite() {
-		if (!inviteEmail.trim() || !family) return;
+		if (!inviteEmail || !family || !user) {
+			showErrorMessage('Please enter an email address');
+			return;
+		}
 
-		emailInviteLoading = true;
-		error = '';
+		// Basic email validation
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(inviteEmail)) {
+			showErrorMessage('Please enter a valid email address');
+			return;
+		}
 
 		try {
 			console.log('📧 Sending email invitation to:', inviteEmail);
+			emailInviteLoading = true;
 			
-			// Check if user exists
-			const userSearch = await searchUserByEmail(inviteEmail.trim());
+			// Search for existing user
+			const existingUser = await searchUserByEmail(inviteEmail);
 			
-			if (!userSearch.exists) {
-				error = 'No user found with that email address. They need to create an account first.';
-				emailInviteLoading = false;
+			// Check if user already exists and is in a family
+			if (existingUser && existingUser.family_id) {
+				showErrorMessage(`${inviteEmail} is already a member of another family`);
 				return;
 			}
-
+			
 			// Generate invite code
 			const code = generateInviteCode(family.id);
 			
 			// Send email invitation
-			const currentUser = members.find(m => m.is_current_user);
 			await sendEmailInvitation(
 				family.name,
 				code,
-				inviteEmail.trim(),
-				currentUser?.display_name || 'Family Admin'
+				inviteEmail,
+				user.user_metadata?.display_name || user.email?.split('@')[0] || 'Family Member'
 			);
-
-			emailInviteModalOpen = false;
-			success = `Invitation sent to ${inviteEmail}!`;
-			setTimeout(() => success = '', 3000);
 			
-		} catch (err: any) {
+			// Success message with clear next steps
+			if (existingUser) {
+				showSuccessMessage(`Invitation sent to ${inviteEmail}! They can log in and use the invite code to join your family.`);
+			} else {
+				showSuccessMessage(`Invitation sent to ${inviteEmail}! They'll receive an email with instructions to create an account and join your family.`);
+			}
+			
+			inviteEmail = ''; // Clear the input
+			emailInviteModalOpen = false;
+			
+		} catch (err: unknown) {
 			console.error('❌ Error sending email invitation:', err);
-			error = err.message || 'Failed to send invitation';
+			
+			// Provide user-friendly error messages
+			let userMessage = 'Failed to send invitation. ';
+			
+			const errorMessage = err instanceof Error ? err.message : String(err);
+			
+			if (errorMessage.includes('not authenticated')) {
+				userMessage += 'Please log in and try again.';
+			} else if (errorMessage.includes('not part of a family')) {
+				userMessage += 'You need to be part of a family to send invitations.';
+			} else if (errorMessage.includes('Failed to send email')) {
+				userMessage += 'There was a problem sending the email. Please check the email address and try again.';
+			} else if (errorMessage.includes('Invalid email')) {
+				userMessage += 'Please enter a valid email address.';
+			} else {
+				userMessage += 'Please try again or contact support if the problem persists.';
+			}
+			
+			showErrorMessage(userMessage);
 		} finally {
 			emailInviteLoading = false;
 		}
+	}
+
+	function showErrorMessage(message: string) {
+		error = message;
+		setTimeout(() => error = '', 5000);
+	}
+
+	function showSuccessMessage(message: string) {
+		success = message;
+		setTimeout(() => success = '', 5000);
 	}
 
 	function openRemoveModal(member: FamilyMember) {
@@ -278,16 +322,55 @@
 	<title>Family Settings - Family Finance</title>
 </svelte:head>
 
-<div class="space-y-8">
-	<div>
-		<h1 class="text-3xl font-bold text-gray-900">Family Settings</h1>
-		<p class="mt-2 text-gray-600">Manage your family information and members</p>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50">
+	<!-- Professional Header Section -->
+	<div class="relative overflow-hidden">
+		<!-- Background Pattern -->
+		<div class="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600"></div>
+		<div class="absolute inset-0 bg-black/10"></div>
+		<div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%)"></div>
+		
+		<div class="relative px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+				<div class="flex-1">
+					<div class="flex items-center space-x-3 mb-4">
+						<div class="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+							<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+							</svg>
+						</div>
+						<div>
+							<h1 class="text-3xl sm:text-4xl font-bold text-white">Family Settings</h1>
+							<p class="text-purple-100 text-base sm:text-lg opacity-90 mt-1">
+								Manage your family information and members
+							</p>
+						</div>
+					</div>
+				</div>
+				
+				{#if family && !loading}
+					<div class="flex-shrink-0">
+						<div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+							<div class="text-white/90 text-sm font-medium mb-1">My Family</div>
+							<div class="text-white text-lg font-semibold">{family.name}</div>
+							<div class="text-purple-100 text-sm opacity-75 mt-1">
+								{members.length} member{members.length !== 1 ? 's' : ''}
+							</div>
+						</div>
+					</div>
+				{/if}
+			</div>
+		</div>
 	</div>
 
+	<!-- Content Section -->
+	<div class="relative">
+		<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-12 space-y-6">
+
 	{#if loading}
-		<div class="text-center py-12">
-			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-			<p class="mt-2 text-gray-600">Loading family settings...</p>
+		<div class="flex items-center justify-center h-64">
+			<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+			<span class="ml-2 text-gray-600">Loading family settings...</span>
 		</div>
 	{:else if error}
 		<div class="rounded-md bg-red-50 p-4">
@@ -375,8 +458,8 @@
 					{#each members as member (member.id)}
 						<div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
 							<div class="flex items-center space-x-4">
-								<div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-									<span class="text-sm font-medium text-blue-700">
+								<div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+									<span class="text-sm font-medium text-purple-700">
 										{(member.display_name || member.email)[0].toUpperCase()}
 									</span>
 								</div>
@@ -467,6 +550,8 @@
 			</div>
 		</Card>
 	{/if}
+		</div>
+	</div>
 </div>
 
 <!-- Invite Modal -->

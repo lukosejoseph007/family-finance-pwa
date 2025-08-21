@@ -1,9 +1,6 @@
 <script lang="ts">
   import Spinner from '$lib/components/ui/Spinner.svelte';
-  import Button from '$lib/components/ui/Button.svelte';
   import Card from '$lib/components/ui/Card.svelte';
-  import Select from '$lib/components/ui/Select.svelte';
-  import Input from '$lib/components/ui/Input.svelte';
 
   let selectedPeriod = $state<'day' | 'week' | 'month'>('month');
   let selectedDate = $state(new Date());
@@ -95,99 +92,227 @@
   let dateInputValue = $derived(selectedDate.toISOString().split('T')[0]);
 
   // Update selectedDate when dateInputValue changes
-  function handleDateChange(value: string) {
-    selectedDate = new Date(value);
+  function handleDateChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (target && target.value) {
+      selectedDate = new Date(target.value);
+    }
   }
 
   // Check rate limit on component mount
   checkRateLimit();
+
+  // Get period description
+  const periodDescription = $derived(() => {
+    const startDate = formatDate(selectedDate);
+    
+    if (selectedPeriod === 'day') {
+      return startDate;
+    } else if (selectedPeriod === 'week') {
+      const endDate = formatDate(new Date(selectedDate.getTime() + 6 * 24 * 60 * 60 * 1000));
+      return `${startDate} to ${endDate}`;
+    } else {
+      const endDate = formatDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0));
+      return `${startDate} to ${endDate}`;
+    }
+  });
 </script>
 
-<Card class="max-w-md mx-auto p-6">
-  <h1 class="text-2xl font-bold mb-6 text-gray-800">Export Transactions</h1>
-  
-  {#if error}
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
-      {error}
-    </div>
-  {/if}
+<svelte:head>
+  <title>Export Transactions - Family Finance Tracker</title>
+</svelte:head>
 
-  <div class="space-y-6">
-    <!-- Period Selection -->
-    <div>
-      <label for="period-select" class="block text-sm font-medium mb-2 text-gray-700">Export Period</label>
-      <Select
-        id="period-select"
-        bind:value={selectedPeriod}
-        options={[
-          { value: 'day', label: 'Single Day' },
-          { value: 'week', label: 'Week' },
-          { value: 'month', label: 'Month' }
-        ]}
-        class="w-full"
-      />
-    </div>
-
-    <!-- Date Selection -->
-    <div>
-      <label for="date-input" class="block text-sm font-medium mb-2 text-gray-700">
-        {selectedPeriod === 'day' ? 'Select Date' : 
-         selectedPeriod === 'week' ? 'Start of Week' : 'Start of Month'}
-      </label>
-      <Input
-        id="date-input"
-        type="date"
-        value={dateInputValue}
-        on:input={(e) => handleDateChange(e.target?.value || '')}
-        class="w-full"
-        max={new Date().toISOString().split('T')[0]}
-      />
-    </div>
-
-    <!-- Transaction Type -->
-    <div>
-      <label for="type-select" class="block text-sm font-medium mb-2 text-gray-700">Transaction Type</label>
-      <Select
-        id="type-select"
-        bind:value={selectedType}
-        options={[
-          { value: 'all', label: 'All Transactions' },
-          { value: 'income', label: 'Income Only' },
-          { value: 'expense', label: 'Expenses Only' }
-        ]}
-        class="w-full"
-      />
-    </div>
-
-    <!-- Export Button -->
-    <Button
-      on:click={handleExport}
-      disabled={isLoading || (remainingExports !== null && remainingExports <= 0)}
-      class="w-full"
-      variant="primary"
-    >
-      {#if isLoading}
-        <Spinner size="sm" class="mr-2" />
-        Generating CSV...
-      {:else}
-        Download CSV
-      {/if}
-    </Button>
-
-    <!-- Preview and Rate Limit -->
-    <div class="text-sm text-gray-600 space-y-2">
-      <p>Exporting: <span class="font-medium">{selectedType}</span> transactions for</p>
-      <p class="font-medium">
-        {formatDate(selectedDate)} 
-        {selectedPeriod === 'week' ? ' to ' + formatDate(new Date(selectedDate.getTime() + 6 * 24 * 60 * 60 * 1000)) : 
-         selectedPeriod === 'month' ? ' to ' + formatDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0)) : ''}
-      </p>
-      
-      {#if remainingExports !== null}
-        <div class="mt-3 p-2 bg-gray-50 rounded">
-          <p class="text-xs text-gray-500">Exports remaining today: <span class="font-semibold">{remainingExports}/10</span></p>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 relative">
+  <!-- Professional Header Section -->
+  <div class="relative overflow-hidden">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700"></div>
+    <div class="absolute inset-0 bg-black/10"></div>
+    <div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%)"></div>
+    
+    <div class="relative px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div class="flex flex-col">
+        <div class="flex items-center space-x-3 mb-6">
+          <div class="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-3xl sm:text-4xl font-bold text-white">Export Transactions</h1>
+            <p class="text-purple-100 text-base sm:text-lg opacity-90 mt-1">
+              Download your family's transaction data in CSV format
+            </p>
+          </div>
         </div>
-      {/if}
+      </div>
     </div>
   </div>
-</Card>
+
+  <!-- Content Section -->
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+    <div class="max-w-2xl mx-auto">
+      
+      {#if error}
+        <Card class="mb-6 border-red-200 bg-red-50">
+          <div class="p-4">
+            <div class="flex items-start">
+              <div class="flex-shrink-0">
+                <svg class="w-5 h-5 text-red-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">Export Error</h3>
+                <div class="mt-1 text-sm text-red-700">{error}</div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      {/if}
+
+      <!-- Export Configuration Card -->
+      <Card class="p-6 sm:p-8 shadow-sm border bg-white">
+        <div class="space-y-6">
+          
+          <!-- Period Selection -->
+          <div class="space-y-2">
+            <label for="period-select" class="block text-sm font-medium text-gray-700">
+              Export Period
+            </label>
+            <select
+              id="period-select"
+              bind:value={selectedPeriod}
+              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm bg-white"
+            >
+              <option value="day">Single Day</option>
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+            </select>
+            <p class="text-xs text-gray-500">
+              Choose the time period for your transaction export
+            </p>
+          </div>
+
+          <!-- Date Selection -->
+          <div class="space-y-2">
+            <label for="date-input" class="block text-sm font-medium text-gray-700">
+              {selectedPeriod === 'day' ? 'Select Date' : 
+               selectedPeriod === 'week' ? 'Week Starting Date' : 'Month Starting Date'}
+            </label>
+            <input
+              id="date-input"
+              type="date"
+              bind:value={dateInputValue}
+              oninput={handleDateChange}
+              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm bg-white"
+              max={new Date().toISOString().split('T')[0]}
+            />
+            <p class="text-xs text-gray-500">
+              Select the {selectedPeriod === 'day' ? 'date' : 'starting date'} for your export
+            </p>
+          </div>
+
+          <!-- Transaction Type -->
+          <div class="space-y-2">
+            <label for="type-select" class="block text-sm font-medium text-gray-700">
+              Transaction Type
+            </label>
+            <select
+              id="type-select"
+              bind:value={selectedType}
+              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm bg-white"
+            >
+              <option value="all">All Transactions</option>
+              <option value="income">Income Only</option>
+              <option value="expense">Expenses Only</option>
+            </select>
+            <p class="text-xs text-gray-500">
+              Filter transactions by type for your export
+            </p>
+          </div>
+
+          <!-- Export Button -->
+          <div class="pt-2">
+            <button
+              onclick={handleExport}
+              disabled={isLoading || (remainingExports !== null && remainingExports <= 0)}
+              class="w-full py-3 px-4 text-base font-medium rounded-md bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 text-white shadow-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {#if isLoading}
+                <div class="flex items-center justify-center">
+                  <Spinner size="sm" class="mr-3" />
+                  <span>Generating CSV...</span>
+                </div>
+              {:else}
+                <div class="flex items-center justify-center">
+                  <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>Download CSV Export</span>
+                </div>
+              {/if}
+            </button>
+          </div>
+
+          <!-- Rate Limit Info -->
+          {#if remainingExports !== null}
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-900">Daily Export Limit</p>
+                    <p class="text-xs text-gray-600">Resets every 24 hours</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="text-lg font-bold text-gray-900">{remainingExports}<span class="text-sm font-normal text-gray-500">/10</span></p>
+                  <p class="text-xs text-gray-600">Remaining today</p>
+                </div>
+              </div>
+              
+              <!-- Progress bar -->
+              <div class="mt-3">
+                <div class="bg-gray-200 rounded-full h-2">
+                  <div 
+                    class="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full transition-all duration-300"
+                    style="width: {(remainingExports / 10) * 100}%"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          {/if}
+
+        </div>
+      </Card>
+
+      <!-- Additional Info Card -->
+      <Card class="mt-6 p-6 bg-blue-50 border border-blue-200">
+        <div class="flex items-start space-x-4">
+          <div class="flex-shrink-0">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Export Information</h3>
+            <div class="text-sm text-gray-700 space-y-1">
+              <p>• CSV files include all transaction details: date, amount, category, description, and family member</p>
+              <p>• Exports are limited to 10 per day to ensure system performance</p>
+              <p>• Files are generated in real-time and include the most current data</p>
+              <p>• Date ranges are inclusive of start and end dates</p>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+    </div>
+  </div>
+</div>
