@@ -11,6 +11,15 @@ declare global {
 				user: import('@supabase/supabase-js').User | null;
 			}>;
 		}
+
+		interface PageData {
+			settings?: {
+				currency: string;
+				date_format: string;
+				start_of_week: number;
+				timezone: string;
+			};
+		}
 	} // interface Error {}
 	// interface Locals {}
 } // interface PageData {}

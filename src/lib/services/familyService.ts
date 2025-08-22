@@ -242,11 +242,16 @@ export async function joinFamily(data: JoinFamilyData): Promise<{ family: Family
 
 // Get user's family information
 export async function getUserFamily(): Promise<{ family: Family; user: User } | null> {
+	console.log('🔍 getUserFamily: Starting...');
+	
 	const { data: authUser, error: authError } = await supabase.auth.getUser();
 
 	if (authError || !authUser.user) {
+		console.error('❌ getUserFamily: Auth error or no user', authError);
 		return null;
 	}
+
+	console.log('🔍 getUserFamily: Auth user found:', authUser.user.id);
 
 	const { data: user, error: userError } = await supabase
 		.from('users')
@@ -259,10 +264,32 @@ export async function getUserFamily(): Promise<{ family: Family; user: User } | 
 		.eq('id', authUser.user.id)
 		.single();
 
+	console.log('🔍 getUserFamily: Database query result');
+	console.log('  - User error:', userError);
+	console.log('  - User data:', user ? 'Found' : 'Null');
+	console.log('  - User families:', user?.families ? 'Found' : 'Null');
+	
+	if (userError) {
+		console.error('❌ getUserFamily: User query error:', userError);
+	}
+	
+	if (user) {
+		console.log('🔍 getUserFamily: User details:', {
+			id: user.id,
+			email: user.email,
+			family_id: user.family_id,
+			role: user.role,
+			families_type: typeof user.families,
+			families_content: user.families
+		});
+	}
+
 	if (userError || !user || !user.families) {
+		console.error('❌ getUserFamily: Returning null due to missing data');
 		return null;
 	}
 
+	console.log('✅ getUserFamily: Returning success');
 	return {
 		family: user.families,
 		user: user

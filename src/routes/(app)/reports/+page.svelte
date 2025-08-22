@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { user } from '$lib/store';
 	import { Card, FinanceChart } from '$lib/components';
 	import { formatCurrency } from '$lib/utils/currency';
 	import {
@@ -15,6 +16,8 @@
 		NetWorthTrend,
 		SpendingTrend
 	} from '$lib/services/reportingService';
+
+	let { data } = $props();
 
 	// State variables
 	let monthlyReport = $state<MonthlyReport | null>(null);
@@ -272,7 +275,7 @@
 								<div>
 									<p class="text-sm font-medium text-gray-600">Total Expenses</p>
 									<p class="text-2xl font-bold text-red-600">
-										{formatCurrency(monthlyReport.expenses)}
+										{formatCurrency(monthlyReport.expenses, (data.session.user as any).settings?.currency || 'INR')}
 									</p>
 								</div>
 								<div class="rounded-full bg-red-100 p-3">
@@ -296,7 +299,7 @@
 											? 'text-green-600'
 											: 'text-red-600'}"
 									>
-										{formatCurrency(monthlyReport.net_amount)}
+										{formatCurrency(monthlyReport.net_amount, (data.session.user as any).settings?.currency || 'INR')}
 									</p>
 								</div>
 								<div
@@ -383,7 +386,7 @@
 							</div>
 							<div class="text-center">
 								<div class="text-3xl font-bold text-blue-600">
-									{formatCurrency(budgetPerformance.total_variance)}
+									{formatCurrency(budgetPerformance.total_variance, (data.session.user as any).settings?.currency || 'INR')}
 								</div>
 								<div class="text-sm text-gray-600">Total Variance</div>
 							</div>
@@ -474,17 +477,17 @@
 												{category.category_name}
 											</td>
 											<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
-												{formatCurrency(category.budgeted_amount)}
+												{formatCurrency(category.budgeted_amount, (data.session.user as any).settings?.currency || 'INR')}
 											</td>
 											<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
-												{formatCurrency(category.spent_amount)}
+												{formatCurrency(category.spent_amount, (data.session.user as any).settings?.currency || 'INR')}
 											</td>
 											<td
 												class="px-6 py-4 text-sm whitespace-nowrap {category.remaining_amount >= 0
 													? 'text-green-600'
 													: 'text-red-600'}"
 											>
-												{formatCurrency(category.remaining_amount)}
+												{formatCurrency(category.remaining_amount, (data.session.user as any).settings?.currency || 'INR')}
 											</td>
 											<td class="px-6 py-4 whitespace-nowrap">
 												<div class="flex items-center">
@@ -520,3 +523,4 @@
 		</div>
 	</div>
 </div>
+

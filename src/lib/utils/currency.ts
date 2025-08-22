@@ -5,10 +5,10 @@
 /**
  * Formats a number as Indian Rupee currency
  */
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount: number, currency: string = 'INR'): string {
 	return new Intl.NumberFormat('en-IN', {
 		style: 'currency',
-		currency: 'INR',
+		currency: currency,
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 2
 	}).format(amount);

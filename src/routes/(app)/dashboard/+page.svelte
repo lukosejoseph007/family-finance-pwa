@@ -2,31 +2,28 @@
 	import { onMount } from 'svelte';
 	import { user } from '$lib/store';
 	import { Card, Button, FinanceChart, Modal, Input } from '$lib/components';
-	import {
-		createExpenseByCategory,
-		createMonthlyTrend,
-		createBudgetComparison,
-		formatCurrency
-	} from '$lib/components/charts/ChartUtils';
+	import { createExpenseByCategory, createMonthlyTrend, createBudgetComparison } from '$lib/components/charts/ChartUtils';
+	import { formatCurrency } from '$lib/utils/currency';
 	import { getUserDisplayName } from '$lib/utils/user';
 	import {
 		getMonthlyReport,
 		getCategorySpendingReport,
 		getAccountBalanceDistribution,
-		getBudgetPerformance
+		getBudgetPerformance,
+		getHistoricalReports
 	} from '$lib/services/reportingService';
-	import { getAccountSummary, getAccounts } from '$lib/services/accountService';
-	import { getCategories } from '$lib/services/categoryService';
+		import { getAccountSummary, getAccounts } from '$lib/services/accountService';
+		import { getCategories } from '$lib/services/categoryService';
 	import { createTransaction, validateTransactionData } from '$lib/services/transactionService';
 	import { getCurrentMonth } from '$lib/services/budgetService';
 	import type { TransactionFormData, Account, Category } from '$lib/types';
 
+	// Initialize typed state variables
 	let { data } = $props();
 
-	// Keep the user store in sync with the server session
-	if (data.session?.user) {
-		user.set(data.session.user);
-	}
+	// Keep the user store in sync with the server session from parent layout
+	// Session comes from parent layout, not page data
+	// user.set is handled by the layout component
 
 	// Dashboard data state
 	let loading = $state(true);
@@ -70,7 +67,7 @@
 	let formErrors: string[] = $state([]);
 	let saving = $state(false);
 	let accounts: Account[] = $state([]);
-	let categories: Category[] = $state([]);
+let categories: Category[] = $state([]);
 
 	onMount(() => {
 		// Async part
@@ -104,6 +101,7 @@
 			loading = true;
 			error = '';
 			const currentMonth = getCurrentMonth();
+			const historicalMonths = 6; // Number of months to show in trend chart
 
 			// Load all dashboard data in parallel
 			const [
@@ -111,13 +109,15 @@
 				monthlyReportData,
 				budgetPerformanceData,
 				categorySpending,
-				accountDistribution
+				accountDistribution,
+				historicalData
 			] = await Promise.all([
 				getAccountSummary(),
 				getMonthlyReport(currentMonth),
 				getBudgetPerformance(currentMonth),
 				getCategorySpendingReport(currentMonth),
-				getAccountBalanceDistribution()
+				getAccountBalanceDistribution(),
+				getHistoricalReports(historicalMonths)
 			]);
 
 			// Update state
@@ -150,12 +150,13 @@
 				);
 			}
 
-			// Only create trend chart if there's actual historical data
-			// For new users, this will remain null and show empty state
+			// Create trend chart with current month data
 			if (monthlyReport.income > 0 || monthlyReport.expenses > 0) {
-				// In a real implementation, you would fetch historical data here
-				// For now, we'll leave it null to show the empty state for new users
-				trendChart = null;
+				trendChart = createMonthlyTrend(
+					[monthlyReport.income],
+					[monthlyReport.expenses],
+					['Current Month']
+				);
 			}
 		} catch (err: any) {
 			error = err.message || 'Failed to load dashboard data';
@@ -186,7 +187,7 @@
 			saving = true;
 			error = '';
 
-			const isIncome = categories.find((c) => c.id === formData.category_id)?.type === 'income';
+			const isIncome = categories.find((c: Category) => c.id === formData.category_id)?.type === 'income';
 			const amount = isIncome
 				? Math.abs(parseFloat(formData.amount))
 				: -Math.abs(parseFloat(formData.amount));
@@ -233,7 +234,7 @@
 			<!-- Welcome Header -->
 			<div class="mb-8 text-center">
 				<h1 class="mb-2 text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
-					Welcome back, {getUserDisplayName(data.session?.user).split(' ')[0]}!
+					Welcome back, {$user ? getUserDisplayName($user).split(' ')[0] : 'User'}!
 				</h1>
 				<p class="text-base text-blue-100 opacity-90 sm:text-lg">
 					{new Date().toLocaleDateString('en-IN', {
@@ -404,7 +405,7 @@
 								>
 							</div>
 							<div class="mb-1 text-xl font-bold text-gray-900 lg:text-4xl">
-								{formatCurrency(accountSummary.net_worth)}
+								{formatCurrency(accountSummary.net_worth, data.settings?.currency || 'INR')}
 							</div>
 							<p class="text-base text-gray-500">Net Worth</p>
 						</div>
@@ -439,7 +440,7 @@
 								>
 							</div>
 							<div class="mb-1 text-xl font-bold text-gray-900 lg:text-4xl">
-								{formatCurrency(monthlyReport.income)}
+								{formatCurrency(monthlyReport.income, data.settings?.currency || 'INR')}
 							</div>
 							<p class="text-base text-gray-500">This Month</p>
 						</div>
@@ -474,7 +475,7 @@
 								>
 							</div>
 							<div class="mb-1 text-xl font-bold text-gray-900 lg:text-4xl">
-								{formatCurrency(monthlyReport.expenses)}
+								{formatCurrency(monthlyReport.expenses, data.settings?.currency || 'INR')}
 							</div>
 							<p class="text-base text-gray-500">This Month</p>
 						</div>
@@ -787,7 +788,7 @@
 					class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm"
 				>
 					<option value="">Select a category</option>
-					{#each categories as category}
+					{#each data.categories as category}
 						<option value={category.id}>{category.name}</option>
 					{/each}
 				</select>

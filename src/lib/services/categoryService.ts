@@ -72,11 +72,16 @@ export const categoryTypeColors: Record<CategoryType, string> = {
 
 // Category management functions - Get all categories (including archived)
 export async function getCategories(): Promise<Category[]> {
+	console.log('🔍 getCategories: Starting...');
+	
 	const { data: authUser, error: authError } = await supabase.auth.getUser();
 
 	if (authError || !authUser.user) {
+		console.error('❌ getCategories: User not authenticated', authError);
 		throw new Error('User not authenticated');
 	}
+
+	console.log('🔍 getCategories: Auth user found:', authUser.user.id);
 
 	// Get user's family_id
 	const { data: user, error: userError } = await supabase
@@ -85,10 +90,19 @@ export async function getCategories(): Promise<Category[]> {
 		.eq('id', authUser.user.id)
 		.single();
 
+	console.log('🔍 getCategories: User query result');
+	console.log('  - User error:', userError);
+	console.log('  - User data:', user);
+	console.log('  - Family ID:', user?.family_id);
+
 	if (userError || !user?.family_id) {
-		console.warn('User family not found, returning empty categories');
+		console.warn('⚠️ getCategories: User family not found, returning empty categories');
+		console.warn('  - userError:', userError);
+		console.warn('  - user:', user);
 		return [];
 	}
+
+	console.log('🔍 getCategories: Fetching categories for family:', user.family_id);
 
 	const { data, error } = await supabase
 		.from('categories')
@@ -97,10 +111,16 @@ export async function getCategories(): Promise<Category[]> {
 		.order('type', { ascending: true })
 		.order('name', { ascending: true });
 
+	console.log('🔍 getCategories: Categories query result');
+	console.log('  - Categories error:', error);
+	console.log('  - Categories count:', data?.length || 0);
+
 	if (error) {
+		console.error('❌ getCategories: Categories query error:', error);
 		throw new Error(`Failed to fetch categories: ${error.message}`);
 	}
 
+	console.log('✅ getCategories: Returning categories');
 	return data || [];
 }
 

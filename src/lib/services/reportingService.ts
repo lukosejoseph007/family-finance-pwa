@@ -187,7 +187,7 @@ export async function getSpendingTrends(): Promise<SpendingTrend[]> {
 
 		const spendingByType = new Map<string, number>();
 		(data || []).forEach((transaction) => {
-			const categoryType = (transaction.category as any)?.type || 'uncategorized';
+			const categoryType = transaction.category?.[0]?.type || 'uncategorized';
 			const amount = Math.abs(transaction.amount);
 			spendingByType.set(categoryType, (spendingByType.get(categoryType) || 0) + amount);
 		});
@@ -319,14 +319,38 @@ export async function getFinancialMilestones(): Promise<
 				date: new Date().toISOString()
 			});
 		}
-	} catch (error) {
+	} catch {
 		// Ignore errors for milestone calculation
 	}
 
 	return milestones.slice(0, 5); // Return top 5 milestones
 }
 
+
+
 // Helper functions
+
+// Get historical monthly reports for specified number of months
+export async function getHistoricalReports(months: number = 6): Promise<MonthlyReport[]> {
+	const reports: MonthlyReport[] = [];
+	for (let i = months - 1; i >= 0; i--) {
+		const month = new Date();
+		month.setMonth(month.getMonth() - i);
+		const monthYear = `${month.getFullYear()}-${(month.getMonth() + 1).toString().padStart(2, '0')}`;
+		
+		try {
+			const report = await getMonthlyReport(monthYear);
+			reports.push(report);
+		} catch (error) {
+			console.error(`Failed to fetch report for ${monthYear}:`, error);
+		}
+	}
+	
+	return reports;
+}
+
+
+// Get historical monthly reports for specified number of months
 function getEndOfMonth(monthYear: string): string {
 	const [year, month] = monthYear.split('-').map(Number);
 	const lastDay = new Date(year, month, 0).getDate();
@@ -355,7 +379,7 @@ export async function exportFinancialData(options: {
 	include_budgets?: boolean;
 	include_accounts?: boolean;
 }) {
-	const exportData: any = {
+	const exportData: Record<string, unknown> = {
 		generated_at: new Date().toISOString(),
 		period: {
 			start: options.start_date,

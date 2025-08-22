@@ -1,1 +1,12 @@
-{"mcpServers":{}}
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:/Users/SRINSHA/Desktop/Lukose/Startup Project/Expense Tracker Tool/ExpenseTrackerTool"
+      ]
+    }
+  }
+}
