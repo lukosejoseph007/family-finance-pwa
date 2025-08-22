@@ -86,7 +86,6 @@ export const transactions = pgTable('transactions', {
 		.references(() => accounts.id, { onDelete: 'cascade' })
 		.notNull(),
 	categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'set null' }),
-	userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
 	amount: decimal('amount', { precision: 15, scale: 2 }).notNull(),
 	transactionDate: timestamp('transaction_date', { withTimezone: true }).notNull(),
 	description: text('description').notNull(),
@@ -101,4 +100,17 @@ export const sessions = pgTable('sessions', {
 		.references(() => users.id, { onDelete: 'cascade' })
 		.notNull(),
 	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull()
+});
+
+export const goals = pgTable('goals', {
+	id: uuid('id').defaultRandom().primaryKey(),
+	familyId: uuid('family_id')
+		.references(() => families.id, { onDelete: 'cascade' })
+		.notNull(),
+	categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'set null' }),
+	targetAmount: decimal('target_amount', { precision: 15, scale: 2 }).notNull(),
+	deadline: timestamp('deadline', { withTimezone: true }),
+	progress: decimal('progress', { precision: 15, scale: 2 }).default('0.00'),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).$onUpdateFn(() => new Date())
 });
