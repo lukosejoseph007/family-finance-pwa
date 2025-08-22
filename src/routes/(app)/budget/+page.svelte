@@ -15,6 +15,7 @@
 	} from '$lib/services/budgetService';
 	import {
 		getCategories,
+		getActiveCategories,
 		categoryTypeLabels,
 		categoryTypeIcons,
 		categoryTypeColors
@@ -173,6 +174,31 @@
 			setTimeout(() => (success = ''), 3000);
 		} catch (err: any) {
 			error = err.message || 'Failed to copy budget from previous month';
+		}
+	}
+
+	async function handleUseCategoryDefaults() {
+		try {
+			loading = true;
+			error = '';
+
+			const activeCategories = await getActiveCategories();
+			const updatePromises = activeCategories.map(category =>
+				createOrUpdateBudget({
+					category_id: category.id,
+					month_year: currentMonth,
+					allocated_amount: category.budget_amount.toString()
+				})
+			);
+			
+			await Promise.all(updatePromises);
+			await loadBudgetData();
+			success = 'Budget allocations reset to category defaults';
+			setTimeout(() => (success = ''), 3000);
+		} catch (err: any) {
+			error = err.message || 'Failed to reset to category defaults';
+		} finally {
+			loading = false;
 		}
 	}
 
@@ -353,6 +379,22 @@
 									/>
 								</svg>
 								Copy Previous
+							</span>
+						</button>
+						<button
+							onclick={handleUseCategoryDefaults}
+							class="group transform rounded-xl border border-white/20 bg-white/10 px-5 py-3 font-semibold text-white shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:bg-white/20 hover:shadow-xl"
+						>
+							<span class="inline-flex items-center">
+								<svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+									/>
+								</svg>
+								Use Category Defaults
 							</span>
 						</button>
 						<button
@@ -721,7 +763,8 @@
 			type="number"
 			step="0.01"
 			bind:value={allocateFormData.allocated_amount}
-			placeholder="0.00"
+			placeholder={selectedCategory && selectedCategory.budget_amount > 0 ? `Default: ${formatCurrency(selectedCategory.budget_amount)}` : '0.00'}
+			title="This value is set in Category Settings. Click 'Use Category Defaults' to reset all allocations."
 			required
 		/>
 
