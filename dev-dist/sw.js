@@ -227,7 +227,7 @@ define(['./workbox-789f7e5f'], function (workbox) {
 						}
 						return response;
 					},
-					cacheWillUpdate: async ({ response }) => {
+					cacheWillUpdate: async () => {
 						// Don't cache onboarding responses
 						return null;
 					}
@@ -273,10 +273,17 @@ define(['./workbox-789f7e5f'], function (workbox) {
 		}),
 		'GET'
 	);
-
-	// Message handling for cache management and onboarding fixes
-	self.addEventListener('message', (event) => {
-		console.log('SW received message:', event.data);
+	
+		// Bypass service worker for Supabase auth token refresh requests
+		workbox.registerRoute(
+			({ url }) => url.origin.includes('supabase.co') && url.pathname.includes('/auth/v1/token'),
+			new workbox.NetworkOnly(),
+			'POST'
+		);
+	
+		// Message handling for cache management and onboarding fixes
+		self.addEventListener('message', (event) => {
+			console.log('SW received message:', event.data);
 		
 		if (event.data && event.data.type === 'CLEAR_ONBOARDING_CACHE') {
 			event.waitUntil(

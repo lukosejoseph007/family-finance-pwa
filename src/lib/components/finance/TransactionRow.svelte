@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatCurrency } from '../charts/ChartUtils';
+	import { formatCurrency } from '../../utils/currency';
 
 	export let transaction: {
 		id: string;

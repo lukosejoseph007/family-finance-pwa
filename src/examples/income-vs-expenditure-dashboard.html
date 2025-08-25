@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Charts</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            padding: 20px;
+        }
+
+        .controls {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .view-selector {
+            display: inline-flex;
+            background: #e2e8f0;
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .view-btn {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #64748b;
+        }
+
+        .view-btn.active {
+            background: white;
+            color: #3b82f6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .view-btn:hover:not(.active) {
+            background: rgba(255,255,255,0.5);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        /* Waterfall Chart Styles */
+        .waterfall-chart {
+            display: flex;
+            align-items: end;
+            justify-content: space-around;
+            height: 400px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .waterfall-bar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .waterfall-bar:hover {
+            transform: translateY(-5px);
+        }
+
+        .bar {
+            border-radius: 8px 8px 0 0;
+            min-width: 60px;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .bar-label {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            color: #64748b;
+            max-width: 80px;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1e293b;
+            background: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            white-space: nowrap;
+        }
+
+        /* Pie Chart Styles */
+        .pie-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .pie-chart {
+            display: flex;
+            justify-content: center;
+        }
+
+        .pie-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .legend-item:hover {
+            background: #e2e8f0;
+            transform: translateX(5px);
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        .legend-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .legend-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .legend-value {
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .legend-percent {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-left: 8px;
+        }
+
+        /* Trend Chart Styles */
+        .trend-chart {
+            height: 400px;
+            position: relative;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .legend-item-trend {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 768px) {
+            .pie-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .waterfall-chart {
+                flex-wrap: wrap;
+                height: auto;
+                gap: 20px;
+            }
+            
+            .chart-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <div class="view-selector">
+            <button class="view-btn active" data-view="waterfall">💧 Cash Flow</button>
+            <button class="view-btn" data-view="breakdown">🥧 Breakdown</button>
+            <button class="view-btn" data-view="trends">📈 Trends</button>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <div id="chartContent"></div>
+    </div>
+
+    <script>
+        class FinancialCharts {
+            constructor() {
+                this.selectedView = 'waterfall';
+                this.data = this.initializeData();
+                this.bindEvents();
+                this.renderChart();
+            }
+
+            initializeData() {
+                const monthlyData = [
+                    { month: 'Jan', income: 5000, expenses: 4200, savings: 800 },
+                    { month: 'Feb', income: 5200, expenses: 4500, savings: 700 },
+                    { month: 'Mar', income: 5100, expenses: 4100, savings: 1000 },
+                    { month: 'Apr', income: 5300, expenses: 4600, savings: 700 },
+                    { month: 'May', income: 5150, expenses: 4300, savings: 850 },
+                    { month: 'Jun', income: 5400, expenses: 4700, savings: 700 }
+                ];
+
+                const expenseCategories = [
+                    { name: 'Housing', value: 1800, color: '#FF6B6B', percentage: 38.3 },
+                    { name: 'Food', value: 800, color: '#4ECDC4', percentage: 17.0 },
+                    { name: 'Transportation', value: 600, color: '#45B7D1', percentage: 12.8 },
+                    { name: 'Utilities', value: 400, color: '#96CEB4', percentage: 8.5 },
+                    { name: 'Entertainment', value: 300, color: '#FECA57', percentage: 6.4 },
+                    { name: 'Healthcare', value: 250, color: '#FF9FF3', percentage: 5.3 },
+                    { name: 'Other', value: 550, color: '#A8E6CF', percentage: 11.7 }
+                ];
+
+                const waterfallData = [
+                    { name: 'Income', value: 5200, cumulative: 5200, type: 'positive', color: '#10B981' },
+                    { name: 'Housing', value: -1800, cumulative: 3400, type: 'negative', color: '#FF6B6B' },
+                    { name: 'Food', value: -800, cumulative: 2600, type: 'negative', color: '#4ECDC4' },
+                    { name: 'Transport', value: -600, cumulative: 2000, type: 'negative', color: '#45B7D1' },
+                    { name: 'Utilities', value: -400, cumulative: 1600, type: 'negative', color: '#96CEB4' },
+                    { name: 'Entertainment', value: -300, cumulative: 1300, type: 'negative', color: '#FECA57' },
+                    { name: 'Healthcare', value: -250, cumulative: 1050, type: 'negative', color: '#FF9FF3' },
+                    { name: 'Other', value: -550, cumulative: 500, type: 'negative', color: '#A8E6CF' },
+                    { name: 'Net Savings', value: 500, cumulative: 500, type: 'total', color: '#8B5CF6' }
+                ];
+
+                return { monthlyData, expenseCategories, waterfallData };
+            }
+
+            renderChart() {
+                const content = document.getElementById('chartContent');
+                content.innerHTML = '';
+
+                switch (this.selectedView) {
+                    case 'waterfall':
+                        this.renderWaterfallChart();
+                        break;
+                    case 'breakdown':
+                        this.renderBreakdownChart();
+                        break;
+                    case 'trends':
+                        this.renderTrendsChart();
+                        break;
+                }
+            }
+
+            renderWaterfallChart() {
+                const maxValue = Math.max(...this.data.waterfallData.map(d => Math.abs(d.cumulative)));
+                
+                document.getElementById('chartContent').innerHTML = `
+                    <h2 class="chart-title">Cash Flow Waterfall</h2>
+                    <div class="waterfall-chart">
+                        ${this.data.waterfallData.map(item => {
+                            const height = Math.abs(item.value) / maxValue * 300;
+                            return `
+                                <div class="waterfall-bar">
+                                    <div class="bar" style="
+                                        height: ${height}px;
+                                        background: linear-gradient(135deg, ${item.color}, ${item.color}cc);
+                                    ">
+                                        <div class="bar-value">$${Math.abs(item.value)}</div>
+                                    </div>
+                                    <div class="bar-label">${item.name}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            renderBreakdownChart() {
+                document.getElementById('chartContent').innerHTML = `
+                    <h2 class="chart-title">Expense Breakdown</h2>
+                    <div class="pie-container">
+                        <div class="pie-chart" id="pieChart"></div>
+                        <div class="pie-legend">
+                            ${this.data.expenseCategories.map(cat => `
+                                <div class="legend-item">
+                                    <div class="legend-info">
+                                        <div class="legend-color" style="background-color: ${cat.color}"></div>
+                                        <span class="legend-name">${cat.name}</span>
+                                    </div>
+                                    <div>
+                                        <span class="legend-value">$${cat.value}</span>
+                                        <span class="legend-percent">(${cat.percentage}%)</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+                // Render D3 pie chart
+                setTimeout(() => this.createPieChart(), 0);
+            }
+
+            renderTrendsChart() {
+                document.getElementById('chartContent').innerHTML = `
+                    <h2 class="chart-title">Monthly Trends</h2>
+                    <div class="chart-legend">
+                        <div class="legend-item-trend">
+                            <div class="legend-dot" style="background-color: #10B981"></div>
+                            <span>Income</span>
+                        </div>
+                        <div class="legend-item-trend">
+                            <div class="legend-dot" style="background-color: #EF4444"></div>
+                            <span>Expenses</span>
+                        </div>
+                        <div class="legend-item-trend">
+                            <div class="legend-dot" style="background-color: #3B82F6"></div>
+                            <span>Savings</span>
+                        </div>
+                    </div>
+                    <div class="trend-chart" id="trendChart"></div>
+                `;
+
+                // Render D3 trend chart
+                setTimeout(() => this.createTrendChart(), 0);
+            }
+
+            createPieChart() {
+                const width = 300;
+                const height = 300;
+                const radius = Math.min(width, height) / 2 - 10;
+
+                const svg = d3.select('#pieChart')
+                    .append('svg')
+                    .attr('width', width)
+                    .attr('height', height);
+
+                const g = svg.append('g')
+                    .attr('transform', `translate(${width/2}, ${height/2})`);
+
+                const pie = d3.pie()
+                    .value(d => d.value)
+                    .sort(null);
+
+                const arc = d3.arc()
+                    .innerRadius(radius * 0.4)
+                    .outerRadius(radius);
+
+                const arcs = g.selectAll('arc')
+                    .data(pie(this.data.expenseCategories))
+                    .enter()
+                    .append('g');
+
+                arcs.append('path')
+                    .attr('d', arc)
+                    .attr('fill', d => d.data.color)
+                    .style('opacity', 0.8)
+                    .style('stroke', '#fff')
+                    .style('stroke-width', 2)
+                    .on('mouseover', function() {
+                        d3.select(this)
+                            .transition()
+                            .duration(200)
+                            .style('opacity', 1)
+                            .attr('transform', 'scale(1.05)');
+                    })
+                    .on('mouseout', function() {
+                        d3.select(this)
+                            .transition()
+                            .duration(200)
+                            .style('opacity', 0.8)
+                            .attr('transform', 'scale(1)');
+                    });
+            }
+
+            createTrendChart() {
+                const margin = {top: 20, right: 30, bottom: 40, left: 60};
+                const width = 900 - margin.left - margin.right;
+                const height = 350 - margin.bottom - margin.top;
+
+                const svg = d3.select('#trendChart')
+                    .append('svg')
+                    .attr('width', '100%')
+                    .attr('height', height + margin.top + margin.bottom)
+                    .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`);
+
+                const g = svg.append('g')
+                    .attr('transform', `translate(${margin.left},${margin.top})`);
+
+                const x = d3.scalePoint()
+                    .domain(this.data.monthlyData.map(d => d.month))
+                    .range([0, width]);
+
+                const y = d3.scaleLinear()
+                    .domain([0, d3.max(this.data.monthlyData, d => Math.max(d.income, d.expenses))])
+                    .range([height, 0]);
+
+                // Add gridlines
+                g.selectAll('.grid-line')
+                    .data(y.ticks(6))
+                    .enter()
+                    .append('line')
+                    .attr('x1', 0)
+                    .attr('x2', width)
+                    .attr('y1', d => y(d))
+                    .attr('y2', d => y(d))
+                    .style('stroke', '#f1f5f9')
+                    .style('stroke-width', 1);
+
+                // Create area generators
+                const incomeArea = d3.area()
+                    .x(d => x(d.month))
+                    .y0(height)
+                    .y1(d => y(d.income))
+                    .curve(d3.curveCardinal);
+
+                const expenseArea = d3.area()
+                    .x(d => x(d.month))
+                    .y0(height)
+                    .y1(d => y(d.expenses))
+                    .curve(d3.curveCardinal);
+
+                // Create line generators
+                const incomeLine = d3.line()
+                    .x(d => x(d.month))
+                    .y(d => y(d.income))
+                    .curve(d3.curveCardinal);
+
+                const expenseLine = d3.line()
+                    .x(d => x(d.month))
+                    .y(d => y(d.expenses))
+                    .curve(d3.curveCardinal);
+
+                const savingsLine = d3.line()
+                    .x(d => x(d.month))
+                    .y(d => y(d.savings))
+                    .curve(d3.curveCardinal);
+
+                // Add areas
+                g.append('path')
+                    .datum(this.data.monthlyData)
+                    .attr('fill', '#10B981')
+                    .attr('fill-opacity', 0.1)
+                    .attr('d', incomeArea);
+
+                g.append('path')
+                    .datum(this.data.monthlyData)
+                    .attr('fill', '#EF4444')
+                    .attr('fill-opacity', 0.1)
+                    .attr('d', expenseArea);
+
+                // Add lines
+                g.append('path')
+                    .datum(this.data.monthlyData)
+                    .attr('fill', 'none')
+                    .attr('stroke', '#10B981')
+                    .attr('stroke-width', 3)
+                    .attr('d', incomeLine);
+
+                g.append('path')
+                    .datum(this.data.monthlyData)
+                    .attr('fill', 'none')
+                    .attr('stroke', '#EF4444')
+                    .attr('stroke-width', 3)
+                    .attr('d', expenseLine);
+
+                g.append('path')
+                    .datum(this.data.monthlyData)
+                    .attr('fill', 'none')
+                    .attr('stroke', '#3B82F6')
+                    .attr('stroke-width', 2)
+                    .attr('stroke-dasharray', '5,5')
+                    .attr('d', savingsLine);
+
+                // Add data points
+                ['income', 'expenses', 'savings'].forEach((key, i) => {
+                    const colors = ['#10B981', '#EF4444', '#3B82F6'];
+                    g.selectAll(`.${key}-dot`)
+                        .data(this.data.monthlyData)
+                        .enter()
+                        .append('circle')
+                        .attr('cx', d => x(d.month))
+                        .attr('cy', d => y(d[key]))
+                        .attr('r', 4)
+                        .style('fill', colors[i])
+                        .style('stroke', '#fff')
+                        .style('stroke-width', 2);
+                });
+
+                // Add axes
+                g.append('g')
+                    .attr('transform', `translate(0,${height})`)
+                    .call(d3.axisBottom(x))
+                    .selectAll('text')
+                    .style('font-size', '12px');
+
+                g.append('g')
+                    .call(d3.axisLeft(y).tickFormat(d => `$${d}`))
+                    .selectAll('text')
+                    .style('font-size', '12px');
+            }
+
+            bindEvents() {
+                document.querySelectorAll('.view-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        // Update active state
+                        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        
+                        // Update view and render
+                        this.selectedView = e.target.dataset.view;
+                        this.renderChart();
+                    });
+                });
+            }
+        }
+
+        // Initialize the charts
+        new FinancialCharts();
+    </script>
+</body>
+</html>

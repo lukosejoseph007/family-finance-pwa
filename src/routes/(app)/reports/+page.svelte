@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { user } from '$lib/store';
-	import { Card, FinanceChart } from '$lib/components';
+	import { Card, PieChart, MultiLineChart } from '$lib/components';
 	import { formatCurrency } from '$lib/utils/currency';
 	import {
 		getMonthlyReport,
@@ -39,64 +39,54 @@
 		return `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
 	}
 
-	// Derived chart data
+	// Derived chart data - converted to LayerChart format
 	const categoryChartData = $derived(() => {
 		if (!categorySpending.length) return null;
 
-		return {
-			labels: categorySpending.map((cat) => cat.category_name),
-			datasets: [
-				{
-					label: 'Spent Amount',
-					data: categorySpending.map((cat) => cat.spent_amount),
-					backgroundColor: [
-						'#ef4444',
-						'#f97316',
-						'#eab308',
-						'#22c55e',
-						'#3b82f6',
-						'#8b5cf6',
-						'#ec4899',
-						'#06b6d4',
-						'#84cc16',
-						'#f59e0b'
-					],
-					borderWidth: 1
-				}
-			]
-		};
+		// Filter out categories with no spending to avoid clutter
+		const categoriesWithSpending = categorySpending.filter(cat => cat.spent_amount > 0);
+		if (!categoriesWithSpending.length) return null;
+
+		// Calculate total for percentage calculations
+		const totalSpent = categoriesWithSpending.reduce((sum, cat) => sum + cat.spent_amount, 0);
+		
+		return categoriesWithSpending.map((cat) => ({
+			name: cat.category_name,
+			value: cat.spent_amount,
+			color: cat.category_type === 'income' ? '#10b981' : '#ef4444', // Green for income, red for expense
+			percentage: totalSpent > 0 ? (cat.spent_amount / totalSpent) * 100 : 0
+		}));
 	});
 
 	const netWorthChartData = $derived(() => {
 		if (!netWorthTrends.length) return null;
 
+		const chartData = netWorthTrends.map((trend) => {
+			const date = new Date(trend.date);
+			return {
+				date: date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }),
+				assets: trend.assets,
+				liabilities: trend.liabilities,
+				netWorth: trend.net_worth
+			};
+		});
+
 		return {
-			labels: netWorthTrends.map((trend) => {
-				const date = new Date(trend.date);
-				return date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
-			}),
-			datasets: [
+			series: [
 				{
 					label: 'Assets',
-					data: netWorthTrends.map((trend) => trend.assets),
-					borderColor: '#22c55e',
-					backgroundColor: 'rgba(34, 197, 94, 0.1)',
-					tension: 0.3
+					color: '#22c55e',
+					data: chartData.map(item => ({ x: item.date, y: item.assets }))
 				},
 				{
 					label: 'Liabilities',
-					data: netWorthTrends.map((trend) => trend.liabilities),
-					borderColor: '#ef4444',
-					backgroundColor: 'rgba(239, 68, 68, 0.1)',
-					tension: 0.3
+					color: '#ef4444',
+					data: chartData.map(item => ({ x: item.date, y: item.liabilities }))
 				},
 				{
 					label: 'Net Worth',
-					data: netWorthTrends.map((trend) => trend.net_worth),
-					borderColor: '#3b82f6',
-					backgroundColor: 'rgba(59, 130, 246, 0.1)',
-					tension: 0.3,
-					borderWidth: 3
+					color: '#3b82f6',
+					data: chartData.map(item => ({ x: item.date, y: item.netWorth }))
 				}
 			]
 		};
@@ -109,32 +99,34 @@
 		const categoryTypes = [...new Set(spendingTrends.map((trend) => trend.category_type))];
 		const months = [...new Set(spendingTrends.map((trend) => trend.month_year))].sort();
 
-		const datasets = categoryTypes.map((categoryType, index) => {
-			const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
+		if (!categoryTypes.length || !months.length) return null;
+
+		const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6'];
+		
+		const series = categoryTypes.map((categoryType, index) => {
 			const color = colors[index % colors.length];
+			const data = months.map((month) => {
+				const trend = spendingTrends.find(
+					(t) => t.month_year === month && t.category_type === categoryType
+				);
+				const [year, monthNum] = month.split('-');
+				const date = new Date(parseInt(year), parseInt(monthNum) - 1);
+				const label = date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+				
+				return {
+					x: label,
+					y: trend ? trend.amount : 0
+				};
+			});
 
 			return {
 				label: categoryType.charAt(0).toUpperCase() + categoryType.slice(1),
-				data: months.map((month) => {
-					const trend = spendingTrends.find(
-						(t) => t.month_year === month && t.category_type === categoryType
-					);
-					return trend ? trend.amount : 0;
-				}),
-				borderColor: color,
-				backgroundColor: color + '20',
-				tension: 0.3
+				color: color,
+				data: data
 			};
 		});
 
-		return {
-			labels: months.map((month) => {
-				const [year, monthNum] = month.split('-');
-				const date = new Date(parseInt(year), parseInt(monthNum) - 1);
-				return date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
-			}),
-			datasets
-		};
+		return { series };
 	});
 
 	async function loadReports() {
@@ -409,20 +401,30 @@
 				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					<!-- Category Spending Chart -->
 					{#if categoryChartData()}
-						<Card class="p-6">
-							<h2 class="mb-4 text-xl font-semibold text-gray-900">Category Spending Breakdown</h2>
+						<Card class="p-4 lg:p-6">
+							<h2 class="mb-4 text-lg lg:text-xl font-semibold text-gray-900">Category Spending Breakdown</h2>
 							<div class="h-80">
-								<FinanceChart type="doughnut" data={categoryChartData() as any} />
+								<PieChart
+									data={categoryChartData() || []}
+									currency={(data.session.user as any).settings?.currency || 'INR'}
+									height={320}
+								/>
 							</div>
 						</Card>
 					{/if}
 
 					<!-- Net Worth Trend Chart -->
 					{#if netWorthChartData()}
-						<Card class="p-6">
-							<h2 class="mb-4 text-xl font-semibold text-gray-900">Net Worth Trend</h2>
+						<Card class="p-4 lg:p-6">
+							<h2 class="mb-4 text-lg lg:text-xl font-semibold text-gray-900">Net Worth Trend</h2>
 							<div class="h-80">
-								<FinanceChart type="line" data={netWorthChartData() as any} />
+								<MultiLineChart
+									data={netWorthChartData() || { series: [] }}
+									currency={(data.session.user as any).settings?.currency || 'INR'}
+									height={320}
+									showTooltip={true}
+									showLegend={true}
+								/>
 							</div>
 						</Card>
 					{/if}
@@ -430,12 +432,18 @@
 
 				<!-- Spending Trends Chart -->
 				{#if spendingTrendsChartData()}
-					<Card class="p-6">
-						<h2 class="mb-4 text-xl font-semibold text-gray-900">
+					<Card class="p-4 lg:p-6">
+						<h2 class="mb-4 text-lg lg:text-xl font-semibold text-gray-900">
 							Spending Trends by Category (Last 12 Months)
 						</h2>
 						<div class="h-96">
-							<FinanceChart type="line" data={spendingTrendsChartData() as any} />
+							<MultiLineChart
+								data={spendingTrendsChartData() || { series: [] }}
+								currency={(data.session.user as any).settings?.currency || 'INR'}
+								height={384}
+								showTooltip={true}
+								showLegend={true}
+							/>
 						</div>
 					</Card>
 				{/if}

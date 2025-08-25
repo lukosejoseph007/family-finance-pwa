@@ -18,15 +18,35 @@ interface UserExistsResponse {
 	needsConfirmation: boolean;
 }
 
-export const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+export const supabase = createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+  global: {
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': PUBLIC_SUPABASE_ANON_KEY
+    }
+  },
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+});
 
 // Check if running as PWA
 const isPWA = (): boolean => {
 	return (
-		window.matchMedia('(display-mode: standalone)').matches ||
-		(window.navigator as NavigatorWithStandalone).standalone === true ||
-		document.referrer.includes('android-app://')
+		typeof window !== 'undefined' && (
+			window.matchMedia('(display-mode: standalone)').matches ||
+			(window.navigator as NavigatorWithStandalone).standalone === true ||
+			document.referrer.includes('android-app://') ||
+			window.location.search.includes('pwa=1')
+		)
 	);
+};
+
+// Check if we're online
+export const isOnline = (): boolean => {
+	return typeof navigator !== 'undefined' && navigator.onLine;
 };
 
 // Central redirect target with PWA awareness
@@ -210,6 +230,53 @@ export const updateUserProfile = async (updates: UserProfileUpdates) => {
 
 export const refreshSession = async () => {
 	const { data, error } = await supabase.auth.refreshSession();
-	if (error) throw error;
+	if (error) {
+		// Handle network errors specifically
+		if (error.message.includes('Network request failed') ||
+			error.message.includes('Failed to fetch') ||
+			error.message.includes('NetworkError')) {
+			
+			// Check if we're offline
+			if (!navigator.onLine) {
+				console.warn('Network error: Device is offline. Will retry when online.');
+				return null; // Return null instead of throwing to allow graceful handling
+			}
+			
+			// Implement retry logic with exponential backoff
+			const maxRetries = 3;
+			let retryCount = 0;
+			
+			while (retryCount < maxRetries) {
+				retryCount++;
+				const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
+				
+				console.log(`Retrying session refresh (attempt ${retryCount}/${maxRetries}) in ${delay}ms...`);
+				await new Promise(resolve => setTimeout(resolve, delay));
+				
+				const retryResult = await supabase.auth.refreshSession();
+				if (!retryResult.error) {
+					console.log('Session refresh successful after retry');
+					return retryResult.data;
+				}
+				
+				// If it's not a network error anymore, stop retrying
+				if (!retryResult.error.message.includes('Network request failed') &&
+					!retryResult.error.message.includes('Failed to fetch') &&
+					!retryResult.error.message.includes('NetworkError')) {
+					throw retryResult.error;
+				}
+			}
+			
+			// If all retries failed, check if we're offline
+			if (!navigator.onLine) {
+				console.warn('Network error: Device is offline after multiple retries.');
+				return null;
+			}
+			
+			// If still failing after retries, throw the error
+			throw new Error(`Session refresh failed after ${maxRetries} attempts: ${error.message}`);
+		}
+		throw error;
+	}
 	return data;
 };

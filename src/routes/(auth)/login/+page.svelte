@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Button, Input } from '$lib/components';
-	import { signIn, signInWithGoogle } from '$lib/supabaseClient';
+	import { signIn, signInWithGoogle, supabase } from '$lib/supabaseClient';
 
 	let email = '';
 	let password = '';
@@ -85,7 +85,7 @@
 		</p>
 	</div>
 
-	<form on:submit|preventDefault={handleLogin} class="space-y-6">
+	<form onsubmit={(e) => { e.preventDefault(); handleLogin(); }} class="space-y-6">
 		{#if error}
 			<div class="rounded-md bg-red-50 p-4">
 				<div class="text-sm text-red-700">{error}</div>

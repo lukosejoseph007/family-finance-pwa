@@ -66,56 +66,66 @@ export async function getMonthlyReport(monthYear: string): Promise<MonthlyReport
 export async function getCategorySpendingReport(
 	monthYear: string = getCurrentMonth()
 ): Promise<CategorySpendingReport[]> {
-	const { data, error } = await supabase
+	// Get budget data
+	const { data: budgets, error: budgetError } = await supabase
 		.from('budgets')
 		.select(
 			`
 			category_id,
 			allocated_amount,
-			spent_amount,
-			available_amount,
 			category:categories(name, type)
 		`
 		)
 		.eq('month_year', monthYear);
 
-	if (error) {
-		throw new Error(`Failed to fetch category spending report: ${error.message}`);
+	if (budgetError) {
+		throw new Error(`Failed to fetch budgets: ${budgetError.message}`);
 	}
 
-	// Get transaction counts per category
-	const { data: transactionCounts, error: countError } = await supabase
+	// Get actual spending from transactions
+	const { data: transactions, error: transactionError } = await supabase
 		.from('transactions')
-		.select('category_id')
+		.select('category_id, amount')
 		.gte('transaction_date', `${monthYear}-01`)
-		.lt('transaction_date', getNextMonthDate(monthYear));
+		.lt('transaction_date', getNextMonthDate(monthYear))
+		.lt('amount', 0); // Only expenses (negative amounts)
 
-	if (countError) {
-		throw new Error(`Failed to fetch transaction counts: ${countError.message}`);
+	if (transactionError) {
+		throw new Error(`Failed to fetch transactions: ${transactionError.message}`);
 	}
 
-	const transactionCountMap = new Map<string, number>();
-	(transactionCounts || []).forEach((t) => {
+	// Calculate spending by category
+	const spendingByCategory = new Map<string, { amount: number; count: number }>();
+	(transactions || []).forEach((t) => {
 		if (t.category_id) {
-			transactionCountMap.set(t.category_id, (transactionCountMap.get(t.category_id) || 0) + 1);
+			const existing = spendingByCategory.get(t.category_id) || { amount: 0, count: 0 };
+			spendingByCategory.set(t.category_id, {
+				amount: existing.amount + Math.abs(t.amount),
+				count: existing.count + 1
+			});
 		}
 	});
 
-	return (data || []).map((budget) => ({
-		category_id: budget.category_id,
-		category_name: (budget.category && 'name' in budget.category
-			? budget.category.name
-			: 'Unknown') as string,
-		category_type: (budget.category && 'type' in budget.category
-			? budget.category.type
-			: 'unknown') as string,
-		budgeted_amount: budget.allocated_amount,
-		spent_amount: budget.spent_amount,
-		remaining_amount: budget.available_amount,
-		percentage_used:
-			budget.allocated_amount > 0 ? (budget.spent_amount / budget.allocated_amount) * 100 : 0,
-		transaction_count: transactionCountMap.get(budget.category_id) || 0
-	}));
+	return (budgets || []).map((budget) => {
+		const spending = spendingByCategory.get(budget.category_id) || { amount: 0, count: 0 };
+		const remaining = budget.allocated_amount - spending.amount;
+		
+		return {
+			category_id: budget.category_id,
+			category_name: (budget.category && 'name' in budget.category
+				? budget.category.name
+				: 'Unknown') as string,
+			category_type: (budget.category && 'type' in budget.category
+				? budget.category.type
+				: 'unknown') as string,
+			budgeted_amount: budget.allocated_amount,
+			spent_amount: spending.amount,
+			remaining_amount: remaining,
+			percentage_used:
+				budget.allocated_amount > 0 ? (spending.amount / budget.allocated_amount) * 100 : 0,
+			transaction_count: spending.count
+		};
+	});
 }
 
 // Get net worth trend over time (last 12 months)

@@ -10,9 +10,8 @@
 		Spinner,
 		BudgetProgressBar,
 		CurrencyInput,
-		FinanceChart
+		PieChart
 	} from '$lib/components';
-	import { createExpenseByCategory } from '$lib/components/charts/ChartUtils';
 
 	// Demo data and state
 	let modalOpen = $state(false);
@@ -35,7 +34,10 @@
 		{ category: 'Utilities', amount: 2500 }
 	];
 
-	const chartData = createExpenseByCategory(sampleExpenseData);
+	const chartData = sampleExpenseData.map(item => ({
+		label: item.category,
+		value: item.amount
+	}));
 
 	const tableHeaders = ['Category', 'Budget', 'Spent', 'Status'];
 	const budgetData = [
@@ -214,7 +216,7 @@
 				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					<div>
 						<h4 class="mb-4 font-medium text-gray-900">Expense Breakdown</h4>
-						<FinanceChart type="doughnut" data={chartData} height="300px" />
+						<PieChart data={chartData} height={300} showTooltip={true} />
 					</div>
 					<div class="space-y-4">
 						<h4 class="font-medium text-gray-900">Chart Features</h4>
@@ -274,7 +276,7 @@
 					All components are available through a single import from the component library:
 				</p>
 				<pre class="overflow-x-auto rounded-lg bg-gray-100 p-4 text-sm"><code
-						>import &#123; Button, Input, Card, Modal, Select, Table, Badge, Spinner, BudgetProgressBar, CurrencyInput, FinanceChart &#125; from '$lib/components';</code
+						>import &#123; Button, Input, Card, Modal, Select, Table, Badge, Spinner, BudgetProgressBar, CurrencyInput, PieChart, LineChart, BarChart, MultiLineChart &#125; from '$lib/components';</code
 					></pre>
 
 				<div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -296,7 +298,10 @@
 						<ul class="space-y-1 text-sm text-gray-600">
 							<li>• <strong>CurrencyInput</strong> - Rupee amount input</li>
 							<li>• <strong>BudgetProgressBar</strong> - Budget tracking</li>
-							<li>• <strong>FinanceChart</strong> - Financial visualizations</li>
+							<li>• <strong>PieChart</strong> - Category breakdown charts</li>
+							<li>• <strong>LineChart</strong> - Trend analysis charts</li>
+							<li>• <strong>BarChart</strong> - Comparison charts</li>
+							<li>• <strong>MultiLineChart</strong> - Multi-series trend charts</li>
 							<li>• <strong>AccountCard</strong> - Account display</li>
 							<li>• <strong>TransactionRow</strong> - Transaction items</li>
 						</ul>

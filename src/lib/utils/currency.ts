@@ -3,7 +3,7 @@
  */
 
 /**
- * Formats a number as Indian Rupee currency
+ * Formats a number as Indian Rupee currency using ISO 4217 code 'INR'
  */
 export function formatCurrency(amount: number, currency: string = 'INR'): string {
 	return new Intl.NumberFormat('en-IN', {

@@ -1,351 +1,151 @@
-/**
- * Chart.js Utilities and Configuration
- * Provides common chart configurations and utilities for financial visualizations
- */
+// LayerChart utilities for financial data visualization
+// Optimized for LayerChart library with proper data transformation
 
-import {
-	Chart as ChartJS,
-	CategoryScale,
-	LinearScale,
-	PointElement,
-	LineElement,
-	BarElement,
-	Title,
-	Tooltip,
-	Legend,
-	ArcElement,
-	TimeScale,
-	type ChartData,
-	type ChartOptions
-} from 'chart.js';
-
-import 'chartjs-adapter-date-fns';
-
-// Register Chart.js components
-ChartJS.register(
-	CategoryScale,
-	LinearScale,
-	PointElement,
-	LineElement,
-	BarElement,
-	Title,
-	Tooltip,
-	Legend,
-	ArcElement,
-	TimeScale
-);
-
-// Color palette for financial charts
+// Color palette optimized for financial data visualization
 export const CHART_COLORS = {
-	income: '#10B981', // Green
-	expense: '#EF4444', // Red
-	savings: '#3B82F6', // Blue
-	investment: '#8B5CF6', // Purple
-	debt: '#F59E0B', // Orange
-	budget: '#6B7280', // Gray
-	actual: '#1F2937' // Dark gray
-} as const;
-
-export const CHART_BACKGROUNDS = {
-	income: '#10B98120',
-	expense: '#EF444420',
-	savings: '#3B82F620',
-	investment: '#8B5CF620',
-	debt: '#F59E0B20',
-	budget: '#6B728020',
-	actual: '#1F293720'
-} as const;
-
-// Common chart options
-export const DEFAULT_CHART_OPTIONS: ChartOptions = {
-	responsive: true,
-	maintainAspectRatio: false,
-	plugins: {
-		legend: {
-			position: 'top' as const,
-			labels: {
-				usePointStyle: true,
-				font: {
-					family: 'system-ui, -apple-system, sans-serif',
-					size: 12
-				}
-			}
-		},
-		tooltip: {
-			backgroundColor: 'rgba(0, 0, 0, 0.8)',
-			titleColor: '#ffffff',
-			bodyColor: '#ffffff',
-			borderColor: '#374151',
-			borderWidth: 1,
-			cornerRadius: 8,
-			displayColors: true,
-			callbacks: {
-				label: function (context) {
-					const value = context.parsed.y;
-					return `${context.dataset.label}: ₹${value.toLocaleString('en-IN')}`;
-				}
-			}
-		}
-	},
-	scales: {
-		y: {
-			beginAtZero: true,
-			grid: {
-				color: '#E5E7EB'
-			},
-			ticks: {
-				callback: function (value) {
-					return '₹' + (value as number).toLocaleString('en-IN');
-				},
-				font: {
-					family: 'system-ui, -apple-system, sans-serif',
-					size: 11
-				}
-			}
-		},
-		x: {
-			grid: {
-				color: '#E5E7EB'
-			},
-			ticks: {
-				font: {
-					family: 'system-ui, -apple-system, sans-serif',
-					size: 11
-				}
-			}
-		}
-	}
+	primary: '#3b82f6',
+	income: '#10b981',
+	expense: '#ef4444',
+	budget: '#8b5cf6',
+	actual: '#f59e0b',
+	neutral: '#6b7280',
+	expenses: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4']
 };
 
-// Line chart specific options
-export const LINE_CHART_OPTIONS = {
-	responsive: true,
-	maintainAspectRatio: false,
-	plugins: {
-		legend: {
-			position: 'top' as const
-		},
-		tooltip: {
-			backgroundColor: 'rgba(0, 0, 0, 0.8)',
-			titleColor: '#ffffff',
-			bodyColor: '#ffffff',
-			callbacks: {
-				label: function (context: { dataset: { label: string }; parsed: { y: number } }) {
-					const value = context.parsed.y;
-					return `${context.dataset.label}: ₹${value.toLocaleString('en-IN')}`;
-				}
-			}
-		}
-	},
-	elements: {
-		line: {
-			tension: 0.1,
-			borderWidth: 2
-		},
-		point: {
-			radius: 4,
-			hoverRadius: 6
-		}
-	},
-	scales: {
-		y: {
-			beginAtZero: true,
-			ticks: {
-				callback: function (value: number) {
-					return '₹' + value.toLocaleString('en-IN');
-				}
-			}
-		}
-	}
-};
-
-// Bar chart specific options
-export const BAR_CHART_OPTIONS = {
-	responsive: true,
-	maintainAspectRatio: false,
-	plugins: {
-		legend: {
-			position: 'top' as const
-		},
-		tooltip: {
-			backgroundColor: 'rgba(0, 0, 0, 0.8)',
-			titleColor: '#ffffff',
-			bodyColor: '#ffffff',
-			callbacks: {
-				label: function (context: { dataset: { label: string }; parsed: { y: number } }) {
-					const value = context.parsed.y;
-					return `${context.dataset.label}: ₹${value.toLocaleString('en-IN')}`;
-				}
-			}
-		}
-	},
-	elements: {
-		bar: {
-			borderRadius: 4
-		}
-	},
-	scales: {
-		y: {
-			beginAtZero: true,
-			ticks: {
-				callback: function (value: number) {
-					return '₹' + value.toLocaleString('en-IN');
-				}
-			}
-		}
-	}
-};
-
-// Doughnut chart specific options
-export const DOUGHNUT_CHART_OPTIONS: ChartOptions<'doughnut'> = {
-	responsive: true,
-	maintainAspectRatio: false,
-	plugins: {
-		legend: {
-			position: 'right' as const,
-			labels: {
-				usePointStyle: true,
-				font: {
-					family: 'system-ui, -apple-system, sans-serif',
-					size: 12
-				},
-				generateLabels: function (chart) {
-					const data = chart.data;
-					if (data.labels?.length && data.datasets.length) {
-						return data.labels.map((label, i) => {
-							const dataset = data.datasets[0];
-							const value = dataset.data[i] as number;
-							const total = (dataset.data as number[]).reduce((a, b) => a + b, 0);
-							const percentage = ((value / total) * 100).toFixed(1);
-
-							const backgroundColor = Array.isArray(dataset.backgroundColor)
-								? (dataset.backgroundColor[i] as string)
-								: (dataset.backgroundColor as string);
-
-							return {
-								text: `${label}: ${percentage}%`,
-								fillStyle: backgroundColor,
-								strokeStyle: backgroundColor,
-								lineWidth: 0,
-								pointStyle: 'circle',
-								hidden: false,
-								index: i
-							};
-						});
-					}
-					return [];
-				}
-			}
-		},
-		tooltip: {
-			backgroundColor: 'rgba(0, 0, 0, 0.8)',
-			titleColor: '#ffffff',
-			bodyColor: '#ffffff',
-			borderColor: '#374151',
-			borderWidth: 1,
-			cornerRadius: 8,
-			callbacks: {
-				label: function (context) {
-					const value = context.parsed;
-					const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0);
-					const percentage = ((value / total) * 100).toFixed(1);
-					return `${context.label}: ₹${value.toLocaleString('en-IN')} (${percentage}%)`;
-				}
-			}
-		}
-	},
-	cutout: '60%'
-};
-
-// Utility functions
-export function formatCurrency(amount: number): string {
-	return new Intl.NumberFormat('en-IN', {
-		style: 'currency',
-		currency: 'INR'
-	}).format(amount);
+// Legacy interface for backward compatibility
+export interface LayerChartSeries {
+	label: string;
+	data: { x: string; y: number }[];
+	color: string;
 }
 
-export function generateMonthLabels(months: number = 12): string[] {
-	const labels: string[] = [];
-	const now = new Date();
-
-	for (let i = months - 1; i >= 0; i--) {
-		const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-		labels.push(date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
-	}
-
-	return labels;
+export interface LayerChartData {
+	series: LayerChartSeries[];
 }
 
-export function createExpenseByCategory(
-	data: { category: string; amount: number }[]
-): ChartData<'doughnut'> {
-	const colors = Object.values(CHART_COLORS);
-	const backgroundColors = Object.values(CHART_BACKGROUNDS);
+// Transform financial data for LineChart component
+export function createIncomeVsExpenseData(data: { date: string; income: number; expenses: number }[]) {
+	return data.map(item => ({
+		date: new Date(item.date),
+		income: item.income,
+		expenses: Math.abs(item.expenses) // Ensure expenses are positive for display
+	}));
+}
 
+// Transform category spending data for PieChart component
+export function createExpensePieData(data: { category_name: string; spent_amount: number }[]) {
+	return data
+		.filter(item => item.spent_amount > 0)
+		.map((item, index) => ({
+			label: item.category_name,
+			value: item.spent_amount,
+			color: CHART_COLORS.expenses[index % CHART_COLORS.expenses.length]
+		}));
+}
+
+// Transform budget comparison data for BarChart component
+export function createBudgetComparisonData(data: { category_name: string; budgeted_amount: number; spent_amount: number }[]) {
+	return data
+		.filter(item => item.budgeted_amount > 0 || item.spent_amount > 0)
+		.map(item => ({
+			category: item.category_name,
+			budgeted: item.budgeted_amount,
+			spent: item.spent_amount
+		}));
+}
+
+// Transform net worth trend data for LineChart component
+export function createNetWorthTrendData(data: { date: string; assets: number; liabilities: number; net_worth: number }[]) {
+	return data.map(item => ({
+		date: new Date(item.date),
+		assets: item.assets,
+		liabilities: item.liabilities,
+		netWorth: item.net_worth
+	}));
+}
+
+// Transform spending trends data for MultiLineChart component
+export function createSpendingTrendsData(data: { month_year: string; category_type: string; amount: number }[]) {
+	// Group by category type
+	const groupedData = new Map<string, { date: Date; value: number }[]>();
+	
+	data.forEach(item => {
+		const [year, month] = item.month_year.split('-');
+		const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+		
+		if (!groupedData.has(item.category_type)) {
+			groupedData.set(item.category_type, []);
+		}
+		
+		groupedData.get(item.category_type)!.push({
+			date,
+			value: item.amount
+		});
+	});
+
+	// Convert to format expected by LineChart with multiple series
+	const allDates = Array.from(new Set(data.map(item => item.month_year))).sort();
+	
+	return allDates.map(monthYear => {
+		const [year, month] = monthYear.split('-');
+		const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+		
+		const result: Record<string, number | Date> = { date };
+		
+		// Add each category type as a separate field
+		groupedData.forEach((values, categoryType) => {
+			const found = values.find(v => 
+				v.date.getFullYear() === date.getFullYear() && 
+				v.date.getMonth() === date.getMonth()
+			);
+			result[categoryType] = found ? found.value : 0;
+		});
+		
+		return result;
+	});
+}
+
+// Legacy compatibility functions (for backward compatibility with existing dashboard code)
+function generateMonthLabels(count: number): string[] {
+	const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+	const currentMonth = new Date().getMonth();
+	return Array.from({ length: count }, (_, i) => 
+		months[(currentMonth - count + 1 + i + 12) % 12]
+	);
+}
+
+export function createMonthlyTrend(incomeData: number[], expenseData: number[], labels?: string[]) {
+	const finalLabels = labels || generateMonthLabels(incomeData.length);
+	return finalLabels.map((label, i) => ({
+		date: label,
+		income: incomeData[i] || 0,
+		expenses: expenseData[i] || 0
+	}));
+}
+
+export function createExpenseByCategory(categories: string[], amounts: number[]) {
+	return categories.map((category, i) => ({
+		category_name: category,
+		spent_amount: amounts[i] || 0
+	}));
+}
+
+export function createBudgetComparison(categories: string[], budgetData: number[], actualData: number[]) {
+	return categories.map((category, i) => ({
+		category_name: category,
+		budgeted_amount: budgetData[i] || 0,
+		spent_amount: actualData[i] || 0
+	}));
+}
+
+export function createCategoryDistribution(categories: string[], amounts: number[]): LayerChartData {
 	return {
-		labels: data.map((item) => item.category),
-		datasets: [
+		series: [
 			{
-				data: data.map((item) => item.amount),
-				backgroundColor: backgroundColors.slice(0, data.length),
-				borderColor: colors.slice(0, data.length),
-				borderWidth: 2
+				label: 'Distribution',
+				data: categories.map((category: string, i: number) => ({ x: category, y: amounts[i] })),
+				color: CHART_COLORS.primary
 			}
 		]
 	};
 }
-
-export function createMonthlyTrend(
-	incomeData: number[],
-	expenseData: number[],
-	labels?: string[]
-): ChartData<'line'> {
-	return {
-		labels: labels || generateMonthLabels(incomeData.length),
-		datasets: [
-			{
-				label: 'Income',
-				data: incomeData,
-				borderColor: CHART_COLORS.income,
-				backgroundColor: CHART_BACKGROUNDS.income,
-				fill: false
-			},
-			{
-				label: 'Expenses',
-				data: expenseData,
-				borderColor: CHART_COLORS.expense,
-				backgroundColor: CHART_BACKGROUNDS.expense,
-				fill: false
-			}
-		]
-	};
-}
-
-export function createBudgetComparison(
-	categories: string[],
-	budgetData: number[],
-	actualData: number[]
-): ChartData<'bar'> {
-	return {
-		labels: categories,
-		datasets: [
-			{
-				label: 'Budget',
-				data: budgetData,
-				backgroundColor: CHART_BACKGROUNDS.budget,
-				borderColor: CHART_COLORS.budget,
-				borderWidth: 1
-			},
-			{
-				label: 'Actual',
-				data: actualData,
-				backgroundColor: CHART_BACKGROUNDS.actual,
-				borderColor: CHART_COLORS.actual,
-				borderWidth: 1
-			}
-		]
-	};
-}
-
-export { ChartJS };

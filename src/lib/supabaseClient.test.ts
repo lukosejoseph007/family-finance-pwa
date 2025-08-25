@@ -2,12 +2,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { signUp, signIn, signOut } from './supabaseClient';
 import * as supabaseSSR from '@supabase/ssr';
 
+// Type definitions for test mocks
+interface MockSupabaseClient {
+	auth: {
+		signUp: ReturnType<typeof vi.fn>;
+		signInWithPassword: ReturnType<typeof vi.fn>;
+		signOut: ReturnType<typeof vi.fn>;
+	};
+	from: ReturnType<typeof vi.fn>;
+}
+
 // Mock the window object
 global.window = {
 	location: {
 		origin: 'http://localhost:5173'
 	}
-} as any;
+} as unknown as Window & typeof globalThis;
 
 describe('supabaseClient', () => {
 	const mockSignUp = vi.fn();
@@ -28,25 +38,31 @@ describe('supabaseClient', () => {
 				update: vi.fn(() => ({})),
 				delete: vi.fn(() => ({}))
 			}))
-		} as any);
+		} as MockSupabaseClient);
 	});
 
 	describe('signUp', () => {
 		it('should call signUp with correct parameters', async () => {
 			mockSignUp.mockResolvedValue({ data: {}, error: null });
-			await signUp('test@example.com', 'password');
+			await signUp('test@example.com', 'password', 'Test User');
 
 			expect(mockSignUp).toHaveBeenCalledWith({
 				email: 'test@example.com',
 				password: 'password',
-				options: { emailRedirectTo: 'http://localhost:5173/auth/callback' }
+				options: {
+					emailRedirectTo: 'http://localhost:5173/auth/callback',
+					data: {
+						display_name: 'Test User',
+						full_name: 'Test User'
+					}
+				}
 			});
 		});
 
 		it('should throw an error if signUp fails', async () => {
 			mockSignUp.mockResolvedValue({ data: null, error: new Error('Sign up failed') });
 
-			await expect(signUp('test@example.com', 'password')).rejects.toThrow('Sign up failed');
+			await expect(signUp('test@example.com', 'password', 'Test User')).rejects.toThrow('Sign up failed');
 		});
 	});
 

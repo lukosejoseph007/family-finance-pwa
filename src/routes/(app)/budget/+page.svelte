@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Button, Input, Card, Modal } from '$lib/components';
-	import { formatCurrency } from '$lib/components/charts/ChartUtils';
+	import { formatCurrency } from '$lib/utils/currency';
 	import {
 		getBudgetForMonth,
 		getBudgetSummary,

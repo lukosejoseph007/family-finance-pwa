@@ -68,7 +68,7 @@
 				</div>
 			</div>
 		{:else}
-			<form on:submit|preventDefault={handleResetPassword} class="space-y-6">
+			<form onsubmit={(e) => { e.preventDefault(); handleResetPassword(); }} class="space-y-6">
 				{#if error}
 					<div class="rounded-md bg-red-50 p-4">
 						<div class="text-sm text-red-700">{error}</div>

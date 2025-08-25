@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatCurrency } from '$lib/components/charts/ChartUtils';
+	import { formatCurrency } from '$lib/utils/currency';
 
 	export let budgeted: number;
 	export let spent: number;

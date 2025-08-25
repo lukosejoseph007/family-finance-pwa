@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatCurrency } from '../charts/ChartUtils';
+	import { formatCurrency } from '../../utils/currency';
 	import Card from '../ui/Card.svelte';
 
 	export let account: {
