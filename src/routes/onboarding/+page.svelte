@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { invalidateAll } from '$app/navigation';
@@ -7,6 +8,8 @@
 	import { supabase } from '$lib/supabaseClient';
 	import { isPWA, debugPWAState, clearOnboardingState } from '$lib/pwa.js';
 	import type { FamilyFormData } from '$lib/types';
+
+	export const prerender = false;
 
 	let { data } = $props();
 	let currentStep = $state(1);
@@ -37,154 +40,156 @@
 
 	const storageKey = 'onboarding_step';
 
-	// Enhanced mount with PWA fixes
-	onMount(() => {
-		pwaMode = isPWA();
-		
-		if (pwaMode) {
-			console.log('📱 PWA Mode detected in onboarding');
-			debugPWAState();
+	if (browser) {
+		// Enhanced mount with PWA fixes
+		onMount(() => {
+			pwaMode = isPWA();
 			
-			// Apply PWA-specific fixes
-			document.body.setAttribute('data-route', 'onboarding');
-			
-			// Clear any problematic state that might cause refresh loops
-			// Only clear onboarding state if we're not already in the middle of onboarding
-			const url = new URL(window.location.href);
-			if (!url.searchParams.has('step')) {
-				clearOnboardingState();
-			}
-			
-			// Prevent excessive refreshing in PWA mode
-			// Commented out to prevent continuous refresh issues
-			// const preventRefresh = (e: BeforeUnloadEvent) => {
-			// 	refreshCount++;
-			// 	if (refreshCount > MAX_REFRESH_COUNT) {
-			// 		console.warn('🚨 Preventing excessive refresh in onboarding');
-			// 		e.preventDefault();
-			// 		e.returnValue = 'Are you sure you want to leave?';
-			// 		return 'Are you sure you want to leave?';
-			// 	}
-			// };
-			
-			// window.addEventListener('beforeunload', preventRefresh);
-			
-			// Handle PWA scroll container setup
-			if (containerRef) {
-				containerRef.style.overscrollBehavior = 'contain';
-				(containerRef.style as any).webkitOverflowScrolling = 'touch';
-			}
-		}
-
-		// Check for pending invite code from signup
-		const pendingInviteCode = sessionStorage.getItem('pendingInviteCode');
-		const pendingDisplayName = sessionStorage.getItem('pendingDisplayName');
-
-		if (pendingInviteCode) {
-			console.log('🔗 Found pending invite code from signup:', pendingInviteCode);
-			inviteCode = pendingInviteCode;
-			displayName = pendingDisplayName || '';
-			joinMode = true;
-			currentStep = 2; // Skip to step 2 for joining
-
-			// Clear from session storage
-			sessionStorage.removeItem('pendingInviteCode');
-			sessionStorage.removeItem('pendingDisplayName');
-		} else {
-			const savedStep = sessionStorage.getItem(storageKey);
-			if (savedStep) {
-				const parsedStep = parseInt(savedStep, 10);
-				// Validate step to prevent invalid states
-				if (parsedStep >= 1 && parsedStep <= 3) {
-					currentStep = parsedStep;
-				}
-			}
-		}
-	});
-
-	// Enhanced scroll event debugging with PWA considerations
-	onMount(() => {
-		const handleScroll = (e: Event) => {
 			if (pwaMode) {
-				// In PWA mode, be more careful about scroll handling
-				const target = e.target as HTMLElement;
-				const isAtTop = target.scrollTop <= 0;
-				const isAtBottom = target.scrollTop >= (target.scrollHeight - target.clientHeight);
+				console.log('📱 PWA Mode detected in onboarding');
+				debugPWAState();
 				
-				console.log('🔄 PWA Scroll event', {
-					target: target?.nodeName,
-					currentStep,
-					scrollTop: target?.scrollTop,
-					scrollHeight: target?.scrollHeight,
-					clientHeight: target?.clientHeight,
-					isAtTop,
-					isAtBottom
-				});
+				// Apply PWA-specific fixes
+				document.body.setAttribute('data-route', 'onboarding');
 				
-				// Prevent problematic scroll behaviors
-				if (isAtTop || isAtBottom) {
-					target.style.overscrollBehavior = 'contain';
+				// Clear any problematic state that might cause refresh loops
+				// Only clear onboarding state if we're not already in the middle of onboarding
+				const url = new URL(window.location.href);
+				if (!url.searchParams.has('step')) {
+					clearOnboardingState();
 				}
+				
+				// Prevent excessive refreshing in PWA mode
+				// Commented out to prevent continuous refresh issues
+				// const preventRefresh = (e: BeforeUnloadEvent) => {
+				// 	refreshCount++;
+				// 	if (refreshCount > MAX_REFRESH_COUNT) {
+				// 		console.warn('🚨 Preventing excessive refresh in onboarding');
+				// 		e.preventDefault();
+				// 		e.returnValue = 'Are you sure you want to leave?';
+				// 		return 'Are you sure you want to leave?';
+				// 	}
+				// };
+				
+				// window.addEventListener('beforeunload', preventRefresh);
+				
+				// Handle PWA scroll container setup
+				if (containerRef) {
+					containerRef.style.overscrollBehavior = 'contain';
+					(containerRef.style as any).webkitOverflowScrolling = 'touch';
+				}
+			}
+
+			// Check for pending invite code from signup
+			const pendingInviteCode = sessionStorage.getItem('pendingInviteCode');
+			const pendingDisplayName = sessionStorage.getItem('pendingDisplayName');
+
+			if (pendingInviteCode) {
+				console.log('🔗 Found pending invite code from signup:', pendingInviteCode);
+				inviteCode = pendingInviteCode;
+				displayName = pendingDisplayName || '';
+				joinMode = true;
+				currentStep = 2; // Skip to step 2 for joining
+
+				// Clear from session storage
+				sessionStorage.removeItem('pendingInviteCode');
+				sessionStorage.removeItem('pendingDisplayName');
 			} else {
-				console.log('🔄 Scroll event detected', {
-					target: (e.target as HTMLElement)?.nodeName,
-					currentStep,
-					scrollTop: (e.target as HTMLElement)?.scrollTop,
-					scrollHeight: (e.target as HTMLElement)?.scrollHeight,
-					clientHeight: (e.target as HTMLElement)?.clientHeight
-				});
-			}
-		};
-
-		window.addEventListener('scroll', handleScroll, { passive: true });
-		
-		// Also listen on the container if in PWA mode
-		if (pwaMode && containerRef) {
-			containerRef.addEventListener('scroll', handleScroll, { passive: true });
-		}
-		
-		return () => {
-			window.removeEventListener('scroll', handleScroll);
-			if (containerRef) {
-				containerRef.removeEventListener('scroll', handleScroll);
-			}
-		};
-	});
-
-	onDestroy(() => {
-		document.body.removeAttribute('data-route');
-	});
-
-	// Enhanced effect with PWA state management
-	$effect(() => {
-		console.log('📈 Current step changed to:', currentStep);
-		
-		// Only save to sessionStorage if not in a problematic state
-		if (currentStep >= 1 && currentStep <= 3) {
-			try {
-				sessionStorage.setItem(storageKey, currentStep.toString());
-			} catch (e) {
-				console.warn('Could not save step to sessionStorage:', e);
-			}
-		}
-		
-		// In PWA mode, update URL without causing refresh
-		// Only update if the step parameter is different from the current step
-		if (pwaMode && typeof window !== 'undefined') {
-			const url = new URL(window.location.href);
-			const currentStepParam = url.searchParams.get('step');
-			if (currentStepParam !== currentStep.toString()) {
-				url.searchParams.set('step', currentStep.toString());
-				
-				// Use replaceState to avoid adding to history
-				try {
-					window.history.replaceState({ step: currentStep }, '', url.toString());
-				} catch (e) {
-					console.warn('Could not update URL state:', e);
+				const savedStep = sessionStorage.getItem(storageKey);
+				if (savedStep) {
+					const parsedStep = parseInt(savedStep, 10);
+					// Validate step to prevent invalid states
+					if (parsedStep >= 1 && parsedStep <= 3) {
+						currentStep = parsedStep;
+					}
 				}
 			}
-		}
-	});
+		});
+
+		// Enhanced scroll event debugging with PWA considerations
+		onMount(() => {
+			const handleScroll = (e: Event) => {
+				if (pwaMode) {
+					// In PWA mode, be more careful about scroll handling
+					const target = e.target as HTMLElement;
+					const isAtTop = target.scrollTop <= 0;
+					const isAtBottom = target.scrollTop >= (target.scrollHeight - target.clientHeight);
+					
+					console.log('🔄 PWA Scroll event', {
+						target: target?.nodeName,
+						currentStep,
+						scrollTop: target?.scrollTop,
+						scrollHeight: target?.scrollHeight,
+						clientHeight: target?.clientHeight,
+						isAtTop,
+						isAtBottom
+					});
+					
+					// Prevent problematic scroll behaviors
+					if (isAtTop || isAtBottom) {
+						target.style.overscrollBehavior = 'contain';
+					}
+				} else {
+					console.log('🔄 Scroll event detected', {
+						target: (e.target as HTMLElement)?.nodeName,
+						currentStep,
+						scrollTop: (e.target as HTMLElement)?.scrollTop,
+						scrollHeight: (e.target as HTMLElement)?.scrollHeight,
+						clientHeight: (e.target as HTMLElement)?.clientHeight
+					});
+				}
+			};
+
+			window.addEventListener('scroll', handleScroll, { passive: true });
+			
+			// Also listen on the container if in PWA mode
+			if (pwaMode && containerRef) {
+				containerRef.addEventListener('scroll', handleScroll, { passive: true });
+			}
+			
+			return () => {
+				window.removeEventListener('scroll', handleScroll);
+				if (containerRef) {
+					containerRef.removeEventListener('scroll', handleScroll);
+				}
+			};
+		});
+
+		onDestroy(() => {
+			document.body.removeAttribute('data-route');
+		});
+
+		// Enhanced effect with PWA state management
+		$effect(() => {
+			console.log('📈 Current step changed to:', currentStep);
+			
+			// Only save to sessionStorage if not in a problematic state
+			if (currentStep >= 1 && currentStep <= 3) {
+				try {
+					sessionStorage.setItem(storageKey, currentStep.toString());
+				} catch (e) {
+					console.warn('Could not save step to sessionStorage:', e);
+				}
+			}
+			
+			// In PWA mode, update URL without causing refresh
+			// Only update if the step parameter is different from the current step
+			if (pwaMode && typeof window !== 'undefined') {
+				const url = new URL(window.location.href);
+				const currentStepParam = url.searchParams.get('step');
+				if (currentStepParam !== currentStep.toString()) {
+					url.searchParams.set('step', currentStep.toString());
+					
+					// Use replaceState to avoid adding to history
+					try {
+						window.history.replaceState({ step: currentStep }, '', url.toString());
+					} catch (e) {
+						console.warn('Could not update URL state:', e);
+					}
+				}
+			}
+		});
+	}
 
 	async function createNewFamily() {
 		if (!familyData.name.trim()) {

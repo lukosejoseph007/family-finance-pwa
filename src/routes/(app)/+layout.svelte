@@ -6,6 +6,103 @@
 	import { pwaService } from '$lib/services/pwaService';
 	import { offlineStore } from '$lib/stores/offline';
 	import { setupPWAFixes, isPWA } from '$lib/pwa.js';
+	import { goto } from '$app/navigation';
+	import { supabase } from '$lib/supabaseClient';
+
+	let { data, children } = $props();
+
+	// Keep the user store in sync with the server session
+	if (data.session?.user) {
+		user.set(data.session.user);
+	}
+
+	let sidebarOpen = $state(false);
+
+	function toggleSidebar() {
+		sidebarOpen = !sidebarOpen;
+	}
+
+	// Context-aware FAB configuration
+	const fabConfigs: Record<
+		string,
+		{ icon: string; label: string; href?: string; action?: string; show: boolean }
+	> = {
+		'/dashboard': { icon: 'plus', label: 'Add Transaction', action: 'modal', show: true },
+		'/transactions': { icon: 'plus', label: 'Add Transaction', action: 'modal', show: false },
+		'/accounts': { icon: 'plus', label: 'Add Account', action: 'modal', show: false },
+		'/categories': { icon: 'plus', label: 'Add Category', action: 'modal', show: false },
+		'/budget': { icon: 'edit', label: 'Quick Edit', action: 'modal', show: true },
+		'/goals': { icon: 'plus', label: 'Add Goal', action: 'modal', show: true },
+		'/reports': { icon: 'download', label: 'Export Report', action: 'download', show: true }
+	};
+
+	let currentPath = $derived($page.url.pathname);
+	let fabConfig = $derived(fabConfigs[currentPath] || { icon: 'plus', label: 'Add', show: false });
+
+	function handleFabClick() {
+		const config = fabConfigs[currentPath];
+		if (!config) return;
+
+		if (config.href) {
+			window.location.href = config.href;
+		} else if (config.action === 'modal') {
+			window.dispatchEvent(
+				new CustomEvent('fab-click', {
+					detail: { page: currentPath, action: config.action }
+				})
+			);
+		}
+	}
+
+		ononMount(() => {
+		const checkOnboarding = async () => {
+			if ($page.url.pathname === '/onboarding') return;
+
+			const { data: { session } } = await supabase.auth.getSession();
+			if (session) {
+				const { data: userProfile, error } = await supabase
+					.from('users')
+					.select('family_id')
+					.eq('id', session.user.id)
+					.single();
+
+				if (error && error.code !== 'PGRST116') {
+					console.error('Error fetching user profile:', error);
+					return;
+				}
+
+				if (!userProfile) {
+					const { error: insertError } = await supabase.from('users').insert({
+						id: session.user.id,
+						email: session.user.email!,
+						display_name:
+							session.user.user_metadata?.display_name ||
+							session.user.user_metadata?.full_name ||
+							session.user.email?.split('@')[0]
+					});
+					if (insertError) {
+						console.error('Failed to create user profile:', insertError);
+					} else {
+						goto('/onboarding');
+					}
+				} else if (!userProfile.family_id) {
+					goto('/onboarding');
+				}
+			}
+		};
+
+		checkOnboarding();
+
+		<script lang="ts">
+	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
+	import { user } from '$lib/store';
+	import { Sidebar, OfflineIndicator } from '$lib/components';
+	import { pwaService } from '$lib/services/pwaService';
+	import { offlineStore } from '$lib/stores/offline';
+	import { setupPWAFixes, isPWA } from '$lib/pwa.js';
+	import { goto } from '$app/navigation';
+	import { supabase } from '$lib/supabaseClient';
 
 	let { data, children } = $props();
 
@@ -53,6 +150,44 @@
 	}
 
 	onMount(() => {
+		const checkOnboarding = async () => {
+			if ($page.url.pathname === '/onboarding') return;
+
+			const { data: { session } } = await supabase.auth.getSession();
+			if (session) {
+				const { data: userProfile, error } = await supabase
+					.from('users')
+					.select('family_id')
+					.eq('id', session.user.id)
+					.single();
+
+				if (error && error.code !== 'PGRST116') {
+					console.error('Error fetching user profile:', error);
+					return;
+				}
+
+				if (!userProfile) {
+					const { error: insertError } = await supabase.from('users').insert({
+						id: session.user.id,
+						email: session.user.email!,
+						display_name:
+							session.user.user_metadata?.display_name ||
+							session.user.user_metadata?.full_name ||
+							session.user.email?.split('@')[0]
+					});
+					if (insertError) {
+						console.error('Failed to create user profile:', insertError);
+					} else {
+						goto('/onboarding');
+					}
+				} else if (!userProfile.family_id) {
+					goto('/onboarding');
+				}
+			}
+		};
+
+		checkOnboarding();
+
 		// === Initialize service worker ===
 		pwaService.init();
 
@@ -105,6 +240,7 @@
 			clearInterval(updateInterval);
 		};
 	});
+</script>
 </script>
 
 

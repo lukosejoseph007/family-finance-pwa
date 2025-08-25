@@ -1,11 +1,165 @@
-[plugin:vite-plugin-svelte:compile] src/lib/components/charts/LineChart.svelte:63:1 `{@const}` must be the immediate child of `{#snippet}`, `{#if}`, `{:else if}`, `{:else}`, `{#each}`, `{:then}`, `{:catch}`, `<svelte:fragment>`, `<svelte:boundary` or `<Component>`
-https://svelte.dev/e/const_tag_invalid_placement
-LineChart.svelte:63:1
-61 |    {/if}
- 62 |    
- 63 |    {@const safeData = chartData()}
-                                        ^
- 64 |    {#if safeData.length === 0}
- 65 |      <div class="flex h-full items-center justify-center">
-Click outside, press Esc key, or fix the code to dismiss.
-You can also disable this overlay by setting server.hmr.overlay to false in vite.config.ts.
+  GET https://family-finance-pwa.vercel.app/onboarding 500 (Internal Server Error)
+_.Kg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:125
+_.ZA @ www.gstatic.com/_/ms…PMbc,qmdT9,LDQI:738
+gB @ www.gstatic.com/_/ms…PMbc,qmdT9,LDQI:762
+_.aua @ www.gstatic.com/_/ms…PMbc,qmdT9,LDQI:762
+_.Q6 @ www.gstatic.com/_/ms…Mbc,qmdT9,LDQI:1304
+(anonymous) @ www.gstatic.com/_/ms…Mbc,qmdT9,LDQI:1960
+Lj @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:175
+next @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:176
+b @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:177
+Promise.then
+f @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:177
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:177
+ffa @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:177
+_.Mj @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:177
+_.g.o6 @ www.gstatic.com/_/ms…Mbc,qmdT9,LDQI:1959
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:458
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.map @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+sla @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:457
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.flatMap @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.flatMap @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+ola @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+pla @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:454
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:461
+c @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:360
+kl.ila.gz @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:449
+ila.Xf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:448
+kla.Xf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:449
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:158
+q @ accounts.google.com/…8rFY7wJlVvMUL6A:183
+p.handleEvent @ accounts.google.com/…8rFY7wJlVvMUL6A:183
+e @ accounts.google.com/…8rFY7wJlVvMUL6A:184
+trigger @ accounts.google.com/…8rFY7wJlVvMUL6A:185
+_.Zi.trigger @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:450
+_.ti @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:143
+_.g.trigger @ www.gstatic.com/_/ms…PMbc,qmdT9,LDQI:134
+_.g.D1 @ www.gstatic.com/_/ms…Mbc,qmdT9,LDQI:1993
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:458
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.map @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+sla @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:457
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.flatMap @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.flatMap @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+ola @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+pla @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:454
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:461
+c @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:360
+kl.ila.gz @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:449
+ila.Xf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:448
+kla.Xf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:449
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:158
+q @ accounts.google.com/…8rFY7wJlVvMUL6A:183
+p.handleEvent @ accounts.google.com/…8rFY7wJlVvMUL6A:183
+e @ accounts.google.com/…8rFY7wJlVvMUL6A:184
+trigger @ accounts.google.com/…8rFY7wJlVvMUL6A:185
+_.Zi.trigger @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:450
+_.ti @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:143
+_.g.trigger @ www.gstatic.com/_/ms…PMbc,qmdT9,LDQI:134
+_.g.action @ www.gstatic.com/_/ms…Mbc,qmdT9,LDQI:1968
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:458
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.map @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+sla @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:457
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.flatMap @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.flatMap @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+ola @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+pla @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:454
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:461
+c @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:360
+kl.ila.gz @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:449
+ila.Xf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:448
+kla.Xf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:449
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:158
+q @ accounts.google.com/…8rFY7wJlVvMUL6A:183
+p.handleEvent @ accounts.google.com/…8rFY7wJlVvMUL6A:183
+e @ accounts.google.com/…8rFY7wJlVvMUL6A:184
+trigger @ accounts.google.com/…8rFY7wJlVvMUL6A:185
+_.Zi.trigger @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:450
+_.ti @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:143
+_.g.trigger @ www.gstatic.com/_/ms…PMbc,qmdT9,LDQI:134
+_.g.Ib @ www.gstatic.com/_/ms…Mbc,qmdT9,LDQI:1076
+_.g.Ib @ www.gstatic.com/_/ms…Mbc,qmdT9,LDQI:1155
+_.g.click @ www.gstatic.com/_/ms…Mbc,qmdT9,LDQI:1071
+_.g.click @ www.gstatic.com/_/ms…Mbc,qmdT9,LDQI:1155
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:458
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.map @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+sla @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:457
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.flatMap @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.bg @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+_.Yf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:305
+_.Yf.flatMap @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:306
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+ola @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:455
+pla @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:454
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:461
+c @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:360
+kl.ila.gz @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:449
+ila.Xf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:448
+kla.Xf @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:449
+(anonymous) @ www.gstatic.com/_/ms…cXMo_g/m=_b,_tp:158
+q @ accounts.google.com/…8rFY7wJlVvMUL6A:183
+p.handleEvent @ accounts.google.com/…8rFY7wJlVvMUL6A:183
+e @ accounts.google.com/…8rFY7wJlVvMUL6A:184
+(anonymous) @ accounts.google.com/…8rFY7wJlVvMUL6A:184
+0.bZxY60sL.js:1 📱 PWA Mode: false
+0.bZxY60sL.js:1 🔗 Current URL: https://family-finance-pwa.vercel.app/onboarding
+0.bZxY60sL.js:1 🎯 Display Mode: browser
+0.bZxY60sL.js:1 🔄 Auth state change: SIGNED_IN lukoselrs@gmail.com
+0.bZxY60sL.js:1 🔄 Auth state change: INITIAL_SESSION lukoselrs@gmail.com
+0.bZxY60sL.js:1 🔄 Auth state change: SIGNED_IN lukoselrs@gmail.com
