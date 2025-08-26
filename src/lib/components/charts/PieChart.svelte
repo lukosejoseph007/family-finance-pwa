@@ -121,7 +121,7 @@
   </div>
   <div class="pie-container">
     <div class="pie-chart-wrapper">
-      <svg bind:this={svgElement} class="pie-chart" />
+      <svg bind:this={svgElement} class="pie-chart" viewBox="0 0 350 350" preserveAspectRatio="xMidYMid meet" />
     </div>
     <div class="pie-legend">
       {#each data as category, index}
@@ -169,6 +169,7 @@
   .pie-chart-wrapper {
     position: relative;
     flex-shrink: 0;
+    max-width: 100%;
   }
 
   .pie-chart {
