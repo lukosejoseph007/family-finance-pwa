@@ -1,45 +1,107 @@
+// Import transaction and category services
+import { getTransactions } from '$lib/services/transactionService';
+import { getActiveCategories, categoryTypeColors } from '$lib/services/categoryService';
 import type { PageLoad } from './$types';
-import type { DashboardData, WaterfallItem, PieCategory } from '$lib/types';
+import type { DashboardData, WaterfallItem, PieCategory, CategoryType, Transaction } from '$lib/types';
 
 export const load: PageLoad = async ({ parent }) => {
   const data = await parent();
   
-  // Sample data matching the HTML example format
-  const monthlyData = [
-    { month: 'Jan', income: 5000, expenses: 4200, savings: 800 },
-    { month: 'Feb', income: 5200, expenses: 4500, savings: 700 },
-    { month: 'Mar', income: 5100, expenses: 4100, savings: 1000 },
-    { month: 'Apr', income: 5300, expenses: 4600, savings: 700 },
-    { month: 'May', income: 5150, expenses: 4300, savings: 850 },
-    { month: 'Jun', income: 5400, expenses: 4700, savings: 700 }
-  ];
+  // Fetch real data from services
+  const { transactions } = await getTransactions();
+  const categories = await getActiveCategories();
 
-  const expenseCategories: PieCategory[] = [
-    { name: 'Housing', value: 1800, color: '#FF6B6B', percentage: 38.3 },
-    { name: 'Food', value: 800, color: '#4ECDC4', percentage: 17.0 },
-    { name: 'Transportation', value: 600, color: '#45B7D1', percentage: 12.8 },
-    { name: 'Utilities', value: 400, color: '#96CEB4', percentage: 8.5 },
-    { name: 'Entertainment', value: 300, color: '#FECA57', percentage: 6.4 },
-    { name: 'Healthcare', value: 250, color: '#FF9FF3', percentage: 5.3 },
-    { name: 'Other', value: 550, color: '#A8E6CF', percentage: 11.7 }
-  ];
+  // Process monthly trends
+  const monthlyData = transactions.reduce((acc: { month: string; income: number; expenses: number; savings: number }[], transaction: Transaction) => {
+    const month = new Date(transaction.transaction_date).toLocaleString('default', { month: 'short' });
+    const existing = acc.find(item => item.month === month);
+    if (existing) {
+      if (transaction.amount > 0) existing.income += transaction.amount;
+      else existing.expenses += Math.abs(transaction.amount);
+      existing.savings = existing.income - existing.expenses;
+    } else {
+      acc.push({
+        month,
+        income: transaction.amount > 0 ? transaction.amount : 0,
+        expenses: transaction.amount < 0 ? Math.abs(transaction.amount) : 0,
+        savings: 0
+      });
+    }
+    return acc;
+  }, []);
 
-  const waterfallData: WaterfallItem[] = [
-    { name: 'Income', value: 5200, cumulative: 5200, type: 'income', color: '#10B981' },
-    { name: 'Housing', value: -1800, cumulative: 3400, type: 'expense', color: '#FF6B6B' },
-    { name: 'Food', value: -800, cumulative: 2600, type: 'expense', color: '#4ECDC4' },
-    { name: 'Transport', value: -600, cumulative: 2000, type: 'expense', color: '#45B7D1' },
-    { name: 'Utilities', value: -400, cumulative: 1600, type: 'expense', color: '#96CEB4' },
-    { name: 'Entertainment', value: -300, cumulative: 1300, type: 'expense', color: '#FECA57' },
-    { name: 'Healthcare', value: -250, cumulative: 1050, type: 'expense', color: '#FF9FF3' },
-    { name: 'Other', value: -550, cumulative: 500, type: 'expense', color: '#A8E6CF' },
-    { name: 'Net Savings', value: 500, cumulative: 500, type: 'net', color: '#8B5CF6' }
-  ];
+  // Sort by month order
+  const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  monthlyData.sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month));
 
   // Calculate metrics
   const totalIncome = monthlyData.reduce((sum, d) => sum + d.income, 0);
   const totalExpenses = monthlyData.reduce((sum, d) => sum + d.expenses, 0);
-  const totalSavings = monthlyData.reduce((sum, d) => sum + d.savings, 0);
+  const totalSavings = totalIncome - totalExpenses;
+
+  // Generate expense categories
+  const expenseCategories: PieCategory[] = categories
+    .filter(cat => cat.type !== 'income')
+    .map(category => {
+      const categoryTransactions = transactions.filter((t: Transaction) => t.category_id === category.id);
+      const total = categoryTransactions.reduce((sum, t: Transaction) => sum + Math.abs(t.amount), 0);
+      return {
+        name: category.name,
+        value: total,
+        color: categoryTypeColors[category.type as CategoryType] || '#FF6B6B',
+        percentage: totalExpenses > 0 ? Number((total / totalExpenses * 100).toFixed(2)) : 0
+      };
+    })
+    .filter(cat => cat.value > 0);
+
+  // Generate waterfall data
+  const waterfallData: WaterfallItem[] = [];
+  let cumulative = 0;
+
+  // Add income categories
+  categories
+    .filter(cat => cat.type === 'income')
+    .forEach(category => {
+      const categoryTransactions = transactions.filter((t: Transaction) => t.category_id === category.id);
+      const total = categoryTransactions.reduce((sum, t: Transaction) => sum + t.amount, 0);
+      if (total > 0) {
+        waterfallData.push({
+          name: category.name,
+          value: total,
+          cumulative: cumulative + total,
+          type: 'income',
+          color: categoryTypeColors[category.type as CategoryType] || '#10B981'
+        });
+        cumulative += total;
+      }
+    });
+
+  // Add expense categories
+  categories
+    .filter(cat => cat.type !== 'income')
+    .forEach(category => {
+      const categoryTransactions = transactions.filter((t: Transaction) => t.category_id === category.id);
+      const total = categoryTransactions.reduce((sum, t: Transaction) => sum + Math.abs(t.amount), 0);
+      if (total > 0) {
+        waterfallData.push({
+          name: category.name,
+          value: -total,
+          cumulative: cumulative - total,
+          type: 'expense',
+          color: categoryTypeColors[category.type as CategoryType] || '#FF6B6B'
+        });
+        cumulative -= total;
+      }
+    });
+
+  // Add net savings
+  waterfallData.push({
+    name: 'Net Savings',
+    value: totalSavings,
+    cumulative: totalSavings,
+    type: 'net',
+    color: '#8B5CF6'
+  });
 
   const dashboardData: DashboardData = {
     waterfall: waterfallData,

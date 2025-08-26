@@ -39,8 +39,8 @@ CREATE TABLE public.categories (
   description text,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT categories_pkey PRIMARY KEY (id),
-  CONSTRAINT categories_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.categories(id),
-  CONSTRAINT categories_family_id_fkey FOREIGN KEY (family_id) REFERENCES public.families(id)
+  CONSTRAINT categories_family_id_fkey FOREIGN KEY (family_id) REFERENCES public.families(id),
+  CONSTRAINT categories_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.categories(id)
 );
 CREATE TABLE public.export_logs (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

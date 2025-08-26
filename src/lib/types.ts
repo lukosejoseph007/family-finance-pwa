@@ -45,18 +45,36 @@ export interface Account {
   currency: string;
 }
 
+export type CategoryType = 'immediate_obligations' | 'true_expenses' | 'quality_of_life' | 'just_for_fun' | 'income';
+
 export interface Category {
   id: string;
   name: string;
-  type: 'income' | 'expense';
+  type: CategoryType;
   is_active: boolean;
   budget?: number;
 }
 
 export interface Transaction {
-  category: string;
+  id: string;
+  family_id: string;
+  user_id: string;
+  account_id: string;
+  category_id: string | null;
   amount: number;
-  type: 'income' | 'expense' | 'net';
+  transaction_date: string;
+  description: string;
+  memo: string | null;
+  is_cleared: boolean;
+  created_at: string;
+  account: {
+    name: string;
+    type: string;
+  };
+  category: {
+    name: string;
+    type: string;
+  };
 }
 
 export interface MonthlySummary {

@@ -71,7 +71,7 @@
             <div class="tooltip-content" style="--tooltip-color: ${d.data.color}; --tooltip-color-rgb: ${d.data.color.replace('#', '').padEnd(6, d.data.color.replace('#', '')).match(/.{2}/g)?.map(hex => parseInt(hex, 16)).join(',')}">
               <div class="tooltip-title">${d.data.name}</div>
               <div class="tooltip-value">${formatCurrency(d.data.value)}</div>
-              <div class="tooltip-percentage">${d.data.percentage}% of total</div>
+              <div class="tooltip-percentage">${d.data.percentage.toFixed(2)}% of total</div>
             </div>
           `);
       })
@@ -100,7 +100,7 @@
       .style('stroke-width', '1px')
       .style('stroke-linecap', 'round')
       .style('stroke-linejoin', 'round')
-      .text(d => d.data.percentage >= 5 ? `${d.data.percentage}%` : '');
+      .text(d => d.data.percentage >= 5 ? `${d.data.percentage.toFixed(2)}%` : '');
   }
 
   onMount(() => {
@@ -132,7 +132,7 @@
           </div>
           <div class="legend-values">
             <span class="legend-value">{formatCurrency(category.value)}</span>
-            <span class="legend-percent">({category.percentage}%)</span>
+            <span class="legend-percent">({category.percentage.toFixed(2)}%)</span>
           </div>
         </div>
       {/each}

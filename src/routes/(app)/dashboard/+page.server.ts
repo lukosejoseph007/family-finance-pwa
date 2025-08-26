@@ -22,24 +22,40 @@ export const load: PageServerLoad = async ({ parent, locals }) => {
 		
 		const { data: user, error: userError } = await locals.supabase
 			.from('users')
-			.select(`
-				*,
-				families (*)
-			`)
+			.select(`*`)
 			.eq('id', session.user.id)
 			.single();
 
 		console.log('🔍 Dashboard: User query result');
 		console.log('  - User error:', userError);
 		console.log('  - User data:', user ? 'Found' : 'Null');
-		console.log('  - User families:', user?.families ? 'Found' : 'Null');
-		
-		if (userError || !user || !user.families) {
-			console.error('❌ Dashboard: Failed to fetch user/family data:', userError);
-			throw new Error('Family not found');
+
+		if (userError || !user) {
+			console.error('❌ Dashboard: Failed to fetch user data:', userError);
+			throw new Error('User not found');
 		}
 
-		const family: Family = user.families;
+		if (!user.family_id) {
+			// This should be caught by the layout load function, but as a safeguard:
+			console.error('❌ Dashboard: User is not associated with a family.');
+			throw new Error('User is not associated with a family.');
+		}
+
+		console.log('🔍 Dashboard: Fetching family with ID:', user.family_id);
+		const { data: family, error: familyError } = await locals.supabase
+			.from('families')
+			.select('*')
+			.eq('id', user.family_id)
+			.single();
+
+		console.log('🔍 Dashboard: Family query result');
+		console.log('  - Family error:', familyError);
+		console.log('  - Family data:', family ? 'Found' : 'Null');
+
+		if (familyError || !family) {
+			console.error('❌ Dashboard: Failed to fetch family data:', familyError);
+			throw new Error('Family not found');
+		}
 		console.log('🔍 Dashboard: Family found:', family.name);
 		console.log('🔍 Dashboard: Family settings:', family.settings);
 
